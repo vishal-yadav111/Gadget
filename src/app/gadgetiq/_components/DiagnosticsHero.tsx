@@ -1,0 +1,1707 @@
+"use client";
+
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import StickyQuoteForm from "./StickyQuoteForm";
+
+import {
+  Activity,
+  ArrowRight,
+  Award,
+  BarChart3,
+  BatteryCharging,
+  Bluetooth,
+  Building2,
+  Camera,
+  Check,
+  CheckCircle2,
+  CirclePlay,
+  Cpu,
+  Fan,
+  Gauge,
+  Globe2,
+  HardDrive,
+  Info,
+  Keyboard,
+  Laptop,
+  Leaf,
+  Loader2,
+  MemoryStick,
+  Monitor,
+  MonitorCheck,
+  MousePointer2,
+  Network,
+  Package,
+  Play,
+  QrCode,
+  ScanLine,
+  ShieldCheck,
+  Smartphone,
+  Sparkles,
+  Usb,
+  Users,
+  Volume2,
+  Wifi,
+} from "lucide-react";
+
+export default function DiagnosticsHero() {
+  return (
+    <section className="relative flex min-h-[100svh] flex-col overflow-hidden bg-[#F8FAFD]">
+      <StickyQuoteForm />
+
+      {/* BACKGROUND */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_75%_28%,rgba(79,145,255,0.14),transparent_30%)]" />
+
+      <div className="pointer-events-none absolute right-[12%] top-[3%] h-[400px] w-[400px] rounded-full border-[45px] border-[#EAF3FF]/80" />
+
+      <div
+        className="pointer-events-none absolute right-[4%] top-[3%] h-[100px] w-[130px] opacity-30"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle, #72A9F7 1.5px, transparent 1.5px)",
+          backgroundSize: "18px 18px",
+        }}
+      />
+
+      {/* =====================================================
+          MAIN HERO
+      ===================================================== */}
+
+      <div className="relative mx-auto grid w-full max-w-[1500px] flex-1 items-center gap-5 px-6 pb-5 pt-28 lg:grid-cols-[0.88fr_1.12fr] lg:px-10 xl:px-14">
+        {/* LEFT SIDE */}
+
+        <div className="relative z-20 max-w-[620px]">
+          <div className="inline-flex rounded-full bg-[#E9F1FC] px-4 py-1.5">
+            <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#0068E8]">
+              Global Device Intelligence
+            </span>
+          </div>
+
+          <h1 className="mt-4 text-[42px] font-bold leading-[0.98] tracking-[-0.045em] text-[#12264D] sm:text-[48px] lg:text-[54px] xl:text-[60px]">
+            Test your device
+            <br />
+            before you{" "}
+            <span className="whitespace-nowrap italic text-[#0868E9]">
+              Trust It.
+            </span>
+          </h1>
+
+          <p className="mt-5 max-w-[560px] text-[14px] leading-6 text-[#647391] lg:text-[15px]">
+            Functional device diagnostics for smarter buy, sell, report, and
+            refurbishment decisions.
+          </p>
+
+          {/* CTA */}
+
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              className="group flex items-center justify-center gap-3 rounded-full bg-gradient-to-r from-[#FF5436] to-[#F13B20] px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white shadow-[0_10px_22px_rgba(247,69,38,0.25)] transition duration-300 hover:-translate-y-0.5"
+            >
+              Book a Demo
+
+              <ArrowRight
+                size={16}
+                className="transition-transform duration-300 group-hover:translate-x-1"
+              />
+            </button>
+
+            <button
+              type="button"
+              className="group flex items-center justify-center gap-3 rounded-full border border-[#D4DFEF] bg-white/80 px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.1em] text-[#17294D] shadow-sm transition duration-300 hover:border-[#B8CAE3] hover:bg-white"
+            >
+              See How It Flows
+
+              <ArrowRight
+                size={16}
+                className="transition-transform duration-300 group-hover:translate-x-1"
+              />
+            </button>
+          </div>
+
+          {/* BENEFITS */}
+
+          <div className="mt-7 flex flex-wrap items-center gap-4">
+            <Benefit
+              icon={<ShieldCheck size={20} />}
+              title="Accurate"
+              text="Diagnostics"
+              type="blue"
+            />
+
+            <Benefit
+              icon={<Sparkles size={20} />}
+              title="Faster"
+              text="Decisions"
+              type="purple"
+            />
+
+            <Benefit
+              icon={<BarChart3 size={20} />}
+              title="Trusted"
+              text="by Professionals"
+              type="green"
+            />
+          </div>
+        </div>
+
+        {/* ===================================================
+            RIGHT SIDE
+        =================================================== */}
+
+        <div className="relative z-10 flex min-w-0 min-h-[430px] items-center justify-center lg:justify-end">
+          <div className="pointer-events-none absolute left-[15%] top-[4%] h-[390px] w-[390px] rounded-full bg-[#DCEBFF]/55 blur-[70px]" />
+
+          <div className="relative z-10 flex min-w-0 w-full justify-center lg:justify-end">
+            <ScaledMockup referenceWidth={720}>
+              <LaptopDiagnosticsMockup />
+            </ScaledMockup>
+          </div>
+        </div>
+      </div>
+
+      {/* =====================================================
+          BOTTOM TRUST BAR
+      ===================================================== */}
+
+      <div className="relative z-20 border-t border-[#DDE6F2] bg-white/60 backdrop-blur-sm">
+        <div className="mx-auto flex w-full max-w-[1500px] flex-col justify-between gap-4 px-6 py-4 lg:flex-row lg:items-center lg:px-10 xl:px-14">
+          <div>
+            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#7786A2]">
+              Trusted Across the Device Ecosystem
+            </p>
+
+            <div className="mt-3 flex flex-wrap items-center gap-7">
+              <Metric
+                icon={<Users size={22} />}
+                value="50K+"
+                label="Devices Tested"
+              />
+
+              <Metric
+                icon={<Building2 size={22} />}
+                value="1,200+"
+                label="Businesses"
+              />
+
+              <Metric
+                icon={<Globe2 size={23} />}
+                value="25+"
+                label="Countries"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 lg:border-l lg:border-[#DDE6F2] lg:pl-8">
+            <Leaf
+              size={21}
+              className="text-[#23B86B]"
+              fill="currentColor"
+            />
+
+            <p className="text-[12px] font-medium text-[#6D7D9C]">
+              Smarter Devices. A More Sustainable Tomorrow.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* ANIMATIONS */}
+
+      <style jsx global>{`
+        @keyframes diagnosticGlow {
+          0%,
+          100% {
+            box-shadow: 0 0 0 0 rgba(8, 117, 247, 0);
+          }
+
+          50% {
+            box-shadow: 0 0 0 4px rgba(8, 117, 247, 0.08);
+          }
+        }
+
+        @keyframes rowRunning {
+          0%,
+          100% {
+            background: rgba(8, 117, 247, 0.025);
+          }
+
+          50% {
+            background: rgba(8, 117, 247, 0.07);
+          }
+        }
+
+        @keyframes progressShine {
+          from {
+            transform: translateX(-110%);
+          }
+
+          to {
+            transform: translateX(240%);
+          }
+        }
+
+        @keyframes certificatePop {
+          0% {
+            opacity: 0;
+            transform: scale(0.92) translateY(10px);
+          }
+
+          100% {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+
+        .diagnostic-running-row {
+          animation: rowRunning 1.3s ease-in-out infinite;
+        }
+
+        .diagnostic-run-button {
+          animation: diagnosticGlow 1.7s ease-in-out infinite;
+        }
+
+        .diagnostic-progress-shine {
+          animation: progressShine 1.5s linear infinite;
+        }
+
+        .diagnostic-certificate-pop {
+          animation: certificatePop 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .diagnostic-running-row,
+          .diagnostic-run-button,
+          .diagnostic-progress-shine,
+          .diagnostic-certificate-pop,
+          .animate-spin,
+          .animate-ping {
+            animation: none !important;
+          }
+        }
+      `}</style>
+    </section>
+  );
+}
+
+/* =========================================================
+   TEST TYPES
+========================================================= */
+
+type DiagnosticStatus = "passed" | "running" | "queued";
+
+type DiagnosticTest = {
+  device: string;
+  test: string;
+  icon: React.ElementType;
+};
+
+/* =========================================================
+   FULL 37 TEST SUITE
+========================================================= */
+
+const DIAGNOSTIC_TESTS: DiagnosticTest[] = [
+  {
+    device: "Speaker",
+    test: "Audio Playback Test",
+    icon: Volume2,
+  },
+  {
+    device: "Battery",
+    test: "Battery Health Test",
+    icon: BatteryCharging,
+  },
+  {
+    device: "Internet Connectivity",
+    test: "Internet Test",
+    icon: Network,
+  },
+  {
+    device: "Wireless",
+    test: "Wireless Test",
+    icon: Wifi,
+  },
+  {
+    device: "Bluetooth",
+    test: "Bluetooth Test",
+    icon: Bluetooth,
+  },
+  {
+    device: "Wired Ethernet",
+    test: "Ethernet Test",
+    icon: Network,
+  },
+  {
+    device: "CPU",
+    test: "CPU Performance Test",
+    icon: Cpu,
+  },
+  {
+    device: "RAM",
+    test: "Memory Integrity Test",
+    icon: MemoryStick,
+  },
+  {
+    device: "Storage",
+    test: "Storage Health Test",
+    icon: HardDrive,
+  },
+  {
+    device: "Display",
+    test: "Display Quality Test",
+    icon: MonitorCheck,
+  },
+  {
+    device: "Keyboard",
+    test: "Keyboard Response Test",
+    icon: Keyboard,
+  },
+  {
+    device: "Touchpad",
+    test: "Touchpad Test",
+    icon: MousePointer2,
+  },
+  {
+    device: "Camera",
+    test: "Camera Function Test",
+    icon: Camera,
+  },
+  {
+    device: "Microphone",
+    test: "Microphone Test",
+    icon: Activity,
+  },
+  {
+    device: "USB Port 1",
+    test: "USB Port Test",
+    icon: Usb,
+  },
+  {
+    device: "USB Port 2",
+    test: "USB Port Test",
+    icon: Usb,
+  },
+  {
+    device: "USB-C",
+    test: "USB-C Port Test",
+    icon: Usb,
+  },
+  {
+    device: "HDMI",
+    test: "HDMI Output Test",
+    icon: Monitor,
+  },
+  {
+    device: "GPU",
+    test: "Graphics Performance Test",
+    icon: Gauge,
+  },
+  {
+    device: "Cooling Fan",
+    test: "Fan Performance Test",
+    icon: Fan,
+  },
+  {
+    device: "Thermal",
+    test: "Temperature Test",
+    icon: Activity,
+  },
+  {
+    device: "Webcam",
+    test: "Webcam Quality Test",
+    icon: Camera,
+  },
+  {
+    device: "Left Speaker",
+    test: "Left Speaker Test",
+    icon: Volume2,
+  },
+  {
+    device: "Right Speaker",
+    test: "Right Speaker Test",
+    icon: Volume2,
+  },
+  {
+    device: "Battery Charging",
+    test: "Charging Test",
+    icon: BatteryCharging,
+  },
+  {
+    device: "Battery Stress",
+    test: "Battery Stress Test",
+    icon: BatteryCharging,
+  },
+  {
+    device: "Wi-Fi Signal",
+    test: "Wi-Fi Signal Test",
+    icon: Wifi,
+  },
+  {
+    device: "Bluetooth Signal",
+    test: "Bluetooth Signal Test",
+    icon: Bluetooth,
+  },
+  {
+    device: "CPU Stress",
+    test: "Processor Stress Test",
+    icon: Cpu,
+  },
+  {
+    device: "Memory Stress",
+    test: "Memory Stress Test",
+    icon: MemoryStick,
+  },
+  {
+    device: "SSD Read",
+    test: "Storage Read Test",
+    icon: HardDrive,
+  },
+  {
+    device: "SSD Write",
+    test: "Storage Write Test",
+    icon: HardDrive,
+  },
+  {
+    device: "Display Brightness",
+    test: "Brightness Test",
+    icon: MonitorCheck,
+  },
+  {
+    device: "Display Colour",
+    test: "Colour Accuracy Test",
+    icon: MonitorCheck,
+  },
+  {
+    device: "System Sensors",
+    test: "Sensor Validation Test",
+    icon: ScanLine,
+  },
+  {
+    device: "System Stability",
+    test: "System Stability Test",
+    icon: ShieldCheck,
+  },
+  {
+    device: "Final Verification",
+    test: "Final System Check",
+    icon: Check,
+  },
+];
+
+const TOTAL_TESTS = DIAGNOSTIC_TESTS.length;
+
+const TEST_INTERVAL = 250;
+
+const VISIBLE_ROWS = 6;
+
+/* =========================================================
+   SCALED MOCKUP
+
+   The laptop mockup below is built at a fixed reference
+   width so its dense table content never has to reflow.
+   This wrapper measures the space actually available (any
+   viewport, including narrow phones and the tablet widths
+   where the hero briefly becomes two columns) and scales
+   the mockup down to fit, instead of letting its fixed
+   pixel columns clip or force the page to overflow.
+========================================================= */
+
+function ScaledMockup({
+  referenceWidth,
+  children,
+}: {
+  referenceWidth: number;
+  children: React.ReactNode;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  const [height, setHeight] = useState<number | null>(null);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    const content = contentRef.current;
+    if (!container || !content) return;
+
+    const update = () => {
+      const availableWidth = container.offsetWidth;
+      const nextScale = Math.min(1, availableWidth / referenceWidth);
+      setScale(nextScale);
+      setHeight(content.offsetHeight * nextScale);
+    };
+
+    update();
+
+    const observer = new ResizeObserver(update);
+    observer.observe(container);
+    observer.observe(content);
+
+    return () => observer.disconnect();
+  }, [referenceWidth]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="flex w-full min-w-0 items-start justify-center overflow-hidden"
+      style={height !== null ? { height } : undefined}
+    >
+      <div
+        ref={contentRef}
+        className="shrink-0"
+        style={{
+          width: referenceWidth,
+          transform: `scale(${scale})`,
+          transformOrigin: "top center",
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   LAPTOP DIAGNOSTICS MOCKUP
+========================================================= */
+
+function LaptopDiagnosticsMockup() {
+  return (
+    <div className="relative w-full">
+      {/* LAPTOP SCREEN */}
+      <div className="relative rounded-t-[20px] rounded-b-[8px] bg-gradient-to-b from-[#273143] to-[#121824] p-[9px]">
+        {/* CAMERA */}
+        <span className="absolute left-1/2 top-[3px] z-20 h-[4px] w-[4px] -translate-x-1/2 rounded-full bg-[#596276]" />
+
+        {/* DISPLAY */}
+        <div className="relative aspect-[16/10] overflow-hidden rounded-[9px] bg-[#F5F7FB]">
+          <GadgetIQApplication />
+        </div>
+      </div>
+
+      {/* LAPTOP BASE */}
+      <div
+        className="relative mx-auto h-[15px] w-[108%] -translate-x-1/2 rounded-b-[12px] bg-gradient-to-b from-[#E0E6EE] via-[#C7D0DC] to-[#AEB9C8]"
+        style={{ left: "50%" }}
+      >
+        <span className="absolute left-1/2 top-0 h-[5px] w-[100px] -translate-x-1/2 rounded-b-[7px] bg-[#A4AFBE]" />
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   GADGET IQ APPLICATION
+========================================================= */
+
+type AppPhase = "running" | "certificate" | "admin";
+
+function GadgetIQApplication() {
+  const [completedTests, setCompletedTests] = useState(0);
+  const [cycle, setCycle] = useState(0);
+  const [phase, setPhase] = useState<AppPhase>("running");
+
+  const isFinished = completedTests >= TOTAL_TESTS;
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+
+    if (phase === "running") {
+      if (isFinished) {
+        timer = setTimeout(() => setPhase("certificate"), 3400);
+      } else {
+        timer = setTimeout(() => {
+          setCompletedTests((value) =>
+            Math.min(value + 1, TOTAL_TESTS)
+          );
+        }, TEST_INTERVAL);
+      }
+    } else if (phase === "certificate") {
+      timer = setTimeout(() => setPhase("admin"), 3400);
+    } else {
+      timer = setTimeout(() => {
+        setCompletedTests(0);
+        setCycle((value) => value + 1);
+        setPhase("running");
+      }, 4200);
+    }
+
+    return () => clearTimeout(timer);
+  }, [completedTests, isFinished, phase]);
+
+  const progress = (completedTests / TOTAL_TESTS) * 100;
+
+  const activeIndex =
+    completedTests >= TOTAL_TESTS
+      ? TOTAL_TESTS - 1
+      : Math.max(completedTests, 0);
+
+  const visibleStart = Math.min(
+    Math.max(activeIndex - 2, 0),
+    TOTAL_TESTS - VISIBLE_ROWS
+  );
+
+  const visibleTests = DIAGNOSTIC_TESTS.slice(
+    visibleStart,
+    visibleStart + VISIBLE_ROWS
+  );
+
+  if (phase === "certificate") {
+    return (
+      <CertificateDocument
+        certificateId="XCFB589177"
+        deviceName="Precision X-11"
+        deviceType="Notebook"
+        manufacturer="Precision"
+        serial="XC-90210"
+        model="X-11"
+        issuedDate="07 Aug 2026"
+      />
+    );
+  }
+
+  if (phase === "admin") {
+    return <AdminPanelScreen />;
+  }
+
+  return (
+    <div className="flex h-full min-h-0 flex-col bg-[#F5F7FB]">
+      {/* =====================================================
+          TOP HEADER
+      ===================================================== */}
+
+      <div className="flex h-[42px] shrink-0 items-center justify-between border-b border-[#DCE2EA] bg-white px-4">
+        {/* LOGO */}
+        <div className="flex shrink-0 items-center">
+          <span className="text-[17px] font-black tracking-[-0.05em] text-[#111]">
+            Gadget
+          </span>
+
+          <span className="text-[17px] font-black tracking-[-0.05em] text-[#0875F7]">
+            IQ
+          </span>
+        </div>
+
+        {/* USER INFORMATION */}
+        <div className="flex items-center gap-2.5 whitespace-nowrap text-[7px] font-semibold text-[#26344B]">
+          <span>
+            Welcome <strong>Gaurav3728</strong>
+          </span>
+
+          <Separator />
+
+          <span>07-Aug-2026</span>
+
+          <Separator />
+
+          <span>Licenses: 108</span>
+
+          <Separator />
+
+          <span className="flex items-center gap-1">
+            Internet:
+            <strong className="text-[#13A844]">Online</strong>
+
+            <span className="h-[5px] w-[5px] rounded-full bg-[#16BE4B]" />
+          </span>
+        </div>
+      </div>
+
+      {/* =====================================================
+          DEVICE INFORMATION
+      ===================================================== */}
+
+      <div className="flex h-[32px] shrink-0 items-center gap-5 border-b border-[#DDE2EA] bg-[#FBFCFE] px-4 text-[7.5px] font-medium text-[#33415A]">
+        <span>
+          <strong>System:</strong> Laptop
+        </span>
+
+        <span>
+          <strong>Manufacturer:</strong> Precision
+        </span>
+
+        <span>
+          <strong>Model:</strong> X-11
+        </span>
+
+        <span>
+          <strong>Serial:</strong> XC-90210
+        </span>
+      </div>
+
+      {/* =====================================================
+          BODY
+      ===================================================== */}
+
+      <div className="min-h-0 flex-1 p-[10px]">
+        <div className="grid h-full min-h-0 grid-cols-[minmax(0,1fr)_190px] gap-[10px]">
+          {/* =================================================
+              LEFT TABLE
+          ================================================= */}
+
+          <div className="flex min-h-0 flex-col overflow-hidden rounded-[8px] border border-[#D7DEE8] bg-white shadow-[0_4px_12px_rgba(38,55,80,0.04)]">
+            {/* TABS */}
+
+            <div className="flex h-[39px] shrink-0 border-b border-[#DCE2EA]">
+              <div className="flex w-[155px] items-center justify-center gap-[6px] border-b-[2px] border-[#0875F7] bg-[#F9FCFF] text-[9px] font-bold text-[#172239]">
+                <Activity
+                  size={12}
+                  strokeWidth={2.3}
+                  className="text-[#0875F7]"
+                />
+
+                Diagnostics
+              </div>
+
+              <div className="flex w-[165px] items-center justify-center gap-[6px] border-l border-[#E2E6ED] text-[9px] font-semibold text-[#596982]">
+                <Info size={12} />
+                System Information
+              </div>
+            </div>
+
+            {/* TABLE HEADER */}
+
+            <div className="grid h-[31px] shrink-0 grid-cols-[28px_1.05fr_1.45fr_72px_76px_28px] items-center border-b border-[#D9DEE6] bg-[#F0F2F5] px-[8px] text-[7.5px] font-bold text-[#29364B]">
+              <span className="text-center">#</span>
+
+              <span>Device</span>
+
+              <span>Test Name</span>
+
+              <span>Tested On</span>
+
+              <span className="text-center">
+                Result
+              </span>
+
+              <span className="text-center">
+                Run
+              </span>
+            </div>
+
+            {/* ROWS */}
+
+            <div className="min-h-0 flex-1">
+              {visibleTests.map((test, localIndex) => {
+                const absoluteIndex =
+                  visibleStart + localIndex;
+
+                let status: DiagnosticStatus;
+
+                if (
+                  isFinished ||
+                  absoluteIndex < completedTests
+                ) {
+                  status = "passed";
+                } else if (
+                  absoluteIndex === completedTests
+                ) {
+                  status = "running";
+                } else {
+                  status = "queued";
+                }
+
+                return (
+                  <DiagnosticRow
+                    key={`${cycle}-${absoluteIndex}`}
+                    test={test}
+                    number={absoluteIndex + 1}
+                    status={status}
+                  />
+                );
+              })}
+            </div>
+          </div>
+
+          {/* =================================================
+              RIGHT PANEL
+          ================================================= */}
+
+          <div className="flex min-h-0 flex-col rounded-[8px] border border-[#D7DEE8] bg-white p-[11px] shadow-[0_4px_12px_rgba(38,55,80,0.04)]">
+            {/* CERTIFICATE */}
+
+            <div className="border-b border-[#E3E8EF] pb-[7px]">
+              <div className="flex items-center gap-[7px]">
+                <div className="flex h-[28px] w-[28px] items-center justify-center rounded-[7px] bg-[#EBF4FF]">
+                  <ShieldCheck
+                    size={16}
+                    className="text-[#0875F7]"
+                  />
+                </div>
+
+                <div>
+                  <p className="text-[7px] font-medium text-[#7A879A]">
+                    Certificate
+                  </p>
+
+                  <p className="text-[9px] font-bold text-[#1F2D43]">
+                    XC2C45920E
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* RESULT */}
+
+            <div className="mt-[8px]">
+              <p className="text-[7px] font-semibold text-[#657289]">
+                Test Result
+              </p>
+
+              <div className="mt-[3px] flex items-center gap-[5px]">
+                {!isFinished ? (
+                  <>
+                    <span className="relative flex h-[7px] w-[7px]">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#0875F7]/40" />
+
+                      <span className="relative h-[7px] w-[7px] rounded-full bg-[#0875F7]" />
+                    </span>
+
+                    <p className="text-[10px] font-bold text-[#17233A]">
+                      Testing in Progress
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <span className="flex h-[15px] w-[15px] items-center justify-center rounded-full bg-[#DDF5E5]">
+                      <Check
+                        size={9}
+                        strokeWidth={3}
+                        className="text-[#159447]"
+                      />
+                    </span>
+
+                    <p className="text-[10px] font-bold text-[#159447]">
+                      All Tests Passed
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* LARGE COUNTER */}
+
+            <div className="mt-[10px] rounded-[9px] border border-[#DFE9F7] bg-[#F7FAFF] px-[10px] py-[9px]">
+              <div className="flex items-center justify-between">
+                <p className="text-[7px] font-bold text-[#66758B]">
+                  Diagnostic Tests
+                </p>
+
+                {!isFinished && (
+                  <Loader2
+                    size={13}
+                    className="animate-spin text-[#0875F7]"
+                  />
+                )}
+              </div>
+
+              <div className="mt-[4px] flex items-end">
+                <span className="tabular-nums text-[24px] font-black leading-none tracking-[-0.04em] text-[#0875F7]">
+                  {completedTests}
+                </span>
+
+                <span className="mb-[2px] ml-[3px] text-[9px] font-bold text-[#7D8AA0]">
+                  / 37
+                </span>
+              </div>
+
+              {/* PROGRESS BAR */}
+
+              <div className="relative mt-[8px] h-[5px] overflow-hidden rounded-full bg-[#E1EAF5]">
+                <div
+                  className={`relative h-full rounded-full transition-[width] duration-200 ${
+                    isFinished
+                      ? "bg-[#22B263]"
+                      : "bg-gradient-to-r from-[#0875F7] to-[#46A4FF]"
+                  }`}
+                  style={{
+                    width: `${progress}%`,
+                  }}
+                >
+                  {!isFinished && (
+                    <span className="diagnostic-progress-shine absolute inset-y-0 w-[22px] bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-[5px] flex items-center justify-between">
+                <span className="text-[6.5px] font-medium text-[#7C899C]">
+                  {isFinished
+                    ? "Completed"
+                    : "Running diagnostics"}
+                </span>
+
+                <span className="text-[7px] font-bold text-[#0875F7]">
+                  {Math.round(progress)}%
+                </span>
+              </div>
+            </div>
+
+            {/* CURRENT TEST */}
+
+            <div className="mt-[8px] rounded-[7px] bg-[#EEF6FF] px-[9px] py-[7px]">
+              <p className="text-[6.5px] font-semibold text-[#718098]">
+                Currently Testing
+              </p>
+
+              <div className="mt-[4px] flex items-center gap-[5px]">
+                {!isFinished ? (
+                  <>
+                    <span className="relative flex h-[6px] w-[6px] shrink-0">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#0875F7]/50" />
+
+                      <span className="relative inline-flex h-[6px] w-[6px] rounded-full bg-[#0875F7]" />
+                    </span>
+
+                    <p className="truncate text-[8px] font-bold text-[#0875F7]">
+                      {
+                        DIAGNOSTIC_TESTS[
+                          Math.min(
+                            completedTests,
+                            TOTAL_TESTS - 1
+                          )
+                        ].test
+                      }
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <Check
+                      size={9}
+                      strokeWidth={3}
+                      className="text-[#149447]"
+                    />
+
+                    <p className="text-[8px] font-bold text-[#149447]">
+                      Diagnostics Complete
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* RUN BUTTON */}
+
+            <button
+              type="button"
+              className="mt-auto flex h-[31px] shrink-0 items-center justify-center gap-[6px] rounded-[6px] bg-[#0789F5] text-[7.5px] font-bold uppercase tracking-[0.02em] text-white shadow-[0_5px_12px_rgba(8,117,247,0.20)]"
+            >
+              <CirclePlay size={12} />
+
+              Run All Tests Again
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* =====================================================
+          HELP BAR
+      ===================================================== */}
+
+      <div className="mx-[10px] mb-[6px] flex h-[29px] shrink-0 items-center rounded-[5px] bg-[#DDEEFF] px-[12px]">
+        <Info size={10} className="mr-[6px] shrink-0 text-[#0875F7]" />
+
+        <p className="truncate text-[7.5px] font-medium text-[#42536B]">
+          Help Needed? Run all tests or use the Play button to run
+          individual diagnostics.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   CERTIFICATE DOCUMENT
+
+   Replaces the entire app screen once every test has
+   completed, presenting a formal quality-assurance
+   certificate for the device before the scan
+   automatically restarts.
+========================================================= */
+
+function CertificateDocument({
+  certificateId,
+  deviceName,
+  deviceType,
+  manufacturer,
+  serial,
+  model,
+  issuedDate,
+}: {
+  certificateId: string;
+  deviceName: string;
+  deviceType: string;
+  manufacturer: string;
+  serial: string;
+  model: string;
+  issuedDate: string;
+}) {
+  return (
+    <div className="diagnostic-certificate-pop flex h-full min-h-0 flex-col bg-white px-[16px] py-[13px]">
+      {/* HEADER */}
+      <div className="flex items-start justify-between border-b border-[#E3E8EF] pb-[9px]">
+        <div>
+          <span className="text-[13px] font-black tracking-[-0.03em] text-[#101A2C]">
+            XTRA
+            <span className="text-[#0875F7]">COVER</span>
+          </span>
+
+          <p className="mt-[2px] text-[6px] font-semibold uppercase tracking-[0.16em] text-[#8896AC]">
+            Reuse. Extend. Save.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-[10px]">
+          <div className="text-right">
+            <p className="text-[6px] font-bold uppercase tracking-[0.12em] text-[#8896AC]">
+              Certificate Number
+            </p>
+
+            <p className="text-[10px] font-bold text-[#17233A]">
+              {certificateId}
+            </p>
+
+            <p className="text-[6px] font-medium text-[#8896AC]">
+              Issued {issuedDate}
+            </p>
+          </div>
+
+          <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-[5px] border border-[#DCE3EE] bg-[#FAFBFD]">
+            <QrCode size={17} strokeWidth={1.6} className="text-[#17233A]" />
+          </div>
+        </div>
+      </div>
+
+      {/* TITLE */}
+      <div className="mt-[9px]">
+        <p className="text-[7px] font-bold uppercase tracking-[0.14em] text-[#0875F7]">
+          Certificate of Quality Assurance
+        </p>
+
+        <h2 className="mt-[2px] text-[15px] font-black leading-tight text-[#101A2C]">
+          {deviceName}
+        </h2>
+
+        <p className="mt-[2px] text-[6.5px] font-medium text-[#66748C]">
+          {deviceType} &middot; {manufacturer} Computer Inc.
+          <span className="mx-[6px] text-[#C3CEE6]">|</span>
+          Serial {serial}
+          <span className="mx-[6px] text-[#C3CEE6]">|</span>
+          Model SKU {model}
+        </p>
+      </div>
+
+      {/* PASS BANNER */}
+      <div className="mt-[9px] flex items-center justify-between rounded-[8px] border border-[#BFE6CC] bg-[#EFFAF2] px-[11px] py-[7px]">
+        <div className="flex items-center gap-[8px]">
+          <span className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-[#1FA855]">
+            <Check size={11} strokeWidth={3} className="text-white" />
+          </span>
+
+          <div>
+            <p className="text-[10px] font-black leading-none text-[#137A3D]">
+              PASS
+            </p>
+
+            <p className="mt-[2px] text-[6.5px] font-semibold text-[#3E6A50]">
+              {TOTAL_TESTS} of {TOTAL_TESTS} applicable tests passed
+            </p>
+          </div>
+        </div>
+
+        <div className="text-right">
+          <p className="text-[6px] font-semibold text-[#3E6A50]">
+            Assessed {issuedDate}
+          </p>
+
+          <p className="text-[6px] font-semibold text-[#3E6A50]">
+            All mandatory criteria met
+          </p>
+        </div>
+      </div>
+
+      {/* STAT CARDS */}
+      <div className="mt-[9px] grid grid-cols-4 gap-[7px]">
+        <CertificateStat
+          label="Device Health"
+          value="Excellent"
+          sub="No faults detected"
+          barColor="#1FA855"
+        />
+
+        <CertificateStat
+          label="Battery Health"
+          value="92%"
+          sub="Good · 240 cycles"
+          barColor="#0875F7"
+        />
+
+        <CertificateStat
+          label="Tests Completed"
+          value={`${TOTAL_TESTS}/${TOTAL_TESTS}`}
+          sub="100% applicable"
+          barColor="#0875F7"
+        />
+
+        <CertificateStat
+          label="Refurb. Grade"
+          value="A+"
+          sub="Functional / Cosmetic"
+          barColor="#8B5CF6"
+        />
+      </div>
+
+      {/* KEY SPECIFICATIONS */}
+      <div className="mt-[9px] rounded-[8px] border border-[#E3E8EF] bg-[#FAFBFD] p-[9px]">
+        <p className="text-[6px] font-bold uppercase tracking-[0.14em] text-[#66748C]">
+          Key Specifications
+        </p>
+
+        <div className="mt-[6px] grid grid-cols-3 gap-x-[8px] gap-y-[5px]">
+          <CertificateSpec icon={Cpu} label="Processor" value="Core i7-1360P" />
+          <CertificateSpec icon={Gauge} label="Graphics" value="Iris Xe (integrated)" />
+          <CertificateSpec icon={MemoryStick} label="Memory" value="16 GB LPDDR5" />
+          <CertificateSpec icon={Monitor} label="Display" value='14" FHD+ 60Hz' />
+          <CertificateSpec icon={HardDrive} label="Storage" value="512 GB NVMe SSD" />
+          <CertificateSpec icon={ShieldCheck} label="Operating System" value="Windows 11 Pro" />
+        </div>
+      </div>
+
+      {/* CONDITION, GRADING & SANITIZATION */}
+      <div className="mt-[9px] grid flex-1 grid-cols-2 gap-[9px]">
+        <div className="rounded-[8px] border border-[#E3E8EF] p-[9px]">
+          <p className="text-[6px] font-bold uppercase tracking-[0.14em] text-[#66748C]">
+            Condition, Grading &amp; Score
+          </p>
+
+          <div className="mt-[6px] flex items-start gap-[6px]">
+            <span className="text-[10px] font-black leading-none text-[#137A3D]">
+              A
+            </span>
+
+            <p className="text-[6.5px] font-medium text-[#66748C]">
+              <span className="font-bold text-[#1F2D43]">
+                Functional grade
+              </span>
+              <br />
+              All functional, no defects found
+            </p>
+          </div>
+
+          <div className="mt-[6px] flex items-start gap-[6px]">
+            <span className="text-[10px] font-black leading-none text-[#0875F7]">
+              B
+            </span>
+
+            <p className="text-[6.5px] font-medium text-[#66748C]">
+              <span className="font-bold text-[#1F2D43]">
+                Cosmetic grade
+              </span>
+              <br />
+              Light wear: no cracks, dents or marks
+            </p>
+          </div>
+        </div>
+
+        <div className="rounded-[8px] border border-[#E3E8EF] p-[9px]">
+          <p className="text-[6px] font-bold uppercase tracking-[0.14em] text-[#66748C]">
+            Data Sanitization &amp; Warranty
+          </p>
+
+          <div className="mt-[6px] flex items-center justify-between">
+            <p className="text-[6.5px] font-medium text-[#66748C]">
+              NIST SP 800-88 Purge, verified
+            </p>
+
+            <span className="flex items-center gap-[3px] text-[6px] font-bold text-[#137A3D]">
+              <Check size={7} strokeWidth={3} />
+              PASS
+            </span>
+          </div>
+
+          <div className="mt-[6px] flex items-center justify-between">
+            <p className="text-[6.5px] font-medium text-[#66748C]">
+              12 months, expires 27 Jun 2027
+            </p>
+
+            <span className="flex items-center gap-[3px] text-[6px] font-bold text-[#137A3D]">
+              <Check size={7} strokeWidth={3} />
+              PASS
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* FOOTER */}
+      <p className="mt-[8px] border-t border-[#E3E8EF] pt-[6px] text-[5.5px] font-medium text-[#8896AC]">
+        Ensure certificate {certificateId} matches the device before relying on
+        this record.
+      </p>
+    </div>
+  );
+}
+
+function CertificateStat({
+  label,
+  value,
+  sub,
+  barColor,
+}: {
+  label: string;
+  value: string;
+  sub: string;
+  barColor: string;
+}) {
+  return (
+    <div className="overflow-hidden rounded-[7px] border border-[#E3E8EF]">
+      <div className="h-[3px]" style={{ backgroundColor: barColor }} />
+
+      <div className="px-[8px] py-[6px]">
+        <p className="text-[6px] font-bold uppercase tracking-[0.06em] text-[#8896AC]">
+          {label}
+        </p>
+
+        <p className="mt-[2px] text-[11px] font-black leading-none text-[#101A2C]">
+          {value}
+        </p>
+
+        <p className="mt-[3px] text-[6px] font-medium text-[#8896AC]">
+          {sub}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function CertificateSpec({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-center gap-[6px]">
+      <span className="flex h-[16px] w-[16px] shrink-0 items-center justify-center rounded-[4px] bg-[#EAF0FB] text-[#0875F7]">
+        <Icon size={9} strokeWidth={2.2} />
+      </span>
+
+      <div className="min-w-0">
+        <p className="truncate text-[5.5px] font-semibold uppercase tracking-[0.04em] text-[#8896AC]">
+          {label}
+        </p>
+
+        <p className="truncate text-[7px] font-bold text-[#1F2D43]">
+          {value}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   ADMIN PANEL SCREEN
+
+   Shown right after the certificate, before the scan loops
+   back to a fresh run - a glimpse of the license/QC admin
+   dashboard behind the diagnostics.
+========================================================= */
+
+const ADMIN_STATS = [
+  {
+    icon: Package,
+    value: "1,500",
+    label: "Total Licences Purchased",
+    bg: "#0875F7",
+  },
+  {
+    icon: BarChart3,
+    value: "714",
+    label: "Available Quota to Test",
+    bg: "#16A34A",
+  },
+  {
+    icon: CheckCircle2,
+    value: "786",
+    label: "Total Licences Used",
+    bg: "#F0653C",
+  },
+  {
+    icon: Award,
+    value: "52.4%",
+    label: "Overall QC Pass Yield",
+    bg: "#7C3AED",
+  },
+];
+
+const ADMIN_DEVICES = [
+  {
+    icon: Laptop,
+    title: "Laptop QC Diagnostics",
+    purchased: 500,
+    available: 59,
+    tested: 441,
+    utilization: 88,
+  },
+  {
+    icon: Smartphone,
+    title: "Mobile QC Diagnostics",
+    purchased: 1000,
+    available: 655,
+    tested: 345,
+    utilization: 35,
+  },
+  {
+    icon: Cpu,
+    title: "Motherboard QC Diagnostics",
+    purchased: 0,
+    available: 0,
+    tested: 0,
+    utilization: 0,
+  },
+  {
+    icon: Monitor,
+    title: "Desktop Station QC",
+    purchased: 0,
+    available: 0,
+    tested: 0,
+    utilization: 0,
+  },
+];
+
+function AdminPanelScreen() {
+  return (
+    <div className="diagnostic-certificate-pop flex h-full min-h-0 flex-col gap-[8px] bg-[#F5F7FB] p-[10px]">
+      {/* LICENSE STATS */}
+      <div className="grid grid-cols-4 gap-[8px]">
+        {ADMIN_STATS.map((stat) => (
+          <div
+            key={stat.label}
+            className="flex items-center gap-[8px] rounded-[9px] border border-[#DDE2EA] bg-white px-[9px] py-[8px]"
+          >
+            <span
+              className="flex h-[24px] w-[24px] shrink-0 items-center justify-center rounded-[7px] text-white"
+              style={{ backgroundColor: stat.bg }}
+            >
+              <stat.icon size={12} strokeWidth={2.2} />
+            </span>
+
+            <div className="min-w-0">
+              <p className="truncate text-[11px] font-black leading-none text-[#17233A]">
+                {stat.value}
+              </p>
+
+              <p className="mt-[2px] truncate text-[5.5px] font-semibold text-[#7C899C]">
+                {stat.label}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* DEVICE QC CARDS */}
+      <div className="grid flex-1 grid-cols-2 gap-[8px]">
+        {ADMIN_DEVICES.map((device) => (
+          <div
+            key={device.title}
+            className="flex min-h-0 flex-col rounded-[10px] border border-[#DDE2EA] bg-white p-[9px]"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-[6px]">
+                <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[6px] bg-[#EAF0FB] text-[#0875F7]">
+                  <device.icon size={10} strokeWidth={2.2} />
+                </span>
+
+                <div className="min-w-0">
+                  <p className="truncate text-[7.5px] font-bold text-[#17233A]">
+                    {device.title}
+                  </p>
+
+                  <p className="truncate text-[5.5px] font-medium text-[#8896AC]">
+                    Diagnostic Hardware Suite
+                  </p>
+                </div>
+              </div>
+
+              <span className="shrink-0 text-[5.5px] font-bold text-[#0875F7]">
+                QC Reports &rarr;
+              </span>
+            </div>
+
+            <div className="mt-[7px] grid grid-cols-3 gap-[5px]">
+              <AdminStatBox
+                value={device.purchased}
+                label="Purchased"
+                color="#17233A"
+                bg="#F1F4F8"
+              />
+
+              <AdminStatBox
+                value={device.available}
+                label="Available"
+                color="#16A34A"
+                bg="#EAF8EF"
+              />
+
+              <AdminStatBox
+                value={device.tested}
+                label="Tested"
+                color="#F0653C"
+                bg="#FDF0EA"
+              />
+            </div>
+
+            <div className="mt-[7px]">
+              <div className="flex items-center justify-between text-[5.5px] font-semibold text-[#7C899C]">
+                <span>License Utilization</span>
+                <span>{device.utilization}%</span>
+              </div>
+
+              <div className="mt-[3px] h-[3px] overflow-hidden rounded-full bg-[#E7EBF1]">
+                <div
+                  className="h-full rounded-full bg-[#0875F7]"
+                  style={{ width: `${device.utilization}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AdminStatBox({
+  value,
+  label,
+  color,
+  bg,
+}: {
+  value: number;
+  label: string;
+  color: string;
+  bg: string;
+}) {
+  return (
+    <div
+      className="rounded-[7px] px-[6px] py-[5px] text-center"
+      style={{ backgroundColor: bg }}
+    >
+      <p
+        className="text-[10px] font-black leading-none"
+        style={{ color }}
+      >
+        {value}
+      </p>
+
+      <p className="mt-[2px] text-[5px] font-bold uppercase tracking-[0.04em] text-[#8896AC]">
+        {label}
+      </p>
+    </div>
+  );
+}
+
+/* =========================================================
+   DIAGNOSTIC ROW
+========================================================= */
+
+function DiagnosticRow({
+  test,
+  number,
+  status,
+}: {
+  test: DiagnosticTest;
+  number: number;
+  status: DiagnosticStatus;
+}) {
+  const Icon = test.icon;
+
+  return (
+    <div
+      className={`grid h-[42px] grid-cols-[28px_1.05fr_1.45fr_72px_76px_28px] items-center border-b border-[#E9EDF2] px-[8px] transition-all duration-300 ${
+        status === "running"
+          ? "diagnostic-running-row bg-[#F5F9FF]"
+          : "bg-white"
+      }`}
+    >
+      {/* NUMBER */}
+
+      <span className="text-center text-[8px] font-semibold text-[#526078]">
+        {number}
+      </span>
+
+      {/* DEVICE */}
+
+      <span className="truncate pr-[4px] text-[8px] font-semibold text-[#25334A]">
+        {test.device}
+      </span>
+
+      {/* TEST NAME */}
+
+      <div className="flex min-w-0 items-center gap-[5px]">
+        <div
+          className={`flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-[5px] ${
+            status === "running"
+              ? "bg-[#E4F0FF]"
+              : status === "passed"
+                ? "bg-[#ECF7FF]"
+                : "bg-[#F1F3F6]"
+          }`}
+        >
+          <Icon
+            size={11}
+            strokeWidth={2.2}
+            className={
+              status === "queued"
+                ? "text-[#9DA9BA]"
+                : "text-[#0875F7]"
+            }
+          />
+        </div>
+
+        <span
+          className={`truncate text-[8px] ${
+            status === "queued"
+              ? "font-medium text-[#8995A6]"
+              : "font-semibold text-[#526078]"
+          }`}
+        >
+          {test.test}
+        </span>
+      </div>
+
+      {/* TESTED ON */}
+
+      <span className="truncate text-[7px] font-medium text-[#7C8798]">
+        {status === "passed"
+          ? "15:35:46"
+          : status === "running"
+            ? "Testing"
+            : "--"}
+      </span>
+
+      {/* STATUS */}
+
+      <div className="flex justify-center">
+        {status === "passed" && (
+          <span className="flex h-[23px] w-[64px] items-center justify-center gap-[4px] rounded-[7px] bg-[#DDF4E2] text-[7px] font-bold text-[#16803B]">
+            <Check size={9} strokeWidth={3} />
+            PASS
+          </span>
+        )}
+
+        {status === "running" && (
+          <span className="flex h-[23px] w-[64px] items-center justify-center gap-[4px] rounded-[7px] bg-[#E2EFFF] text-[6.5px] font-bold text-[#0875F7]">
+            <Loader2
+              size={9}
+              className="animate-spin"
+            />
+
+            RUNNING
+          </span>
+        )}
+
+        {status === "queued" && (
+          <span className="flex h-[23px] w-[64px] items-center justify-center rounded-[7px] bg-[#EDF0F3] text-[6.5px] font-bold text-[#7F8A99]">
+            QUEUED
+          </span>
+        )}
+      </div>
+
+      {/* RUN BUTTON */}
+
+      <div className="flex justify-center">
+        <button
+          type="button"
+          className={`flex h-[20px] w-[20px] items-center justify-center rounded-full border transition-all ${
+            status === "running"
+              ? "diagnostic-run-button border-[#0875F7] bg-[#EFF6FF] text-[#0875F7]"
+              : "border-[#86B8F5] bg-white text-[#0875F7]"
+          }`}
+        >
+          <Play
+            size={8}
+            strokeWidth={2.5}
+            fill="currentColor"
+          />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   SEPARATOR
+========================================================= */
+
+function Separator() {
+  return <span className="h-[10px] w-px bg-[#777]" />;
+}
+
+/* =========================================================
+   BENEFIT
+========================================================= */
+
+function Benefit({
+  icon,
+  title,
+  text,
+  type,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  text: string;
+  type: "blue" | "purple" | "green";
+}) {
+  const styles = {
+    blue: "bg-[#EAF3FF] text-[#0875F7]",
+    purple: "bg-[#F4EBFF] text-[#8A45F7]",
+    green: "bg-[#E8FAF1] text-[#18A85F]",
+  };
+
+  return (
+    <div className="flex items-center gap-2.5">
+      <div
+        className={`flex h-10 w-10 items-center justify-center rounded-[12px] ${styles[type]}`}
+      >
+        {icon}
+      </div>
+
+      <div>
+        <p className="text-[11px] font-bold leading-tight text-[#213454]">
+          {title}
+        </p>
+
+        <p className="mt-0.5 text-[10px] text-[#697995]">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   METRIC
+========================================================= */
+
+function Metric({
+  icon,
+  value,
+  label,
+}: {
+  icon: React.ReactNode;
+  value: string;
+  label: string;
+}) {
+  return (
+    <div className="flex min-w-[135px] items-center gap-3">
+      <div className="text-[#71A7F7]">{icon}</div>
+
+      <div>
+        <p className="text-[16px] font-bold leading-none text-[#126BEE]">
+          {value}
+        </p>
+
+        <p className="mt-1 text-[10px] text-[#71809B]">{label}</p>
+      </div>
+    </div>
+  );
+}
