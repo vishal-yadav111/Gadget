@@ -7,8 +7,6 @@ import {
   ArrowLeft,
   Share2,
   Check,
-  Smartphone,
-  ShieldCheck,
   FileText,
   Layers,
   Activity,
@@ -39,6 +37,10 @@ export default function MobileCertificateView({ data }: Props) {
     }
   };
 
+  const normalizedResult = (data.overallResult || "").toUpperCase();
+  const isPass = normalizedResult === "PASS" || normalizedResult === "PASSED" || normalizedResult === "SUCCESS" || normalizedResult === "OK" || data.isPass;
+  const isFail = normalizedResult === "FAIL" || normalizedResult === "FAILED" || normalizedResult === "TEST INCOMPLETE" || normalizedResult.includes("FAIL");
+
   return (
     <div className="cert-viewer-root min-h-screen bg-[#F4F6FB] py-6 px-3 sm:px-6 print:min-h-0 print:p-0 print:m-0 print:bg-white">
       <div className="cert-viewer-inner max-w-5xl mx-auto space-y-6 print:max-w-none print:w-full print:m-0 print:p-0 print:space-y-0">
@@ -59,10 +61,12 @@ export default function MobileCertificateView({ data }: Props) {
                     {data.deviceBrand} {data.deviceModel}
                   </span>
                   <span
-                    className={`px-2.5 py-0.5 rounded-full font-mono text-[10.5px] font-bold ${
-                      data.isPass
+                    className={`px-2 py-0.5 rounded-full font-mono text-[10px] font-bold ${
+                      isPass
                         ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                        : "bg-rose-50 text-rose-700 border border-rose-200"
+                        : isFail
+                        ? "bg-rose-50 text-rose-700 border border-rose-200"
+                        : "bg-slate-100 text-slate-700 border border-slate-200"
                     }`}
                   >
                     {data.overallResult}

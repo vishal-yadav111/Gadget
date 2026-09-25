@@ -769,14 +769,27 @@ export function mapLaptopReportToCertificate(
   if (diag.pciexpress_test_result === "-1" || all.pciexpress_test_result === "-1") absentHardware.push("PCI Express Slots");
 
   // 10. Technician & Digital Signature
-  const techName =
-    ident.profile_id ||
-    ident.createdBy ||
+  const rawTech =
+    ident.tester_id ||
+    ident.g_tester_id ||
+    all.tester_id ||
+    all.g_tester_id ||
     ident.uid ||
-    all.profile_id ||
-    all.CreatedBy ||
+    ident.createdBy ||
+    ident.profile_id ||
     all.uid ||
+    all.CreatedBy ||
+    all.createdBy ||
+    all.profile_id ||
+    ident.tester_name ||
+    all.tester_name ||
     "Technician";
+
+  const techName = String(rawTech)
+    .replace(/.*Pvt\.\s*Ltd\.\s*/i, "")
+    .replace(/\b\d{10,}\b/g, "")
+    .replace(/[\(\[\{][^\)\]\}]*[\)\]\}]/g, "")
+    .trim() || "Technician";
 
   const techAuth = ident.PartnerID || all.PartnerID
     ? `XC-T-${ident.PartnerID || all.PartnerID}`

@@ -641,201 +641,336 @@ export default function MobileDeviceDetailPage({ params }: PageProps) {
         </div>
       ) : (
         <div className="space-y-4">
-          {/* TAB 1: HARDWARE DIAGNOSTICS */}
+          {/* TAB 1: HARDWARE DIAGNOSTICS (ALL 64 MANDATORY TESTS) */}
           {activeTab === "diagnostics" && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Display & Touch */}
+              {/* 1. SCREEN (5 Tests) */}
               <div className="bg-white p-5 rounded-2xl border border-[#DDE4F3] shadow-xs space-y-3">
-                <div className="flex items-center space-x-2 pb-2.5 border-b border-slate-100 text-[#0052CC]">
-                  <Monitor className="w-4 h-4" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#17284D]">
-                    Display & Multi-Touch
-                  </span>
+                <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 text-[#0052CC]">
+                  <div className="flex items-center space-x-2">
+                    <Monitor className="w-4 h-4" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#17284D]">
+                      SCREEN
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-400 font-mono">5 Tests</span>
                 </div>
-                <div className="space-y-2 text-xs">
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">Multi-Touch Digitizer</span>
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50 last:border-0">
+                    <span className="text-slate-600 font-medium">Dead Pixel Check</span>
+                    {renderStatusBadge(getProp("DEAD_PIXEL_CHECK", "Display_Dead_Pixel", "Dead_Pixel", "DeadPixels"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50 last:border-0">
+                    <span className="text-slate-600 font-medium">Display Dead Pixel</span>
+                    {renderStatusBadge(getProp("Display_Dead_Pixel", "DEAD_PIXEL_CHECK", "Dead_Pixel"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50 last:border-0">
+                    <span className="text-slate-600 font-medium">Display Á Touch Screen</span>
                     {renderStatusBadge(getProp("Display_Touch_Screen", "TouchScreen", "Touch_Screen", "display_touch_screen", "display_test_result"))}
                   </div>
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">Multi-Finger Touch</span>
-                    {renderStatusBadge(getProp("Multifinger_test", "MultiFinger", "multifinger"))}
-                  </div>
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">Dead Pixel Check</span>
-                    {renderStatusBadge(getProp("DEAD_PIXEL_CHECK", "Display_Dead_Pixel", "Dead_Pixel", "DeadPixels", "dead_pixel", "Display_Color"))}
-                  </div>
-                  <div className="flex justify-between items-center py-1">
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50 last:border-0">
                     <span className="text-slate-600 font-medium">Display Brightness</span>
                     {renderStatusBadge(getProp("Display_brightness", "Screen_Brightness", "Brightness"))}
                   </div>
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">Orientation / Rotation</span>
-                    {renderStatusBadge(getProp("Orientation", "orientation", "Rotation", "rotation"))}
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50 last:border-0">
+                    <span className="text-slate-600 font-medium">Multi-Touch Test</span>
+                    {renderStatusBadge(getProp("Multifinger_test", "MultiFinger", "multifinger", "Multi_Touch_Test"))}
                   </div>
                 </div>
               </div>
 
-              {/* Optics & Cameras */}
-              <div className="bg-white p-5 rounded-2xl border border-[#DDE4F3] shadow-xs space-y-3">
-                <div className="flex items-center space-x-2 pb-2.5 border-b border-slate-100 text-[#0052CC]">
-                  <Camera className="w-4 h-4" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#17284D]">
-                    Optics & Cameras
-                  </span>
+              {/* 2. AUDIO/VIDEO (19 Tests) */}
+              <div className="bg-white p-5 rounded-2xl border border-[#DDE4F3] shadow-xs space-y-3 md:col-span-2 lg:col-span-2">
+                <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 text-[#0052CC]">
+                  <div className="flex items-center space-x-2">
+                    <Camera className="w-4 h-4" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#17284D]">
+                      AUDIO/VIDEO
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-400 font-mono">19 Tests</span>
                 </div>
-                <div className="space-y-2 text-xs">
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">Rear Primary Camera</span>
-                    {renderStatusBadge(getProp("Back_Camera", "RearCamera", "rear_camera", "camera_rear", "camera_photo_test_result", "Camera"))}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-xs">
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Back Camera</span>
+                    {renderStatusBadge(getProp("Back_Camera", "RearCamera", "rear_camera", "camera_rear", "Camera"))}
                   </div>
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">Front Selfie Camera</span>
-                    {renderStatusBadge(getProp("Front_Camera", "front_camera", "camera_front", "camera_video_test_result", "SelfieCamera"))}
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Front Camera</span>
+                    {renderStatusBadge(getProp("Front_Camera", "front_camera", "camera_front", "SelfieCamera"))}
                   </div>
-                  <div className="flex justify-between items-center py-1">
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Bluetooth</span>
+                    {renderStatusBadge(getProp("Bluetooth", "bluetooth", "BT"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Earphone Jack</span>
+                    {renderStatusBadge(getProp("Earphone_Jack", "HeadphoneJack", "3.5mm_jack"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Loud Speaker</span>
+                    {renderStatusBadge(getProp("LoudSpeaker", "Speaker", "loudspeaker"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Front Speaker</span>
+                    {renderStatusBadge(getProp("Front_speaker", "FrontSpeaker", "Receiver"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
                     <span className="text-slate-600 font-medium">Camera Auto Focus</span>
                     {renderStatusBadge(getProp("Camera_Auto_Focus", "AutoFocus", "auto_focus"))}
                   </div>
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">Flash / Torch</span>
-                    {renderStatusBadge(getProp("Flash", "Flash_Light", "Tourch", "Torch", "camera_flash", "Flashlight"))}
-                  </div>
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">Video Recording</span>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Back Video Recording</span>
                     {renderStatusBadge(getProp("Back_Video_Recording", "RearVideo", "video_recording"))}
                   </div>
-                </div>
-              </div>
-
-              {/* Audio & Acoustics */}
-              <div className="bg-white p-5 rounded-2xl border border-[#DDE4F3] shadow-xs space-y-3">
-                <div className="flex items-center space-x-2 pb-2.5 border-b border-slate-100 text-[#0052CC]">
-                  <Volume2 className="w-4 h-4" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#17284D]">
-                    Audio & Acoustics
-                  </span>
-                </div>
-                <div className="space-y-2 text-xs">
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">Loudspeaker</span>
-                    {renderStatusBadge(getProp("LoudSpeaker", "Speaker", "loudspeaker_test_result", "loudspeaker"))}
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Front Video Recording</span>
+                    {renderStatusBadge(getProp("Front_Video_Recording", "FrontVideo", "selfie_video"))}
                   </div>
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">Earpiece / Receiver</span>
-                    {renderStatusBadge(getProp("Earphone", "Front_speaker", "Receiver", "earpiece", "earpiece_receiver"))}
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Microphone</span>
+                    {renderStatusBadge(getProp("Microphone", "mic", "mic_test_result"))}
                   </div>
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">Microphone Recording</span>
-                    {renderStatusBadge(getProp("Microphone", "handset_mic", "mic_test_result", "mic", "Mic"))}
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Flash</span>
+                    {renderStatusBadge(getProp("Flash", "camera_flash"))}
                   </div>
-                  <div className="flex justify-between items-center py-1">
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Torch</span>
+                    {renderStatusBadge(getProp("Tourch", "Torch", "Flashlight"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Light</span>
+                    {renderStatusBadge(getProp("Light", "ambient_light_sensor"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Earphone</span>
+                    {renderStatusBadge(getProp("Earphone", "earpiece"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Handset mic</span>
+                    {renderStatusBadge(getProp("handset_mic", "Handset_mic"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Handset mic keys</span>
+                    {renderStatusBadge(getProp("Handset_mic_keys", "handset_mic_keys", "Earphone_Keys"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">NoiseCancellationTest</span>
+                    {renderStatusBadge(getProp("NoiseCancellationTest", "NoiseCancellation"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Front camera flash</span>
+                    {renderStatusBadge(getProp("Front_camera_flash", "FrontCameraFlash", "front_flash"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
                     <span className="text-slate-600 font-medium">Audio Playback Test</span>
                     {renderStatusBadge(getProp("audioPlakbackTest", "AudioPlayback", "audio_playback"))}
                   </div>
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">Earphone 3.5mm Jack</span>
-                    {renderStatusBadge(getProp("Earphone_Jack", "HeadphoneJack", "Headphone_Jack", "3.5mm_jack"))}
-                  </div>
                 </div>
               </div>
 
-              {/* Connectivity & Wireless */}
+              {/* 3. NETWORK (8 Tests) */}
               <div className="bg-white p-5 rounded-2xl border border-[#DDE4F3] shadow-xs space-y-3">
-                <div className="flex items-center space-x-2 pb-2.5 border-b border-slate-100 text-[#0052CC]">
-                  <Wifi className="w-4 h-4" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#17284D]">
-                    Connectivity & Cellular
-                  </span>
-                </div>
-                <div className="space-y-2 text-xs">
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">Wi-Fi Module</span>
-                    {renderStatusBadge(getProp("WiFi", "wifi", "wireless_test_result", "WLAN", "Wifi"))}
+                <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 text-[#0052CC]">
+                  <div className="flex items-center space-x-2">
+                    <Wifi className="w-4 h-4" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#17284D]">
+                      NETWORK
+                    </span>
                   </div>
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">Internet Access</span>
+                  <span className="text-[10px] font-bold text-slate-400 font-mono">8 Tests</span>
+                </div>
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Call SIM1</span>
+                    {renderStatusBadge(getProp("Call_SIM_1", "Call_Sim1", "Call SIM1"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Call SIM2</span>
+                    {renderStatusBadge(getProp("Call_SIM_2", "Call_Sim2", "Call SIM2"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">WiFi</span>
+                    {renderStatusBadge(getProp("WiFi", "wifi", "WLAN", "Wifi"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Internet</span>
                     {renderStatusBadge(getProp("Internet", "internet", "network_connectivity"))}
                   </div>
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">Bluetooth</span>
-                    {renderStatusBadge(getProp("Bluetooth", "bluetooth", "BT", "bluetooth_test_result"))}
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">GPS</span>
+                    {renderStatusBadge(getProp("GPS", "gps", "Location"))}
                   </div>
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">GPS Location</span>
-                    {renderStatusBadge(getProp("GPS", "gps", "Location", "location_service"))}
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Network Signal SIM1</span>
+                    {renderStatusBadge(getProp("Network_Signal_sim1", "sim1"))}
                   </div>
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">SIM 1 Signal</span>
-                    {renderStatusBadge(getProp("Network_Signal_sim1", "Call_SIM_1", "SIM_1_Test", "sim1", "Sim_Tray"))}
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Network Signal SIM2</span>
+                    {renderStatusBadge(getProp("Network_Signal_sim2", "sim2"))}
                   </div>
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">NFC Module</span>
-                    {renderStatusBadge(getProp("NFC", "nfc", "contactless"))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Biometrics & Sensors */}
-              <div className="bg-white p-5 rounded-2xl border border-[#DDE4F3] shadow-xs space-y-3">
-                <div className="flex items-center space-x-2 pb-2.5 border-b border-slate-100 text-[#0052CC]">
-                  <ShieldCheck className="w-4 h-4" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#17284D]">
-                    Biometrics & Sensors
-                  </span>
-                </div>
-                <div className="space-y-2 text-xs">
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">Biometric (Face/Finger)</span>
-                    {renderStatusBadge(getProp("Biometric", "Fingerprint", "Fingerprint_Sensor", "FaceID", "Face_Recognition", "Face_Unlock", "biometric_test_result"))}
-                  </div>
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">Proximity Sensor</span>
-                    {renderStatusBadge(getProp("Proximity", "proximity_sensor", "Proximity_Sensor", "ProximitySensor"))}
-                  </div>
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">Ambient Light Sensor</span>
-                    {renderStatusBadge(getProp("Light", "ambient_light_sensor", "AmbientLight"))}
-                  </div>
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">Gyroscope</span>
-                    {renderStatusBadge(getProp("Gyroscope", "GyroscopeGaming", "gyro_sensor", "Gyro"))}
-                  </div>
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">Vibration Motor</span>
-                    {renderStatusBadge(getProp("Vibrate", "Vibration", "vibrator_test_result", "vibration_motor", "Vibrator"))}
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">VolteCallingTest</span>
+                    {renderStatusBadge(getProp("volteCallingTest", "VolteCallingTest", "volte", "VoLTE"))}
                   </div>
                 </div>
               </div>
 
-              {/* Power, Hardware Keys & Battery */}
-              <div className="bg-white p-5 rounded-2xl border border-[#DDE4F3] shadow-xs space-y-3">
-                <div className="flex items-center space-x-2 pb-2.5 border-b border-slate-100 text-[#0052CC]">
-                  <Zap className="w-4 h-4" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#17284D]">
-                    Power, Keys & Battery
-                  </span>
+              {/* 4. OTHERS (31 Tests) */}
+              <div className="bg-white p-5 rounded-2xl border border-[#DDE4F3] shadow-xs space-y-3 md:col-span-2 lg:col-span-2">
+                <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 text-[#0052CC]">
+                  <div className="flex items-center space-x-2">
+                    <Zap className="w-4 h-4" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#17284D]">
+                      OTHERS
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-400 font-mono">31 Tests</span>
                 </div>
-                <div className="space-y-2 text-xs">
-                  <div className="flex justify-between items-center py-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-xs">
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">IMEI Validation</span>
+                    {renderStatusBadge(getProp("IMEI_VALIDATION", "imei_validation", "imei_1"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Vibrate</span>
+                    {renderStatusBadge(getProp("Vibrate", "Vibration"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Battery</span>
+                    {renderStatusBadge(getProp("Battery", "battarystatus", "BatterytestStatus"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Internal Storage</span>
+                    {renderStatusBadge(getProp("Internal_Storage", "internal_storage", "storage") ? "1" : "N/A")}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">External Storage</span>
+                    {renderStatusBadge(getProp("External_Storage", "external_storage", "SD_Card"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Proximity</span>
+                    {renderStatusBadge(getProp("Proximity", "proximity_sensor"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Volume Up Button</span>
+                    {renderStatusBadge(getProp("Volume_Up_Button", "VolumeUp"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Volume Down Button</span>
+                    {renderStatusBadge(getProp("Volume_Down_Button", "VolumeDown"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Home Key</span>
+                    {renderStatusBadge(getProp("Home_Key", "HomeButton", "HomeKey"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Back Key</span>
+                    {renderStatusBadge(getProp("Back_Key", "BackButton", "BackKey"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
                     <span className="text-slate-600 font-medium">Power Key</span>
-                    {renderStatusBadge(getProp("Power_Key", "Power_Button", "PowerButton", "power_button", "PowerKey"))}
+                    {renderStatusBadge(getProp("Power_Key", "PowerButton"))}
                   </div>
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">Volume Up Key</span>
-                    {renderStatusBadge(getProp("Volume_Up_Button", "VolumeUp", "vol_up", "Volume_Button"))}
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">USB</span>
+                    {renderStatusBadge(getProp("USB", "usb_test"))}
                   </div>
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">Volume Down Key</span>
-                    {renderStatusBadge(getProp("Volume_Down_Button", "VolumeDown", "vol_down"))}
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Charging</span>
+                    {renderStatusBadge(getProp("ChargingTest", "Charging", "charging_test"))}
                   </div>
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">Battery Diagnostics</span>
-                    {renderStatusBadge(getProp("Battery", "battarystatus", "BatterytestStatus", "battery_test_result"))}
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">OTG</span>
+                    {renderStatusBadge(getProp("OtgTest", "OTG", "USB_OTG"))}
                   </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Gyroscope</span>
+                    {renderStatusBadge(getProp("Gyroscope", "gyro_sensor"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Screen Lock</span>
+                    {renderStatusBadge(getProp("Screen_Lock", "ScreenLock"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Biometric</span>
+                    {renderStatusBadge(getProp("Biometric", "Fingerprint", "FaceID"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">NFC</span>
+                    {renderStatusBadge(getProp("NFC", "nfc"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Gravity</span>
+                    {renderStatusBadge(getProp("Gravity", "gravity_sensor", "Accelerometer"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Infrared</span>
+                    {renderStatusBadge(getProp("Infrared", "IR_Blaster", "ir_sensor"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Gyroscope Gaming</span>
+                    {renderStatusBadge(getProp("GyroscopeGaming", "gyroscope_gaming"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Humidity</span>
+                    {renderStatusBadge(getProp("Humidity", "humidity_sensor"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Motion Detector</span>
+                    {renderStatusBadge(getProp("Motion_Detector", "motion_detector"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Step Detector</span>
+                    {renderStatusBadge(getProp("Step_Detector", "step_detector"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Step Counter</span>
+                    {renderStatusBadge(getProp("Step_Counter", "step_counter"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">UV Sensor</span>
+                    {renderStatusBadge(getProp("UV_Sensor", "uv_sensor"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Orientation</span>
+                    {renderStatusBadge(getProp("Orientation", "rotation"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Fm radio</span>
+                    {renderStatusBadge(getProp("Fm_radio", "FM_Radio", "fm_radio"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">HallSensor</span>
+                    {renderStatusBadge(getProp("hallSensor", "HallSensor", "hall_sensor"))}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">Battery Storage Capacity</span>
+                    {renderStatusBadge(getProp("batteryStorageCapacity", "battery_capacity", "BatteryCapacity") ? "1" : "N/A")}
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                    <span className="text-slate-600 font-medium">CPU Performance</span>
+                    {renderStatusBadge(getProp("cpuPerformance", "CPU_Performance"))}
+                  </div>
+                </div>
+              </div>
+
+              {/* 5. BATTERY STRESS TEST (1 Test) */}
+              <div className="bg-white p-5 rounded-2xl border border-[#DDE4F3] shadow-xs space-y-3">
+                <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 text-[#0052CC]">
+                  <div className="flex items-center space-x-2">
+                    <BatteryCharging className="w-4 h-4" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#17284D]">
+                      BATTERY STRESS TEST
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-400 font-mono">1 Test</span>
+                </div>
+                <div className="space-y-1.5 text-xs">
                   <div className="flex justify-between items-center py-1">
-                    <span className="text-slate-600 font-medium">Charging Port / USB</span>
-                    {renderStatusBadge(getProp("ChargingTest", "Charging_Port", "USB", "charging_port", "Charging", "charging_test"))}
+                    <span className="text-slate-600 font-medium">Battery Stress Diagnostic</span>
+                    {renderStatusBadge(getProp("Battery", "battarystatus", "BatterytestStatus", "battery_stress_test"))}
                   </div>
                 </div>
               </div>

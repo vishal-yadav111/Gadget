@@ -34,10 +34,22 @@
     display: none !important;
   }
 
+  /* Reset layout sidebar padding during print */
+  [class*="lg:pl-"],
+  [class*="pl-"] {
+    padding-left: 0 !important;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
   /* Container resets */
   .cert-viewer-root,
   .cert-viewer-inner,
-  .cert-document-container {
+  .cert-document-container,
+  .cert-page-wrapper {
     padding: 0 !important;
     margin: 0 !important;
     background: transparent !important;
@@ -77,20 +89,25 @@
     page-break-inside: avoid !important;
     break-inside: avoid !important;
 
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: space-between !important;
     overflow: hidden !important;
   }
 
-  .cert-page:first-of-type {
+  .cert-page:first-of-type,
+  .cert-page-wrapper:first-of-type .cert-page {
     page-break-before: auto !important;
     break-before: auto !important;
   }
 
-  .cert-page:last-of-type {
+  .cert-page:last-of-type,
+  .cert-page-wrapper:last-of-type .cert-page {
     page-break-after: auto !important;
     break-after: auto !important;
+  }
+
+  .cert-page-2-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 6px !important;
   }
 }
 
@@ -103,7 +120,4 @@
   color: #17284D;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   transition: all 0.2s ease-in-out;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
 }

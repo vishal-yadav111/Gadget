@@ -1,18 +1,30 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
-import { Activity, BadgeCheck, BrainCircuit, ChevronLeft, ChevronRight, Settings2 } from "lucide-react";
+import { Activity, BadgeCheck, BrainCircuit, Settings2 } from "lucide-react";
 
 import SectionHeading from "./SectionHeading";
 import PageShell from "./PageShell";
 import GadgetIQLiveDemo from "./GadgetIQLiveDemo";
+import LensFlowDiagram from "./LensFlowDiagram";
+import AdminControlDemo from "./AdminControlDemo";
+import CertificationDemo from "./CertificationDemo";
 import { fadeUp, stagger } from "./animations";
 
-const AUTOPLAY_MS = 4500;
+type WorkflowStep = {
+  title: string;
+  text: string;
+  icon: React.ElementType;
+  image?: string;
+  interactive?: boolean;
+  render?: boolean;
+  admin?: boolean;
+  certification?: boolean;
+};
 
-const steps = [
+const steps: WorkflowStep[] = [
   {
     title: "Functional Test",
     text: "37+ automated functional tests validate hardware, battery, display and ports.",
@@ -23,45 +35,32 @@ const steps = [
   {
     title: "AI Grading",
     text: "AI processes test data, detects issues and calculates the final condition grade.",
-    image: "/images/workflow/02-ai-grading.jpg",
     icon: BrainCircuit,
-  },
-  {
-    title: "Certification",
-    text: "A verified pass/fail certificate is issued with the final condition grade.",
-    image: "/images/workflow/03-certification.jpg",
-    icon: BadgeCheck,
+    render: true,
   },
   {
     title: "Admin Control",
     text: "Get a complete overview and control of your inspection operations.",
-    image: "/images/workflow/04-admin-control.jpg",
     icon: Settings2,
+    admin: true,
+  },
+  {
+    title: "Certification",
+    text: "A verified pass/fail certificate is issued with the final condition grade.",
+    icon: BadgeCheck,
+    certification: true,
   },
 ];
 
 export default function GadgetIQWorkflow() {
   const [active, setActive] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
   const [direction, setDirection] = useState(1);
   const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
-
-  useEffect(() => {
-    if (isPaused) return;
-    const id = setInterval(() => {
-      setDirection(1);
-      setActive((prev) => (prev + 1) % steps.length);
-    }, AUTOPLAY_MS);
-    return () => clearInterval(id);
-  }, [isPaused, active]);
 
   const goTo = (index: number) => {
     setDirection(index > active ? 1 : -1);
     setActive(index);
   };
-
-  const goPrev = () => goTo((active - 1 + steps.length) % steps.length);
-  const goNext = () => goTo((active + 1) % steps.length);
 
   const current = steps[active];
 
@@ -75,17 +74,12 @@ export default function GadgetIQWorkflow() {
       >
         <SectionHeading
           eyebrow="product walkthrough"
-          title="Experience the Complete"
-          highlight="GadgetIQ Workflow"
+          title="Try Out Our"
+          highlight="Interactive Demo"
           text="From login to final report — explore the full inspection and grading journey before you buy."
         />
 
-        <motion.div
-          variants={fadeUp}
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-          className="mt-10 flex flex-col gap-6"
-        >
+        <motion.div variants={fadeUp} className="mt-10 flex flex-col gap-6">
           {/* Top: horizontal step tabs with icons */}
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
             {steps.map((step, index) => {
@@ -95,42 +89,29 @@ export default function GadgetIQWorkflow() {
                 <button
                   key={step.title}
                   onClick={() => goTo(index)}
-                  className={`group relative flex shrink-0 items-center gap-2.5 overflow-hidden rounded-full border py-2 pl-2 pr-4 transition-colors ${
+                  className={`group relative flex shrink-0 cursor-pointer items-center gap-1.5 overflow-hidden rounded-full border py-1 pl-1 pr-3 transition-colors ${
                     isActive
                       ? "border-brand-accent bg-brand-accent/5"
                       : "border-[#DDE4F3] bg-white hover:border-brand-accent/40"
                   }`}
                 >
                   <span
-                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors ${
+                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-colors ${
                       isActive
                         ? "bg-brand-accent text-white"
                         : "bg-[#F4F6FB] text-[#4A5875]"
                     }`}
                   >
-                    <Icon size={15} />
+                    <Icon size={12} />
                   </span>
 
                   <span
-                    className={`whitespace-nowrap text-xs font-bold sm:text-sm ${
+                    className={`whitespace-nowrap text-[11px] font-bold sm:text-xs ${
                       isActive ? "text-brand-accent" : "text-[#4A5875]"
                     }`}
                   >
                     {step.title}
                   </span>
-
-                  {isActive && (
-                    <span className="absolute bottom-0 left-3 right-3 h-[2px] overflow-hidden rounded-full bg-brand-accent/15">
-                      <span
-                        key={active}
-                        className="block h-full bg-brand-accent"
-                        style={{
-                          animation: `gadgetiq-fill ${AUTOPLAY_MS}ms linear forwards`,
-                          animationPlayState: isPaused ? "paused" : "running",
-                        }}
-                      />
-                    </span>
-                  )}
                 </button>
               );
             })}
@@ -140,8 +121,10 @@ export default function GadgetIQWorkflow() {
           <div className="relative overflow-hidden rounded-[28px] border border-[#DDE4F3] bg-[#F4F6FB] shadow-sm">
             <div
               className={`relative w-full overflow-hidden ${
-                current.interactive
+                current.interactive || current.admin
                   ? "h-[760px] sm:h-[700px] lg:h-full lg:min-h-[700px]"
+                  : current.render || current.certification
+                  ? "h-[520px] sm:h-[560px] lg:h-full lg:min-h-[560px]"
                   : "h-[320px] sm:h-[420px] lg:h-full lg:min-h-[420px]"
               }`}
             >
@@ -157,6 +140,14 @@ export default function GadgetIQWorkflow() {
                 >
                   {current.interactive ? (
                     <GadgetIQLiveDemo />
+                  ) : current.admin ? (
+                    <AdminControlDemo />
+                  ) : current.certification ? (
+                    <CertificationDemo />
+                  ) : current.render ? (
+                    <div className="flex h-full w-full items-start justify-center overflow-y-auto px-4 pb-4 pt-[30px] sm:px-6 sm:pb-6">
+                      <LensFlowDiagram />
+                    </div>
                   ) : failedImages.has(active) ? (
                     <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-br from-brand-accent/5 to-transparent text-center">
                       <span className="text-xs font-bold uppercase tracking-[0.2em] text-brand-accent">
@@ -166,7 +157,7 @@ export default function GadgetIQWorkflow() {
                         {current.title}
                       </span>
                     </div>
-                  ) : (
+                  ) : current.image ? (
                     <Image
                       src={current.image}
                       alt={current.title}
@@ -176,40 +167,13 @@ export default function GadgetIQWorkflow() {
                         setFailedImages((prev) => new Set(prev).add(active))
                       }
                     />
-                  )}
+                  ) : null}
                 </motion.div>
               </AnimatePresence>
-
-              {/* Prev / Next controls */}
-              <button
-                onClick={goPrev}
-                aria-label="Previous step"
-                className="absolute left-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-[#DDE4F3] bg-white/90 text-[#17284D] shadow-md transition-colors hover:bg-white"
-              >
-                <ChevronLeft size={18} />
-              </button>
-              <button
-                onClick={goNext}
-                aria-label="Next step"
-                className="absolute right-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-[#DDE4F3] bg-white/90 text-[#17284D] shadow-md transition-colors hover:bg-white"
-              >
-                <ChevronRight size={18} />
-              </button>
             </div>
           </div>
         </motion.div>
       </motion.div>
-
-      <style jsx>{`
-        @keyframes gadgetiq-fill {
-          from {
-            width: 0%;
-          }
-          to {
-            width: 100%;
-          }
-        }
-      `}</style>
     </PageShell>
   );
 }

@@ -291,24 +291,16 @@ export default function GadgetEvaluateLayout({
               title="Gadget Evaluate Workstation"
             >
               {isCollapsed ? (
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#0052CC] to-[#0065FF] text-white flex flex-col items-center justify-center font-black font-display text-sm shadow-xs">
-                  <span>GE</span>
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#0052CC] to-[#0065FF] text-white flex flex-col items-center justify-center font-black font-display text-xs shadow-xs">
+                  <span>GIQ</span>
                 </div>
               ) : (
-                <>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/images/logoblack.png"
-                    alt="GadgetIQ"
-                    className="h-6 sm:h-7 w-auto object-contain max-w-[135px]"
-                  />
-                  <div className="flex items-center space-x-1.5 mt-1.5 pl-3">
-                    <span className="px-2 py-0.5 rounded-[4px] bg-[#0052CC] text-white font-display font-bold text-[10px] tracking-wider uppercase">
-                      Evaluate
-                    </span>
-
-                  </div>
-                </>
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src="/images/logoblack.png"
+                  alt="GadgetIQ"
+                  className="h-6 sm:h-7 w-auto object-contain max-w-[135px]"
+                />
               )}
             </Link>
 
@@ -451,11 +443,11 @@ export default function GadgetEvaluateLayout({
       {/* MAIN CONTENT AREA */}
       {/* ========================================================= */}
       <div
-        className={`flex-1 flex flex-col min-w-0 min-h-screen transition-[padding-left] duration-300 ease-in-out ${isCollapsed ? "lg:pl-20" : "lg:pl-64"
+        className={`flex-1 flex flex-col min-w-0 min-h-screen transition-[padding-left] duration-300 ease-in-out print:pl-0 print:p-0 print:m-0 print:block print:min-h-0 print:w-full ${isCollapsed ? "lg:pl-20" : "lg:pl-64"
           }`}
       >
         {/* Sticky Header Bar */}
-        <header className="sticky top-0 z-30 h-16 w-full px-4 sm:px-6 lg:px-8 bg-white/95 backdrop-blur-md border-b border-[#DDE4F3] flex items-center justify-between shadow-xs shrink-0">
+        <header className="sticky top-0 z-30 h-16 w-full px-4 sm:px-6 lg:px-8 bg-white/95 backdrop-blur-md border-b border-[#DDE4F3] flex items-center justify-between shadow-xs shrink-0 print:hidden no-print">
           <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
             {/* Mobile Menu Button */}
             <button
@@ -497,7 +489,7 @@ export default function GadgetEvaluateLayout({
         </header>
 
         {/* Page Content Container */}
-        <main className="flex-1 p-3.5 sm:p-5 md:p-6 lg:p-8">
+        <main className="flex-1 p-3.5 sm:p-5 md:p-6 lg:p-8 print:p-0 print:m-0 print:block print:w-full">
           {children}
         </main>
       </div>
