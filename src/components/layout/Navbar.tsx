@@ -19,6 +19,7 @@ import {
   GadgetIqUser,
   ProjectAccess,
 } from "@/lib/services/gadgetiq-api";
+import { LogoutConfirmModal } from "@/components/ui/LogoutConfirmModal";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -40,6 +41,7 @@ export default function Navbar() {
     projectAccess: ProjectAccess;
   } | null>(null);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   const { scrollYProgress } = useScroll();
@@ -448,7 +450,10 @@ export default function Navbar() {
 
                         <button
                           type="button"
-                          onClick={handleSignOut}
+                          onClick={() => {
+                            setUserDropdownOpen(false);
+                            setShowLogoutConfirm(true);
+                          }}
                           className="w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs font-bold text-[#C7300A] hover:bg-[#FFF2F0] transition-colors cursor-pointer"
                         >
                           <LogOut className="w-4 h-4 text-[#C7300A]" />
@@ -466,7 +471,7 @@ export default function Navbar() {
                   href="/gadgetiq/dashboard"
                   className="px-4 py-2.5 rounded-full bg-blue-50/80 hover:bg-blue-100 text-[#0052CC] border border-blue-200/80 text-xs xl:text-sm font-bold transition-all flex items-center space-x-1.5 shadow-xs cursor-pointer"
                 >
-                  <span>Portal Dashboard</span>
+                  <span>Dashboard</span>
                 </Link>
 
                 <Link
@@ -603,7 +608,10 @@ export default function Navbar() {
                     </Link>
                     <button
                       type="button"
-                      onClick={handleSignOut}
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setShowLogoutConfirm(true);
+                      }}
                       className="text-xs font-bold text-[#C7300A] hover:underline flex items-center gap-1 cursor-pointer"
                     >
                       <LogOut className="w-3.5 h-3.5" />
@@ -708,6 +716,15 @@ export default function Navbar() {
           </>
         )}
       </AnimatePresence>
+
+      {/* Double confirmation modal for sign out */}
+      <LogoutConfirmModal
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleSignOut}
+        userName={session?.user?.fullName || session?.user?.username || "Technician"}
+        userRole={session?.user?.role || "Operator"}
+      />
     </>
   );
 }

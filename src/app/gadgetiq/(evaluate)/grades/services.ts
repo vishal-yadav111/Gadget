@@ -133,6 +133,69 @@ export function parseEvaluationDateToTime(raw?: any): number {
 }
 
 /**
+ * Test if a given evaluation date/time string is within the fromDate..toDate range (inclusive).
+ */
+export function isDateWithinRange(
+  rawDate: any,
+  fromDate?: string,
+  toDate?: string
+): boolean {
+  if (!fromDate && !toDate) return true;
+  const isFromAll = !fromDate || fromDate === "2021-01-01" || fromDate === "2024-01-01" || fromDate === "01/01/2021";
+  const isToAll = !toDate || toDate === "2050-01-01" || toDate === "01/01/2050";
+  if (isFromAll && isToAll) return true;
+
+  const itemTime = parseEvaluationDateToTime(rawDate);
+  if (!itemTime || itemTime === 0) return true; // Keep items with unparseable dates to avoid dropping data
+
+  let startTime = 0;
+  if (fromDate && fromDate !== "2021-01-01" && fromDate !== "2024-01-01" && fromDate !== "01/01/2021") {
+    const cleanFrom = String(fromDate).trim();
+    if (cleanFrom.includes("-")) {
+      const parts = cleanFrom.split("-");
+      if (parts.length === 3 && parts[0].length === 4) {
+        startTime = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10), 0, 0, 0, 0).getTime();
+      }
+    } else if (cleanFrom.includes("/")) {
+      const parts = cleanFrom.split("/");
+      if (parts.length === 3 && parts[2].length === 4) {
+        startTime = new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10), 0, 0, 0, 0).getTime();
+      }
+    }
+    if (!startTime) {
+      const d = new Date(cleanFrom);
+      if (!isNaN(d.getTime())) {
+        startTime = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0).getTime();
+      }
+    }
+  }
+
+  let endTime = Infinity;
+  if (toDate && toDate !== "2050-01-01" && toDate !== "01/01/2050") {
+    const cleanTo = String(toDate).trim();
+    if (cleanTo.includes("-")) {
+      const parts = cleanTo.split("-");
+      if (parts.length === 3 && parts[0].length === 4) {
+        endTime = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10), 23, 59, 59, 999).getTime();
+      }
+    } else if (cleanTo.includes("/")) {
+      const parts = cleanTo.split("/");
+      if (parts.length === 3 && parts[2].length === 4) {
+        endTime = new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10), 23, 59, 59, 999).getTime();
+      }
+    }
+    if (endTime === Infinity) {
+      const d = new Date(cleanTo);
+      if (!isNaN(d.getTime())) {
+        endTime = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999).getTime();
+      }
+    }
+  }
+
+  return itemTime >= startTime && itemTime <= endTime;
+}
+
+/**
  * Accurately and unambiguously resolves the exact 5-tier grade classification of any device.
  * Tiers:
  * - "1a": Tier A (Category A / Superb / Like New / 1A / A+ / A / A-)
@@ -423,13 +486,35 @@ export const gradesService = {
         return (Number(b.mstid) || 0) - (Number(a.mstid) || 0);
       });
 
+      // 1. Date window filtering (supports presets: Today, Last 7d, Last 30d, This Month, etc.)
+      const dateScopedDevices = sorted.filter((d) =>
+        isDateWithinRange(d.testedAtN || d.testedAt || d.CreatedOn, params?.fromDate, params?.toDate)
+      );
+
+      // 2. Compute live 5-tier distribution metrics strictly for this date range
+      let dateCount1A = 0;
+      let dateCount2A = 0;
+      let dateCount3A = 0;
+      let dateCount4A = 0;
+      let dateCount5E = 0;
+
+      dateScopedDevices.forEach((d) => {
+        const isItemPass = d.qcResult.toUpperCase() === "PASS" || d.qcResult.toUpperCase() === "PASSED";
+        const itemTier = resolveGradeTier(d.rawGrade, isItemPass);
+        if (itemTier === "1a") dateCount1A++;
+        else if (itemTier === "2a") dateCount2A++;
+        else if (itemTier === "3a") dateCount3A++;
+        else if (itemTier === "4a") dateCount4A++;
+        else dateCount5E++;
+      });
+
       // Filter by search, grade, brand, and status
       const searchTerm = (params?.search || "").toLowerCase().trim();
       const gradeFilter = (params?.grade || "all").toLowerCase().trim();
       const brandFilter = (params?.brand || "all").toLowerCase().trim();
       const statusFilter = (params?.status || "all").toUpperCase().trim();
 
-      const filtered = sorted.filter((d) => {
+      const filtered = dateScopedDevices.filter((d) => {
         const matchesSearch =
           !searchTerm ||
           d.serialNumber.toLowerCase().includes(searchTerm) ||
@@ -473,7 +558,7 @@ export const gradesService = {
         return matchesSearch && matchesBrand && matchesGrade && matchesStatus;
       });
 
-      const totalEvaluated = allMapped.length;
+      const totalEvaluated = dateScopedDevices.length;
       const recordsFiltered = filtered.length;
       const totalPages = Math.ceil(recordsFiltered / (pageSize || 1)) || 1;
       const paginatedSlice = filtered.slice(start, start + pageSize);
@@ -482,40 +567,40 @@ export const gradesService = {
         {
           grade: "Grade 1A / Category A",
           label: "Like New / Superb",
-          count: count1A,
-          percentage: totalEvaluated > 0 ? Math.round((count1A / totalEvaluated) * 100) : 0,
+          count: dateCount1A,
+          percentage: totalEvaluated > 0 ? Math.round((dateCount1A / totalEvaluated) * 100) : 0,
           color: "#10B981",
           description: "Flawless screen & housing, 100% test pass, certified pristine condition",
         },
         {
           grade: "Grade 2A / Category B",
           label: "Very Good Condition",
-          count: count2A,
-          percentage: totalEvaluated > 0 ? Math.round((count2A / totalEvaluated) * 100) : 0,
+          count: dateCount2A,
+          percentage: totalEvaluated > 0 ? Math.round((dateCount2A / totalEvaluated) * 100) : 0,
           color: "#059669",
           description: "Minor hairline micro-scratches, 100% functional test pass",
         },
         {
           grade: "Grade 3A / Category C",
           label: "Good / Standard Condition",
-          count: count3A,
-          percentage: totalEvaluated > 0 ? Math.round((count3A / totalEvaluated) * 100) : 0,
+          count: dateCount3A,
+          percentage: totalEvaluated > 0 ? Math.round((dateCount3A / totalEvaluated) * 100) : 0,
           color: "#0052CC",
           description: "Visible normal commercial wear on chassis, 100% functional components",
         },
         {
           grade: "Grade 4A / Category D",
           label: "Fair / Moderate Wear",
-          count: count4A,
-          percentage: totalEvaluated > 0 ? Math.round((count4A / totalEvaluated) * 100) : 0,
+          count: dateCount4A,
+          percentage: totalEvaluated > 0 ? Math.round((dateCount4A / totalEvaluated) * 100) : 0,
           color: "#D97706",
           description: "Noticeable cosmetic dings or keyboard wear without hardware failure",
         },
         {
           grade: "Grade 5E / Quarantine",
           label: "Quarantined / Defect / Fail",
-          count: count5E,
-          percentage: totalEvaluated > 0 ? Math.round((count5E / totalEvaluated) * 100) : 0,
+          count: dateCount5E,
+          percentage: totalEvaluated > 0 ? Math.round((dateCount5E / totalEvaluated) * 100) : 0,
           color: "#E11D48",
           description: "Component fault, battery replacement, failed QC or quarantined for repair",
         },
@@ -726,13 +811,35 @@ export const gradesService = {
         return (Number(b.mstid) || 0) - (Number(a.mstid) || 0);
       });
 
+      // 1. Date window filtering (supports presets: Today, Last 7d, Last 30d, This Month, etc.)
+      const dateScopedDevices = sorted.filter((d) =>
+        isDateWithinRange(d.testedAtN || d.testedAt || d.CreatedOn, params?.fromDate, params?.toDate)
+      );
+
+      // 2. Compute live 5-tier distribution metrics strictly for this date range
+      let dateCount1A = 0;
+      let dateCount2A = 0;
+      let dateCount3A = 0;
+      let dateCount4A = 0;
+      let dateCount5E = 0;
+
+      dateScopedDevices.forEach((d) => {
+        const isItemPass = d.qcResult.toUpperCase() === "PASS" || d.qcResult.toUpperCase() === "PASSED";
+        const itemTier = resolveGradeTier(d.rawGrade, isItemPass);
+        if (itemTier === "1a") dateCount1A++;
+        else if (itemTier === "2a") dateCount2A++;
+        else if (itemTier === "3a") dateCount3A++;
+        else if (itemTier === "4a") dateCount4A++;
+        else dateCount5E++;
+      });
+
       // Filter by search, grade, brand, and status
       const searchTerm = (params?.search || "").toLowerCase().trim();
       const gradeFilter = (params?.grade || "all").toLowerCase().trim();
       const brandFilter = (params?.brand || "all").toLowerCase().trim();
       const statusFilter = (params?.status || "all").toUpperCase().trim();
 
-      const filtered = sorted.filter((d) => {
+      const filtered = dateScopedDevices.filter((d) => {
         const matchesSearch =
           !searchTerm ||
           d.serialNumber.toLowerCase().includes(searchTerm) ||
@@ -776,7 +883,7 @@ export const gradesService = {
         return matchesSearch && matchesBrand && matchesGrade && matchesStatus;
       });
 
-      const totalEvaluated = allMapped.length;
+      const totalEvaluated = dateScopedDevices.length;
       const recordsFiltered = filtered.length;
       const totalPages = Math.ceil(recordsFiltered / (pageSize || 1)) || 1;
       const paginatedSlice = filtered.slice(start, start + pageSize);
@@ -785,40 +892,40 @@ export const gradesService = {
         {
           grade: "Grade 1A / Category A",
           label: "Like New / Superb",
-          count: count1A,
-          percentage: totalEvaluated > 0 ? Math.round((count1A / totalEvaluated) * 100) : 0,
+          count: dateCount1A,
+          percentage: totalEvaluated > 0 ? Math.round((dateCount1A / totalEvaluated) * 100) : 0,
           color: "#10B981",
           description: "Pristine cosmetic condition, 100% test pass, zero flaws",
         },
         {
           grade: "Grade 2A / Category B",
           label: "Very Good Condition",
-          count: count2A,
-          percentage: totalEvaluated > 0 ? Math.round((count2A / totalEvaluated) * 100) : 0,
+          count: dateCount2A,
+          percentage: totalEvaluated > 0 ? Math.round((dateCount2A / totalEvaluated) * 100) : 0,
           color: "#059669",
           description: "Minor hairline micro-scratches on casing, pristine screen, 100% test pass",
         },
         {
           grade: "Grade 3A / Category C",
           label: "Good / Standard Condition",
-          count: count3A,
-          percentage: totalEvaluated > 0 ? Math.round((count3A / totalEvaluated) * 100) : 0,
+          count: dateCount3A,
+          percentage: totalEvaluated > 0 ? Math.round((dateCount3A / totalEvaluated) * 100) : 0,
           color: "#0052CC",
           description: "Visible standard commercial wear, fully operational hardware & sensors",
         },
         {
           grade: "Grade 4A / Category D",
           label: "Fair / Cosmetic Wear",
-          count: count4A,
-          percentage: totalEvaluated > 0 ? Math.round((count4A / totalEvaluated) * 100) : 0,
+          count: dateCount4A,
+          percentage: totalEvaluated > 0 ? Math.round((dateCount4A / totalEvaluated) * 100) : 0,
           color: "#D97706",
           description: "Moderate body scuffs or dings, passed primary device diagnostics",
         },
         {
           grade: "Grade 5E / Quarantine",
           label: "Quarantined / Defect / Fail",
-          count: count5E,
-          percentage: totalEvaluated > 0 ? Math.round((count5E / totalEvaluated) * 100) : 0,
+          count: dateCount5E,
+          percentage: totalEvaluated > 0 ? Math.round((dateCount5E / totalEvaluated) * 100) : 0,
           color: "#E11D48",
           description: "Hardware defect, battery failure, or quarantined for board rework",
         },

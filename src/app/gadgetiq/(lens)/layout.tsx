@@ -24,6 +24,7 @@ import {
   authService,
   LensAuthUser,
 } from "./core";
+import { LogoutConfirmModal } from "@/components/ui/LogoutConfirmModal";
 
 const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   "/gadgetiq/dashboard": {
@@ -72,6 +73,7 @@ export default function LensAdminLayout({
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Check if current route is a public page (Landing, Public Certificate, or Login redirect)
   const isLandingPage =
@@ -368,7 +370,7 @@ export default function LensAdminLayout({
                   .toUpperCase()}
               </div>
               <button
-                onClick={handleLogout}
+                onClick={() => setShowLogoutConfirm(true)}
                 title="Log out"
                 className="p-2 rounded-[6px] text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                 aria-label="Logout"
@@ -405,7 +407,7 @@ export default function LensAdminLayout({
                 </div>
 
                 <button
-                  onClick={handleLogout}
+                  onClick={() => setShowLogoutConfirm(true)}
                   title="Log out"
                   className="p-1.5 rounded-[6px] text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer shrink-0"
                   aria-label="Logout"
@@ -474,6 +476,15 @@ export default function LensAdminLayout({
           {children}
         </main>
       </div>
+
+      {/* Double confirmation modal for logout */}
+      <LogoutConfirmModal
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleLogout}
+        userName={user?.fullName || user?.username || "Admin"}
+        userRole={user?.role || "admin"}
+      />
     </div>
   );
 }

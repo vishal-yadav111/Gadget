@@ -28,6 +28,7 @@ import {
   Check,
   XCircle,
   ChevronRight,
+  CalendarCheck,
 } from "lucide-react";
 import { dashboardService } from "./services";
 import { EvaluateDashboardStats, LicenceCountItem, WorkOrderHistoryItem } from "./types";
@@ -263,7 +264,7 @@ export default function EvaluateDashboardView() {
           </p>
         </div>
 
-        <div className="flex items-center space-x-3 shrink-0">
+        <div className="flex items-center space-x-2.5 shrink-0 flex-wrap gap-y-2">
           <button
             onClick={loadData}
             className="p-2.5 rounded-xl border border-[#DDE4F3] text-[#5F6A86] hover:text-[#0052CC] hover:bg-[#F4F6FB] transition-colors cursor-pointer"
@@ -271,6 +272,14 @@ export default function EvaluateDashboardView() {
           >
             <RefreshCw className="w-4 h-4" />
           </button>
+
+          <Link
+            href="/gadgetiq/reports/monthly-summary"
+            className="px-4 py-2.5 rounded-full bg-blue-50 hover:bg-blue-100 text-[#0052CC] border border-blue-200/80 text-xs font-bold transition-all flex items-center space-x-1.5 shadow-xs cursor-pointer"
+          >
+            <CalendarCheck className="w-3.5 h-3.5 text-[#0052CC]" />
+            <span>Monthly Summary</span>
+          </Link>
 
           <Link
             href="/gadgetiq/reports/laptop"

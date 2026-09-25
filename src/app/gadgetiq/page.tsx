@@ -10,8 +10,12 @@ import "./_components/home.css";
 import CoreFeatures from "./_components/CoreFeatures";
 import DiagnosticsHero from "./_components/DiagnosticsHero";
 import HowWeCheck from "./_components/HowWeCheck";
+import BusinessSolutions from "./(evaluate)/_components/business-solutions/BusinessSolutions";
 
 // Dynamic imports of subsequent sections directly from local _components
+const GadgetIQWorkflow = dynamic(() => import("./_components/GadgetIQWorkflow"), {
+  loading: () => <SectionSkeleton />,
+});
 const WorkflowRow = dynamic(() => import("./_components/WorkflowRow"), {
   loading: () => <SectionSkeleton />,
 });
@@ -50,9 +54,11 @@ export default function GadgetIQPage() {
       <main className="relative z-10 flex flex-col w-full">
         {/* <Hero /> */}
         <DiagnosticsHero />
+        <GadgetIQWorkflow />
         <CoreFeatures/>
 
         <HowWeCheck />
+        <BusinessSolutions />
         {/* <WorkflowRow /> */}
         {/* <Pillars /> */}
         {/* <ValueLogic /> */}

@@ -34,6 +34,7 @@ import {
   STORAGE_KEYS,
   EvaluateAuthUser,
 } from "./core";
+import { LogoutConfirmModal } from "@/components/ui/LogoutConfirmModal";
 
 const PAGE_METADATA: Record<string, { title: string; subtitle: string }> = {
   "/gadgetiq/dashboard": {
@@ -118,6 +119,7 @@ const NAV_SECTIONS = [
     title: "Overview",
     items: [
       { path: "/gadgetiq/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { path: "/gadgetiq/reports/monthly-summary", label: "Monthly Summary", icon: CalendarCheck },
     ],
   },
   {
@@ -128,7 +130,6 @@ const NAV_SECTIONS = [
       { path: "/gadgetiq/reports/motherboard", label: "Motherboard QC", icon: Cpu },
       { path: "/gadgetiq/reports/desktop", label: "Desktop QC", icon: Monitor },
       { path: "/gadgetiq/reports/desktop-motherboard", label: "Desktop Motherboard QC", icon: Cpu },
-      { path: "/gadgetiq/reports/monthly-summary", label: "Monthly Summary", icon: CalendarCheck },
     ],
   },
   {
@@ -168,6 +169,7 @@ export default function GadgetEvaluateLayout({
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Check if current route is a public page (Landing, Public Certificate, or Login redirect)
   const isLandingPage =
@@ -398,7 +400,7 @@ export default function GadgetEvaluateLayout({
                   .toUpperCase()}
               </div>
               <button
-                onClick={handleLogout}
+                onClick={() => setShowLogoutConfirm(true)}
                 title="Log out"
                 className="p-2 rounded-[6px] text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                 aria-label="Logout"
@@ -433,7 +435,7 @@ export default function GadgetEvaluateLayout({
               </div>
 
               <button
-                onClick={handleLogout}
+                onClick={() => setShowLogoutConfirm(true)}
                 title="Log out"
                 className="p-1.5 rounded-[6px] text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer shrink-0"
                 aria-label="Logout"
@@ -499,6 +501,15 @@ export default function GadgetEvaluateLayout({
           {children}
         </main>
       </div>
+
+      {/* Double confirmation modal for logout */}
+      <LogoutConfirmModal
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleLogout}
+        userName={user?.fullName || user?.username || "Technician"}
+        userRole={user?.role || "Operator"}
+      />
     </div>
   );
 }

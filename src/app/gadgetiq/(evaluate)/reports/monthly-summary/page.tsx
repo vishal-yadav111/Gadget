@@ -6,16 +6,14 @@ import {
   Smartphone,
   Laptop,
   Layers,
-  CheckCircle2,
-  XCircle,
   RefreshCw,
-  BarChart3,
   AlertCircle,
   FileSpreadsheet,
 } from "lucide-react";
 import { reportsService } from "../services";
 import { MonthlySummaryItem } from "../types";
 import { getFriendlyErrorMessage } from "../../core";
+import { exportToExcel, ExcelColumn } from "@/lib/excel-export";
 
 type CategoryTab = "all" | "mobile" | "laptop";
 
@@ -36,7 +34,7 @@ export default function MonthlySummaryReportPage() {
       setError(
         getFriendlyErrorMessage(
           err,
-          "Unable to aggregate monthly telemetry from local QC endpoints. Please check server connection."
+          "Unable to aggregate monthly telemetry. Please check server connection."
         )
       );
     } finally {
@@ -73,58 +71,87 @@ export default function MonthlySummaryReportPage() {
   const passEfficiency =
     totalEvaluations > 0 ? Math.round((totalPassed / totalEvaluations) * 100 * 10) / 10 : 0;
 
-  const avgQualityScore = (() => {
-    if (summaries.length === 0) return 0;
-    if (activeTab === "mobile") {
-      const valid = summaries.filter((s) => (s.mobileAvgScore ?? 0) > 0);
-      if (valid.length === 0) return 0;
-      return Math.round((valid.reduce((acc, curr) => acc + (curr.mobileAvgScore ?? 0), 0) / valid.length) * 10) / 10;
-    }
-    if (activeTab === "laptop") {
-      const valid = summaries.filter((s) => (s.laptopAvgScore ?? 0) > 0);
-      if (valid.length === 0) return 0;
-      return Math.round((valid.reduce((acc, curr) => acc + (curr.laptopAvgScore ?? 0), 0) / valid.length) * 10) / 10;
-    }
-    return Math.round((summaries.reduce((acc, curr) => acc + curr.avgScore, 0) / summaries.length) * 10) / 10;
-  })();
+  const defectRate =
+    totalEvaluations > 0 ? Math.round((totalFailed / totalEvaluations) * 100 * 10) / 10 : 0;
 
-  const exportCSV = () => {
-    let headers = "";
-    let rows = "";
+  const handleExportExcel = () => {
+    let columns: ExcelColumn[] = [];
+    let rows: Record<string, any>[] = [];
 
     if (activeTab === "mobile") {
-      headers = "Billing Month,Mobile Evaluations,Passed Checks,Defects Quarantined,Pass Rate,Avg Quality Score\n";
-      rows = summaries
-        .map((item) => {
-          const rate = item.mobileEvaluations > 0 ? Math.round(((item.mobilePassed ?? 0) / item.mobileEvaluations) * 100) : 0;
-          return `"${item.month}","${item.mobileEvaluations}","${item.mobilePassed ?? 0}","${item.mobileFailed ?? 0}","${rate}%","${item.mobileAvgScore ?? 0}"`;
-        })
-        .join("\n");
+      columns = [
+        { key: "month", header: "Billing Month" },
+        { key: "mobileEvaluations", header: "Mobile Evaluations" },
+        { key: "mobilePassed", header: "Passed Checks" },
+        { key: "mobileFailed", header: "Defects Quarantined" },
+        { key: "passRate", header: "Pass Rate" },
+        { key: "defectRate", header: "Defect Rate" },
+      ];
+      rows = summaries.map((item) => {
+        const pass = item.mobilePassRate ?? (item.mobileEvaluations > 0 ? Math.round(((item.mobilePassed ?? 0) / item.mobileEvaluations) * 1000) / 10 : 0);
+        const defect = item.mobileDefectRate ?? (item.mobileEvaluations > 0 ? Math.round(((item.mobileFailed ?? 0) / item.mobileEvaluations) * 1000) / 10 : 0);
+        return {
+          month: item.month,
+          mobileEvaluations: item.mobileEvaluations,
+          mobilePassed: item.mobilePassed ?? 0,
+          mobileFailed: item.mobileFailed ?? 0,
+          passRate: `${pass}%`,
+          defectRate: `${defect}%`,
+        };
+      });
     } else if (activeTab === "laptop") {
-      headers = "Billing Month,Laptop Evaluations,Passed Checks,Defects Quarantined,Pass Rate,Avg Quality Score\n";
-      rows = summaries
-        .map((item) => {
-          const rate = item.laptopEvaluations > 0 ? Math.round(((item.laptopPassed ?? 0) / item.laptopEvaluations) * 100) : 0;
-          return `"${item.month}","${item.laptopEvaluations}","${item.laptopPassed ?? 0}","${item.laptopFailed ?? 0}","${rate}%","${item.laptopAvgScore ?? 0}"`;
-        })
-        .join("\n");
+      columns = [
+        { key: "month", header: "Billing Month" },
+        { key: "laptopEvaluations", header: "Laptop Evaluations" },
+        { key: "laptopPassed", header: "Passed Checks" },
+        { key: "laptopFailed", header: "Defects Quarantined" },
+        { key: "passRate", header: "Pass Rate" },
+        { key: "defectRate", header: "Defect Rate" },
+      ];
+      rows = summaries.map((item) => {
+        const pass = item.laptopPassRate ?? (item.laptopEvaluations > 0 ? Math.round(((item.laptopPassed ?? 0) / item.laptopEvaluations) * 1000) / 10 : 0);
+        const defect = item.laptopDefectRate ?? (item.laptopEvaluations > 0 ? Math.round(((item.laptopFailed ?? 0) / item.laptopEvaluations) * 1000) / 10 : 0);
+        return {
+          month: item.month,
+          laptopEvaluations: item.laptopEvaluations,
+          laptopPassed: item.laptopPassed ?? 0,
+          laptopFailed: item.laptopFailed ?? 0,
+          passRate: `${pass}%`,
+          defectRate: `${defect}%`,
+        };
+      });
     } else {
-      headers = "Billing Month,Mobile QC,Laptop QC,Desktop QC,Passed Checks,Defects Quarantined,Licenses Used,Avg Rating\n";
-      rows = summaries
-        .map(
-          (item) =>
-            `"${item.month}","${item.mobileEvaluations}","${item.laptopEvaluations}","${item.desktopEvaluations}","${item.totalPassed}","${item.totalFailed}","${item.licensesConsumed}","${item.avgScore}"`
-        )
-        .join("\n");
+      columns = [
+        { key: "month", header: "Billing Month" },
+        { key: "mobileEvaluations", header: "Mobile QC" },
+        { key: "laptopEvaluations", header: "Laptop QC" },
+        { key: "desktopEvaluations", header: "Desktop QC" },
+        { key: "totalPassed", header: "Passed Checks" },
+        { key: "totalFailed", header: "Defects Quarantined" },
+        { key: "licensesConsumed", header: "Licenses Used" },
+        { key: "passRate", header: "Pass Rate" },
+        { key: "defectRate", header: "Defect Rate" },
+      ];
+      rows = summaries.map((item) => ({
+        month: item.month,
+        mobileEvaluations: item.mobileEvaluations,
+        laptopEvaluations: item.laptopEvaluations,
+        desktopEvaluations: item.desktopEvaluations,
+        totalPassed: item.totalPassed,
+        totalFailed: item.totalFailed,
+        licensesConsumed: item.licensesConsumed,
+        passRate: `${item.passRate}%`,
+        defectRate: `${item.defectRate}%`,
+      }));
     }
 
-    const blob = new Blob([headers + rows], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `Monthly_QC_Summary_${activeTab.toUpperCase()}_${new Date().toISOString().split("T")[0]}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    exportToExcel({
+      filename: `Monthly_QC_Summary_${activeTab.toUpperCase()}_${new Date().toISOString().split("T")[0]}.xlsx`,
+      sheetName: `QC Summary (${activeTab.toUpperCase()})`,
+      columns,
+      rows,
+      title: `QC Monthly Summary Report - ${activeTab.toUpperCase()}`,
+    });
   };
 
   return (
@@ -138,10 +165,9 @@ export default function MonthlySummaryReportPage() {
           <div>
             <div className="flex items-center space-x-2">
               <h1 className="text-xl font-bold font-display text-[#17284D]">QC Monthly Summary Report</h1>
-
             </div>
             <p className="text-xs text-[#5F6A86]">
-              Monthly multi-category evaluation throughput, pass rates, and license consumption metrics.
+              Monthly multi-category evaluation throughput, pass rates, and defect quarantine ledger.
             </p>
           </div>
         </div>
@@ -155,12 +181,13 @@ export default function MonthlySummaryReportPage() {
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-[#0052CC]" : ""}`} />
           </button>
           <button
-            onClick={exportCSV}
+            onClick={handleExportExcel}
             disabled={summaries.length === 0}
-            className="px-3.5 py-2 rounded-xl bg-[#0052CC] hover:bg-[#003D99] disabled:opacity-50 text-white text-xs font-bold transition-all shadow-xs flex items-center space-x-2 cursor-pointer"
+            className="px-3.5 py-2 rounded-xl bg-[#0052CC] hover:bg-[#003D99] disabled:opacity-50 text-white text-xs font-bold transition-all shadow-xs flex items-center space-x-1.5 cursor-pointer"
+            title="Export summary data to Microsoft Excel (.xlsx)"
           >
             <FileSpreadsheet className="w-4 h-4" />
-            <span>Export CSV</span>
+            <span>Export Data</span>
           </button>
         </div>
       </div>
@@ -169,30 +196,33 @@ export default function MonthlySummaryReportPage() {
       <div className="flex items-center space-x-2 bg-white p-1.5 rounded-2xl border border-[#DDE4F3] shadow-xs w-fit">
         <button
           onClick={() => setActiveTab("all")}
-          className={`inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === "all"
+          className={`inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === "all"
               ? "bg-[#0052CC] text-white shadow-xs"
               : "text-[#5F6A86] hover:text-[#17284D] hover:bg-[#F4F6FB]"
-            }`}
+          }`}
         >
           <Layers className="w-4 h-4" />
           <span>All Evaluations</span>
         </button>
         <button
           onClick={() => setActiveTab("mobile")}
-          className={`inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === "mobile"
+          className={`inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === "mobile"
               ? "bg-[#0052CC] text-white shadow-xs"
               : "text-[#5F6A86] hover:text-[#17284D] hover:bg-[#F4F6FB]"
-            }`}
+          }`}
         >
           <Smartphone className="w-4 h-4" />
           <span>Mobile QC</span>
         </button>
         <button
           onClick={() => setActiveTab("laptop")}
-          className={`inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === "laptop"
+          className={`inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === "laptop"
               ? "bg-[#0052CC] text-white shadow-xs"
               : "text-[#5F6A86] hover:text-[#17284D] hover:bg-[#F4F6FB]"
-            }`}
+          }`}
         >
           <Laptop className="w-4 h-4" />
           <span>Laptop QC</span>
@@ -221,31 +251,31 @@ export default function MonthlySummaryReportPage() {
             {passEfficiency}%
           </span>
           <span className="text-[11px] font-semibold text-slate-400 mt-1 block">
-            {totalPassed.toLocaleString()} Passed / {totalFailed.toLocaleString()} Quarantined
+            {totalPassed.toLocaleString()} Passed Audits
           </span>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-[#DDE4F3] shadow-xs">
           <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-            Licenses Consumed
+            Quarantined Defects
           </span>
-          <span className="text-2xl font-black font-display text-[#0052CC] mt-1 block">
-            {totalEvaluations.toLocaleString()}
+          <span className="text-2xl font-black font-display text-rose-600 mt-1 block">
+            {totalFailed.toLocaleString()}
+          </span>
+          <span className="text-[11px] font-semibold text-rose-500 mt-1 block">
+            Failed Diagnostic Checks
+          </span>
+        </div>
+
+        <div className="bg-white p-5 rounded-2xl border border-[#DDE4F3] shadow-xs">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+            Quarantine / Defect Rate
+          </span>
+          <span className="text-2xl font-black font-display text-amber-600 mt-1 block">
+            {defectRate}%
           </span>
           <span className="text-[11px] font-semibold text-slate-400 mt-1 block">
-            Audit Verified
-          </span>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-[#DDE4F3] shadow-xs">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-            Average Quality Score
-          </span>
-          <span className="text-2xl font-black font-display text-[#D97706] mt-1 block">
-            {avgQualityScore} / 100
-          </span>
-          <span className="text-[11px] font-semibold text-emerald-600 mt-1 block">
-            Diagnostic Health Score
+            Remediation Burden
           </span>
         </div>
       </div>
@@ -264,7 +294,7 @@ export default function MonthlySummaryReportPage() {
         {loading ? (
           <div className="p-12 text-center">
             <div className="w-8 h-8 border-3 border-[#0052CC] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-xs font-semibold text-slate-500">Aggregating live monthly telemetry from local QC endpoints...</p>
+            <p className="text-xs font-semibold text-slate-500">Aggregating monthly summary telemetry...</p>
           </div>
         ) : error ? (
           <div className="p-12 text-center space-y-3">
@@ -290,7 +320,8 @@ export default function MonthlySummaryReportPage() {
                   <th className="py-3 px-4">Passed Checks</th>
                   <th className="py-3 px-4">Defects Quarantined</th>
                   <th className="py-3 px-4">Licenses Used</th>
-                  <th className="py-3 px-4 text-right">Avg Rating</th>
+                  <th className="py-3 px-4 text-center">Pass Rate</th>
+                  <th className="py-3 px-4 text-right">Defect Rate</th>
                 </tr>
               ) : activeTab === "mobile" ? (
                 <tr>
@@ -298,8 +329,8 @@ export default function MonthlySummaryReportPage() {
                   <th className="py-3 px-4">Mobile Evaluated</th>
                   <th className="py-3 px-4">Passed Checks</th>
                   <th className="py-3 px-4">Defects Quarantined</th>
-                  <th className="py-3 px-4">Pass Rate</th>
-                  <th className="py-3 px-4 text-right">Avg Quality Score</th>
+                  <th className="py-3 px-4 text-center">Pass Rate</th>
+                  <th className="py-3 px-4 text-right">Defect Rate</th>
                 </tr>
               ) : (
                 <tr>
@@ -307,8 +338,8 @@ export default function MonthlySummaryReportPage() {
                   <th className="py-3 px-4">Laptops Evaluated</th>
                   <th className="py-3 px-4">Passed Checks</th>
                   <th className="py-3 px-4">Defects Quarantined</th>
-                  <th className="py-3 px-4">Pass Rate</th>
-                  <th className="py-3 px-4 text-right">Avg Quality Score</th>
+                  <th className="py-3 px-4 text-center">Pass Rate</th>
+                  <th className="py-3 px-4 text-right">Defect Rate</th>
                 </tr>
               )}
             </thead>
@@ -316,14 +347,14 @@ export default function MonthlySummaryReportPage() {
               {summaries.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={activeTab === "all" ? 8 : 6}
+                    colSpan={activeTab === "all" ? 9 : 6}
                     className="p-12 text-center text-slate-400"
                   >
                     <div className="flex flex-col items-center justify-center space-y-2">
                       <AlertCircle className="w-8 h-8 text-slate-300" />
                       <h3 className="text-sm font-bold text-[#17284D]">No Monthly Summaries Found</h3>
                       <p className="text-xs text-slate-500 max-w-sm">
-                        No evaluation history available yet from the local QC portal.
+                        No evaluation history available yet.
                       </p>
                     </div>
                   </td>
@@ -334,16 +365,19 @@ export default function MonthlySummaryReportPage() {
                     const passed = item.mobilePassed ?? 0;
                     const failed = item.mobileFailed ?? 0;
                     const total = item.mobileEvaluations;
-                    const rate = total > 0 ? Math.round((passed / total) * 100) : 0;
+                    const passRate = item.mobilePassRate ?? (total > 0 ? Math.round((passed / total) * 1000) / 10 : 0);
+                    const defectRate = item.mobileDefectRate ?? (total > 0 ? Math.round((failed / total) * 1000) / 10 : 0);
                     return (
                       <tr key={item.month} className="hover:bg-blue-50/40 transition-colors">
                         <td className="py-3.5 px-4 font-bold text-[#17284D]">{item.month}</td>
                         <td className="py-3.5 px-4 font-mono font-bold text-[#0052CC]">{total}</td>
                         <td className="py-3.5 px-4 font-mono font-bold text-emerald-600">{passed}</td>
                         <td className="py-3.5 px-4 font-mono font-bold text-rose-600">{failed}</td>
-                        <td className="py-3.5 px-4 font-mono font-bold text-slate-700">{rate}%</td>
-                        <td className="py-3.5 px-4 text-right font-mono font-bold text-amber-600">
-                          {item.mobileAvgScore ?? item.avgScore} pts
+                        <td className="py-3.5 px-4 text-center font-mono font-bold text-emerald-600">
+                          {passRate}%
+                        </td>
+                        <td className="py-3.5 px-4 text-right font-mono font-bold text-rose-600">
+                          {defectRate}%
                         </td>
                       </tr>
                     );
@@ -353,16 +387,19 @@ export default function MonthlySummaryReportPage() {
                     const passed = item.laptopPassed ?? 0;
                     const failed = item.laptopFailed ?? 0;
                     const total = item.laptopEvaluations;
-                    const rate = total > 0 ? Math.round((passed / total) * 100) : 0;
+                    const passRate = item.laptopPassRate ?? (total > 0 ? Math.round((passed / total) * 1000) / 10 : 0);
+                    const defectRate = item.laptopDefectRate ?? (total > 0 ? Math.round((failed / total) * 1000) / 10 : 0);
                     return (
                       <tr key={item.month} className="hover:bg-blue-50/40 transition-colors">
                         <td className="py-3.5 px-4 font-bold text-[#17284D]">{item.month}</td>
                         <td className="py-3.5 px-4 font-mono font-bold text-[#0052CC]">{total}</td>
                         <td className="py-3.5 px-4 font-mono font-bold text-emerald-600">{passed}</td>
                         <td className="py-3.5 px-4 font-mono font-bold text-rose-600">{failed}</td>
-                        <td className="py-3.5 px-4 font-mono font-bold text-slate-700">{rate}%</td>
-                        <td className="py-3.5 px-4 text-right font-mono font-bold text-amber-600">
-                          {item.laptopAvgScore ?? item.avgScore} pts
+                        <td className="py-3.5 px-4 text-center font-mono font-bold text-emerald-600">
+                          {passRate}%
+                        </td>
+                        <td className="py-3.5 px-4 text-right font-mono font-bold text-rose-600">
+                          {defectRate}%
                         </td>
                       </tr>
                     );
@@ -383,8 +420,11 @@ export default function MonthlySummaryReportPage() {
                       <td className="py-3.5 px-4 font-mono font-bold text-[#0052CC]">
                         {item.licensesConsumed}
                       </td>
-                      <td className="py-3.5 px-4 text-right font-mono font-bold text-amber-600">
-                        {item.avgScore} pts
+                      <td className="py-3.5 px-4 text-center font-mono font-bold text-emerald-600">
+                        {item.passRate}%
+                      </td>
+                      <td className="py-3.5 px-4 text-right font-mono font-bold text-rose-600">
+                        {item.defectRate}%
                       </td>
                     </tr>
                   );

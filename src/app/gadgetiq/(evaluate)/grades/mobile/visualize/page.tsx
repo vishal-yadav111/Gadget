@@ -19,6 +19,7 @@ import {
 import { gradesService } from "../../services";
 import { GradeDistributionItem, GradedDeviceItem } from "../../types";
 import { getFriendlyErrorMessage } from "../../../core";
+import DateRangeFilter from "@/components/ui/DateRangeFilter";
 
 export default function MobileGradeVisualizePage() {
   const [grades, setGrades] = useState<GradeDistributionItem[]>([]);
@@ -29,8 +30,8 @@ export default function MobileGradeVisualizePage() {
   const [selectedGrade, setSelectedGrade] = useState("all");
 
   // Date Range State
-  const [fromDate, setFromDate] = useState("2021-01-01");
-  const [toDate, setToDate] = useState(new Date().toISOString().split("T")[0]);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const [datePreset, setDatePreset] = useState<string>("all");
 
   const [loading, setLoading] = useState(true);
@@ -41,29 +42,28 @@ export default function MobileGradeVisualizePage() {
   // Date Presets Handler
   const applyDatePreset = (preset: string) => {
     setDatePreset(preset);
-    const today = new Date();
-    const todayStr = today.toISOString().split("T")[0];
+    const d = new Date();
+    const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
     if (preset === "today") {
       setFromDate(todayStr);
       setToDate(todayStr);
     } else if (preset === "7d") {
-      const d = new Date();
-      d.setDate(d.getDate() - 7);
-      setFromDate(d.toISOString().split("T")[0]);
+      const past = new Date();
+      past.setDate(past.getDate() - 7);
+      setFromDate(`${past.getFullYear()}-${String(past.getMonth() + 1).padStart(2, "0")}-${String(past.getDate()).padStart(2, "0")}`);
       setToDate(todayStr);
     } else if (preset === "30d") {
-      const d = new Date();
-      d.setDate(d.getDate() - 30);
-      setFromDate(d.toISOString().split("T")[0]);
+      const past = new Date();
+      past.setDate(past.getDate() - 30);
+      setFromDate(`${past.getFullYear()}-${String(past.getMonth() + 1).padStart(2, "0")}-${String(past.getDate()).padStart(2, "0")}`);
       setToDate(todayStr);
     } else if (preset === "year") {
-      const d = new Date(today.getFullYear(), 0, 1);
-      setFromDate(d.toISOString().split("T")[0]);
+      setFromDate(`${d.getFullYear()}-01-01`);
       setToDate(todayStr);
     } else if (preset === "all") {
-      setFromDate("2021-01-01");
-      setToDate(todayStr);
+      setFromDate("");
+      setToDate("");
     }
   };
 
@@ -200,29 +200,16 @@ export default function MobileGradeVisualizePage() {
             ))}
           </div>
 
-          {/* Custom Date Range Picker */}
-          <div className="hidden lg:flex items-center space-x-1.5 bg-[#F4F6FB] px-2.5 py-1.5 rounded-xl border border-[#DDE4F3] text-xs">
-            <Calendar className="w-3.5 h-3.5 text-slate-400" />
-            <input
-              type="date"
-              value={fromDate}
-              onChange={(e) => {
-                setFromDate(e.target.value);
-                setDatePreset("custom");
-              }}
-              className="bg-transparent text-[11px] font-semibold text-slate-700 outline-none cursor-pointer"
-            />
-            <span className="text-slate-300">-</span>
-            <input
-              type="date"
-              value={toDate}
-              onChange={(e) => {
-                setToDate(e.target.value);
-                setDatePreset("custom");
-              }}
-              className="bg-transparent text-[11px] font-semibold text-slate-700 outline-none cursor-pointer"
-            />
-          </div>
+          {/* Modern Date Range Filter */}
+          <DateRangeFilter
+            fromDate={fromDate}
+            toDate={toDate}
+            onChange={({ fromDate: newFrom, toDate: newTo }) => {
+              setFromDate(newFrom);
+              setToDate(newTo);
+              setDatePreset("custom");
+            }}
+          />
 
           <button
             onClick={() => loadData(true)}

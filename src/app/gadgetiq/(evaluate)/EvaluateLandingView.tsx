@@ -42,12 +42,6 @@ const Teams = dynamic(() => import("./_components/teams/Teams"), {
 const DigitalTrust = dynamic(() => import("./_components/digital-trust/DigitalTrust"), {
   loading: () => <SectionSkeleton />,
 });
-const BusinessSolutions = dynamic(() => import("./_components/business-solutions/BusinessSolutions"), {
-  loading: () => <SectionSkeleton />,
-});
-const Pricing = dynamic(() => import("./_components/pricing/Pricing"), {
-  loading: () => <SectionSkeleton />,
-});
 const FAQs = dynamic(() => import("./_components/faqs/FAQs"), {
   loading: () => <SectionSkeleton />,
 });
@@ -81,12 +75,10 @@ export default function EvaluatePage() {
         {/* <DeviceIntelligence /> */}
         <DeviceSupport />
         <WhyItMatters />
-        <Teams />
+        {/* <Teams /> */}
         {/* <UseCases /> */}
 
         {/* <DigitalTrust /> */}
-        <BusinessSolutions />
-        <Pricing />
         <FAQs />
         <BookDemo />
         <FinalCTA />

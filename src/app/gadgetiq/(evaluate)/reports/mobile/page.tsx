@@ -7,24 +7,27 @@ import {
   Smartphone,
   CheckCircle2,
   XCircle,
+  MinusCircle,
   ExternalLink,
   RefreshCw,
   FileSpreadsheet,
   AlertCircle,
-  MinusCircle,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  FileText,
-  Printer,
   Eye,
+  Printer,
+  Calendar,
 } from "lucide-react";
-
 import { reportsService } from "../services";
 import { MobileQCReportItem } from "../types";
 import { getFriendlyErrorMessage } from "../../core";
 import { ReportsPagination } from "../ReportsPagination";
 import MobileQcDetailModal from "./_components/MobileQcDetailModal";
+import { useDebounce } from "@/lib/hooks/useDebounce";
+import { exportToExcel, ExcelColumn } from "@/lib/excel-export";
+import DateRangeExcelExportModal from "@/components/ui/DateRangeExcelExportModal";
+import DateRangeFilter from "@/components/ui/DateRangeFilter";
 
 type SortField = "date" | "brand" | "model" | "imei" | "workorder" | "condition" | "status" | "score";
 type SortOrder = "asc" | "desc";
@@ -190,7 +193,7 @@ export function renderDeviceConditionBadge(rawCondition?: string | number | bool
   const { badgeStyle, isMissing, formatted } = getConditionBadgeStyle(rawCondition);
 
   if (isMissing) {
-    return <span className="text-slate-400 font-mono text-xs">—</span>;
+    return <span className="text-slate-400 font-mono text-[11px]">—</span>;
   }
 
   return (
@@ -200,16 +203,36 @@ export function renderDeviceConditionBadge(rawCondition?: string | number | bool
   );
 }
 
+const mobileExcelColumns: ExcelColumn[] = [
+  { key: "certificate_number", header: "Certificate Number" },
+  { key: "workorderid", header: "Work Order ID" },
+  { key: "brand_name", header: "Brand" },
+  { key: "model_name", header: "Model" },
+  { key: "IMEI", header: "IMEI / Serial" },
+  { key: "physical_condition_category", header: "Condition Grade" },
+  { key: "storage", header: "Storage" },
+  { key: "ram", header: "RAM" },
+  { key: "score", header: "Health Score" },
+  { key: "test_result", header: "QC Result" },
+  { key: "CreatedOn", header: "Evaluation Date" },
+];
 
 export default function MobileQCReportPage() {
   const [reports, setReports] = useState<MobileQCReportItem[]>([]);
   const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState("all");
-  const [fromDate, setFromDate] = useState("2021-01-01");
-  const [toDate, setToDate] = useState(new Date().toISOString().split("T")[0]);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+
+  // Date Range Excel Export Modal state
+  const [isDateRangeModalOpen, setIsDateRangeModalOpen] = useState(false);
+
+  // Debounced filters to prevent API spamming
+  const debouncedSearch = useDebounce(search, 350);
+  const debouncedFromDate = useDebounce(fromDate, 400);
+  const debouncedToDate = useDebounce(toDate, 400);
 
   // On-demand detail modal state
   const [selectedDetailId, setSelectedDetailId] = useState<string | number | null>(null);
@@ -236,15 +259,6 @@ export default function MobileQCReportPage() {
   // Track latest request ID to prevent race conditions
   const requestIdRef = useRef(0);
 
-  // 350ms Debounced search input handler
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(1);
-    }, 350);
-    return () => clearTimeout(timer);
-  }, [search]);
-
   const loadReports = async () => {
     const currentReqId = ++requestIdRef.current;
     setLoading(true);
@@ -252,8 +266,8 @@ export default function MobileQCReportPage() {
 
     try {
       const res = await reportsService.getMobileReportsPaginated({
-        fromDate,
-        toDate,
+        fromDate: debouncedFromDate,
+        toDate: debouncedToDate,
         search: debouncedSearch,
         page,
         pageSize,
@@ -262,13 +276,14 @@ export default function MobileQCReportPage() {
 
       if (currentReqId === requestIdRef.current) {
         setReports(res.data);
-        setTotalRecords(res.recordsFiltered || res.recordsTotal || res.data.length);
-        setTotalPages(res.totalPages || Math.ceil((res.recordsFiltered || res.data.length) / pageSize) || 1);
+        const resolvedTotal = res.recordsFiltered || res.recordsTotal || res.data.length;
+        setTotalRecords(resolvedTotal);
+        setTotalPages(res.totalPages || Math.ceil(resolvedTotal / (pageSize || 1)) || 1);
       }
     } catch (err: any) {
       if (currentReqId === requestIdRef.current) {
         console.error("Failed to load mobile reports:", err);
-        setError(getFriendlyErrorMessage(err, "Unable to load live mobile QC reports. Please check your network connection."));
+        setError(getFriendlyErrorMessage(err, "Unable to load mobile QC reports. Please check your network connection."));
       }
     } finally {
       if (currentReqId === requestIdRef.current) {
@@ -279,7 +294,7 @@ export default function MobileQCReportPage() {
 
   useEffect(() => {
     loadReports();
-  }, [page, pageSize, statusFilter, fromDate, toDate, debouncedSearch]);
+  }, [page, pageSize, statusFilter, debouncedFromDate, debouncedToDate, debouncedSearch]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -290,7 +305,7 @@ export default function MobileQCReportPage() {
     }
   };
 
-  // Sort and filter data (Zero Deduplication: all duplicate IMEIs/records are preserved)
+  // Sort and filter data (Zero Deduplication: all records preserved)
   const sortedReports = useMemo(() => {
     const items = [...reports];
     return items.sort((a, b) => {
@@ -337,21 +352,52 @@ export default function MobileQCReportPage() {
     );
   };
 
-  const exportCSV = () => {
-    const headers = "WorkOrderID,IMEI,Brand,Model,Condition,Storage,TestStatus,Date\n";
-    const rows = sortedReports
-      .map(
-        (r) =>
-          `"${r.workorderid || ""}","${r.IMEI || r.imei_1 || ""}","${r.brand_name || ""}","${r.model_name || ""}","${r.physical_condition_category || r.grade || r.test_status || ""}","${r.storage || ""}","${r.BatterytestStatus === "1" || r.QCResult === "PASS" ? "Pass" : "Fail"}","${r.CreatedOn || ""}"`
-      )
-      .join("\n");
-    const blob = new Blob([headers + rows], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `Mobile_QC_Report_${new Date().toISOString().split("T")[0]}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const handleExportCurrentExcel = () => {
+    const rows = sortedReports.map((r) => ({
+      certificate_number: r.certificate_number || `XC-MB-${r.mstid}`,
+      workorderid: r.workorderid || "—",
+      brand_name: r.brand_name || "—",
+      model_name: r.model_name || "—",
+      IMEI: r.IMEI || r.imei_1 || "—",
+      physical_condition_category: formatConditionCategory(r.physical_condition_category || r.grade || r.test_status),
+      storage: r.storage || "—",
+      ram: r.ram || "—",
+      score: r.score ? `${r.score}%` : "—",
+      test_result: r.BatterytestStatus === "1" || r.QCResult === "PASS" ? "PASS" : (r.test_result || "FAIL"),
+      CreatedOn: r.CreatedOn || "—",
+    }));
+
+    exportToExcel({
+      filename: `Mobile_QC_Report_${fromDate}_to_${toDate}.xlsx`,
+      sheetName: "Mobile QC",
+      columns: mobileExcelColumns,
+      rows,
+      title: `Mobile Devices QC Report (${fromDate} to ${toDate})`,
+    });
+  };
+
+  const handleFetchDateRangeData = async (startD: string, endD: string) => {
+    const res = await reportsService.getMobileReportsPaginated({
+      fromDate: startD,
+      toDate: endD,
+      pageSize: 100000,
+      search: debouncedSearch,
+      status: statusFilter === "all" ? "ALL" : statusFilter.toUpperCase(),
+    });
+
+    return res.data.map((r) => ({
+      certificate_number: r.certificate_number || `XC-MB-${r.mstid}`,
+      workorderid: r.workorderid || "—",
+      brand_name: r.brand_name || "—",
+      model_name: r.model_name || "—",
+      IMEI: r.IMEI || r.imei_1 || "—",
+      physical_condition_category: formatConditionCategory(r.physical_condition_category || r.grade || r.test_status),
+      storage: r.storage || "—",
+      ram: r.ram || "—",
+      score: r.score ? `${r.score}%` : "—",
+      test_result: r.BatterytestStatus === "1" || r.QCResult === "PASS" ? "PASS" : (r.test_result || "FAIL"),
+      CreatedOn: r.CreatedOn || "—",
+    }));
   };
 
   return (
@@ -368,7 +414,7 @@ export default function MobileQCReportPage() {
                 QC Report (Mobile)
               </h1>
               <span className="px-2 py-0.5 rounded-full bg-blue-50 text-[#0052CC] font-mono text-[11px] font-bold">
-                {totalRecords.toLocaleString()} Records Live
+                {totalRecords.toLocaleString()} Verified Records
               </span>
             </div>
             <p className="text-xs text-[#5F6A86]">
@@ -377,7 +423,7 @@ export default function MobileQCReportPage() {
           </div>
         </div>
 
-        <div className="flex items-center space-x-2.5 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
           <button
             onClick={loadReports}
             className="p-2 rounded-xl bg-[#F4F6FB] hover:bg-[#E9EEF9] border border-[#DDE4F3] text-[#17284D] transition-colors cursor-pointer"
@@ -385,33 +431,38 @@ export default function MobileQCReportPage() {
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-[#0052CC]" : ""}`} />
           </button>
+
+          {/* Unified Export Data Button */}
           <button
-            onClick={exportCSV}
-            disabled={sortedReports.length === 0}
-            className="px-3.5 py-2 rounded-xl bg-[#0052CC] hover:bg-[#003D99] disabled:opacity-50 text-white text-xs font-bold transition-all shadow-xs flex items-center space-x-2 cursor-pointer"
+            onClick={() => setIsDateRangeModalOpen(true)}
+            className="px-3.5 py-2 rounded-xl bg-[#0052CC] hover:bg-[#003D99] text-white text-xs font-bold transition-all shadow-xs flex items-center space-x-1.5 cursor-pointer"
+            title="Export diagnostic data to Microsoft Excel (.xlsx)"
           >
             <FileSpreadsheet className="w-4 h-4" />
-            <span>Export CSV</span>
+            <span>Export Data</span>
           </button>
         </div>
       </div>
 
-      {/* Control Bar: Debounced Search, Date Filters, and Status */}
+      {/* Control Bar: Debounced Search, Date Filter Popover, and Status */}
       <div className="bg-white rounded-2xl p-4 border border-[#DDE4F3] shadow-xs flex flex-wrap items-center justify-between gap-3">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
-            placeholder="Search IMEI, Model, Work Order..."
+            placeholder="Search IMEI, Model, Brand, Work Order..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
             className="w-full pl-9 pr-4 py-2 bg-[#F4F6FB] border border-[#DDE4F3] rounded-xl text-xs text-[#17284D] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0052CC]/20 focus:border-[#0052CC] transition-all"
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           {/* Status Filter */}
-          <div className="flex items-center space-x-1.5 bg-[#F4F6FB] p-1 rounded-xl border border-[#DDE4F3]">
+          <div className="flex items-center space-x-1 bg-[#F4F6FB] p-1 rounded-xl border border-[#DDE4F3]">
             {["all", "pass", "fail"].map((status) => (
               <button
                 key={status}
@@ -430,30 +481,16 @@ export default function MobileQCReportPage() {
             ))}
           </div>
 
-          {/* Date Range Pickers */}
-          <div className="flex items-center space-x-2 bg-[#F4F6FB] px-3 py-1.5 rounded-xl border border-[#DDE4F3]">
-            <span className="text-[11px] font-semibold text-[#5F6A86]">From:</span>
-            <input
-              type="date"
-              value={fromDate}
-              onChange={(e) => {
-                setFromDate(e.target.value);
-                setPage(1);
-              }}
-              className="bg-transparent text-xs font-bold text-[#17284D] focus:outline-none cursor-pointer"
-            />
-            <span className="text-slate-300">|</span>
-            <span className="text-[11px] font-semibold text-[#5F6A86]">To:</span>
-            <input
-              type="date"
-              value={toDate}
-              onChange={(e) => {
-                setToDate(e.target.value);
-                setPage(1);
-              }}
-              className="bg-transparent text-xs font-bold text-[#17284D] focus:outline-none cursor-pointer"
-            />
-          </div>
+          {/* Premium Date Range Filter Popover */}
+          <DateRangeFilter
+            fromDate={fromDate}
+            toDate={toDate}
+            onChange={({ fromDate: newFrom, toDate: newTo }) => {
+              setFromDate(newFrom);
+              setToDate(newTo);
+              setPage(1);
+            }}
+          />
         </div>
       </div>
 
@@ -462,7 +499,7 @@ export default function MobileQCReportPage() {
         {loading ? (
           <div className="py-20 flex flex-col items-center justify-center space-y-3">
             <RefreshCw className="w-8 h-8 animate-spin text-[#0052CC]" />
-            <p className="text-xs font-medium text-[#5F6A86]">Loading live Mobile QC diagnostic records...</p>
+            <p className="text-xs font-medium text-[#5F6A86]">Loading Mobile QC diagnostic reports...</p>
           </div>
         ) : error ? (
           <div className="p-8 text-center space-y-3">
@@ -536,89 +573,36 @@ export default function MobileQCReportPage() {
                     </tr>
                   ) : (
                     sortedReports.map((item, idx) => {
-                    const rawResult = String(item.test_result || item.QCResult || item.test_status || "").trim();
-                    const normalized = rawResult.toUpperCase();
-                    const isPass =
-                      normalized === "PASS" ||
-                      normalized === "PASSED" ||
-                      normalized === "SUCCESS" ||
-                      normalized === "OK" ||
-                      String(item.Battery) === "1" ||
-                      item.BatterytestStatus === "1" ||
-                      item.BatterytestStatus === "PASS";
-                    const isFail =
-                      normalized === "FAIL" ||
-                      normalized === "FAILED" ||
-                      normalized === "TEST INCOMPLETE" ||
-                      normalized.includes("FAIL") ||
-                      String(item.Battery) === "0";
-                    const displayResult = rawResult || (isPass ? "PASS" : (isFail ? "FAIL" : "PASS"));
+                      const rawResult = String(item.test_result || item.QCResult || item.test_status || "").trim();
+                      const normalized = rawResult.toUpperCase();
+                      const isPass =
+                        normalized === "PASS" ||
+                        normalized === "PASSED" ||
+                        normalized === "SUCCESS" ||
+                        normalized === "OK" ||
+                        String(item.Battery) === "1" ||
+                        item.BatterytestStatus === "1" ||
+                        item.BatterytestStatus === "PASS";
+                      const isFail =
+                        normalized === "FAIL" ||
+                        normalized === "FAILED" ||
+                        normalized === "TEST INCOMPLETE" ||
+                        normalized.includes("FAIL") ||
+                        String(item.Battery) === "0";
+                      const displayResult = rawResult || (isPass ? "PASS" : (isFail ? "FAIL" : "PASS"));
 
-                    return (
-                      <tr
-                        key={`row-${item.mstid || "rec"}-${item.ServiceKey || item.IMEI || idx}-${idx}`}
-                        className="hover:bg-[#F4F6FB]/50 transition-colors"
-                      >
-                        <td className="py-3.5 px-4 font-bold text-[#17284D]">
-                          <div>{item.workorderid || item.certificate_number || item.ServiceKey || `XC-MB-${item.mstid || idx}`}</div>
-                          {item.certificate_number && item.workorderid && (
-                            <div className="text-[10px] text-slate-400 font-mono">{item.certificate_number}</div>
-                          )}
-                        </td>
-                        <td className="py-3.5 px-4 font-mono text-[11px] text-[#17284D]">
-                          <Link
-                            href={`/gadgetiq/reports/mobile/${item.mstid || item.IMEI || item.imei_1}?imei=${item.IMEI || item.imei_1 || ""}&workorder=${item.workorderid || ""}&servicekey=${item.ServiceKey || ""}`}
-                            onClick={() => {
-                              if (typeof window !== "undefined") {
-                                sessionStorage.setItem("selected_mobile_report", JSON.stringify(item));
-                              }
-                            }}
-                            className="font-bold text-[#0052CC] hover:text-[#003D99] hover:underline cursor-pointer text-left block"
-                            title="Click to view full hardware telemetry and specs"
-                          >
-                            {item.IMEI || item.imei_1 || "N/A"}
-                          </Link>
-                          {item.imei_2 && (
-                            <div className="text-[10px] text-slate-400">SIM 2: {item.imei_2}</div>
-                          )}
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <div className="font-bold text-[#17284D]">{item.brand_name || "—"}</div>
-                          <div className="text-[11px] text-slate-500">{item.model_name || ""}</div>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          {renderDeviceConditionBadge(item.physical_condition_category || item.grade)}
-                        </td>
-                        <td className="py-3.5 px-4 text-slate-600">
-                          <div>{item.storage || "—"}</div>
-                          <div className="text-[10px] text-slate-400">{item.device_category || "Mobile"}</div>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <span
-                            className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full font-bold text-[11px] ${
-                              isPass
-                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                : isFail
-                                ? "bg-rose-50 text-rose-700 border border-rose-200"
-                                : "bg-slate-100 text-slate-700 border border-slate-200"
-                            }`}
-                          >
-                            {isPass ? (
-                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                            ) : isFail ? (
-                              <XCircle className="w-3 h-3 text-rose-600" />
-                            ) : (
-                              <MinusCircle className="w-3 h-3 text-slate-400" />
+                      return (
+                        <tr
+                          key={`row-${item.mstid || "rec"}-${item.ServiceKey || item.IMEI || idx}-${idx}`}
+                          className="hover:bg-[#F4F6FB]/50 transition-colors"
+                        >
+                          <td className="py-3.5 px-4 font-bold text-[#17284D]">
+                            <div>{item.workorderid || item.certificate_number || item.ServiceKey || `XC-MB-${item.mstid || idx}`}</div>
+                            {item.certificate_number && item.workorderid && (
+                              <div className="text-[10px] text-slate-400 font-mono">{item.certificate_number}</div>
                             )}
-                            <span>{displayResult}</span>
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 text-slate-500 font-mono text-[11px]">
-                          {item.CreatedOn || "Recent"}
-                        </td>
-
-                        <td className="py-3.5 px-4 text-right">
-                          <div className="inline-flex items-center space-x-1.5 justify-end">
+                          </td>
+                          <td className="py-3.5 px-4 font-mono text-[11px] text-[#17284D]">
                             <Link
                               href={`/gadgetiq/reports/mobile/${item.mstid || item.IMEI || item.imei_1}?imei=${item.IMEI || item.imei_1 || ""}&workorder=${item.workorderid || ""}&servicekey=${item.ServiceKey || ""}`}
                               onClick={() => {
@@ -626,34 +610,86 @@ export default function MobileQCReportPage() {
                                   sessionStorage.setItem("selected_mobile_report", JSON.stringify(item));
                                 }
                               }}
-                              className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-[#F4F6FB] hover:bg-[#0052CC] text-[#17284D] hover:text-white border border-[#DDE4F3] hover:border-[#0052CC] font-bold text-[11px] transition-colors cursor-pointer"
-                              title="View on-demand mobile diagnostic telemetry and specs"
+                              className="font-bold text-[#0052CC] hover:text-[#003D99] hover:underline cursor-pointer text-left block"
+                              title="Click to view full hardware telemetry and specs"
                             >
-                              <Eye className="w-3.5 h-3.5" />
-                              <span>View</span>
+                              {item.IMEI || item.imei_1 || "N/A"}
                             </Link>
-
-                            <Link
-                              href={`/gadgetiq/reports/mobile/certificate?id=${item.mstid || item.ServiceKey || item.IMEI || ""}&imei=${item.IMEI || item.imei_1 || ""}&workorder=${item.workorderid || ""}&servicekey=${item.ServiceKey || ""}`}
-                              onClick={() => {
-                                if (typeof window !== "undefined") {
-                                  sessionStorage.setItem("selected_mobile_report", JSON.stringify(item));
-                                }
-                              }}
-                              className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-blue-50 text-[#0052CC] hover:bg-[#0052CC] hover:text-white font-bold text-[11px] transition-colors"
-                              title="View and print official mobile certificate"
+                            {item.imei_2 && (
+                              <div className="text-[10px] text-slate-400">SIM 2: {item.imei_2}</div>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="font-bold text-[#17284D]">{item.brand_name || "—"}</div>
+                            <div className="text-[11px] text-slate-500">{item.model_name || ""}</div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            {renderDeviceConditionBadge(item.physical_condition_category || item.grade)}
+                          </td>
+                          <td className="py-3.5 px-4 text-slate-600">
+                            <div>{item.storage || "—"}</div>
+                            <div className="text-[10px] text-slate-400">{item.device_category || "Mobile"}</div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span
+                              className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full font-bold text-[11px] ${
+                                isPass
+                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                  : isFail
+                                  ? "bg-rose-50 text-rose-700 border border-rose-200"
+                                  : "bg-slate-100 text-slate-700 border border-slate-200"
+                              }`}
                             >
-                              <Printer className="w-3.5 h-3.5" />
-                              <span>Certificate</span>
-                            </Link>
-                          </div>
-                        </td>
+                              {isPass ? (
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                              ) : isFail ? (
+                                <XCircle className="w-3 h-3 text-rose-600" />
+                              ) : (
+                                <MinusCircle className="w-3 h-3 text-slate-400" />
+                              )}
+                              <span>{displayResult}</span>
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-slate-500 font-mono text-[11px]">
+                            {item.CreatedOn || "Recent"}
+                          </td>
 
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
+                          <td className="py-3.5 px-4 text-right">
+                            <div className="inline-flex items-center space-x-1.5 justify-end">
+                              <Link
+                                href={`/gadgetiq/reports/mobile/${item.mstid || item.IMEI || item.imei_1}?imei=${item.IMEI || item.imei_1 || ""}&workorder=${item.workorderid || ""}&servicekey=${item.ServiceKey || ""}`}
+                                onClick={() => {
+                                  if (typeof window !== "undefined") {
+                                    sessionStorage.setItem("selected_mobile_report", JSON.stringify(item));
+                                  }
+                                }}
+                                className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-[#F4F6FB] hover:bg-[#0052CC] text-[#17284D] hover:text-white border border-[#DDE4F3] hover:border-[#0052CC] font-bold text-[11px] transition-colors cursor-pointer"
+                                title="View on-demand mobile diagnostic telemetry and specs"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>View</span>
+                              </Link>
+
+                              <Link
+                                href={`/gadgetiq/reports/mobile/certificate?id=${item.mstid || item.ServiceKey || item.IMEI || ""}&imei=${item.IMEI || item.imei_1 || ""}&workorder=${item.workorderid || ""}&servicekey=${item.ServiceKey || ""}`}
+                                onClick={() => {
+                                  if (typeof window !== "undefined") {
+                                    sessionStorage.setItem("selected_mobile_report", JSON.stringify(item));
+                                  }
+                                }}
+                                className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-blue-50 text-[#0052CC] hover:bg-[#0052CC] hover:text-white font-bold text-[11px] transition-colors"
+                                title="View and print official certificate"
+                              >
+                                <Printer className="w-3.5 h-3.5" />
+                                <span>Certificate</span>
+                              </Link>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
               </table>
             </div>
 
@@ -685,6 +721,18 @@ export default function MobileQCReportPage() {
         }}
         mstidOrImei={selectedDetailId}
         fallbackItem={selectedDetailItem}
+      />
+
+      {/* Date Range Excel Export Modal */}
+      <DateRangeExcelExportModal
+        isOpen={isDateRangeModalOpen}
+        onClose={() => setIsDateRangeModalOpen(false)}
+        reportTitle="Mobile Devices QC Report"
+        filenamePrefix="Mobile_QC_Report"
+        columns={mobileExcelColumns}
+        defaultFromDate={fromDate}
+        defaultToDate={toDate}
+        onFetchData={handleFetchDateRangeData}
       />
     </div>
   );

@@ -16,6 +16,7 @@ import {
   X,
   Award,
   BarChart3,
+  FileSpreadsheet,
 } from "lucide-react";
 import { gradesService, parseEvaluationDateToTime } from "../services";
 import { GradeDistributionItem, GradedDeviceItem } from "../types";
@@ -26,6 +27,10 @@ import {
   formatConditionCategory,
   getGradeRank,
 } from "../../reports/mobile/page";
+import { useDebounce } from "@/lib/hooks/useDebounce";
+import { exportToExcel, ExcelColumn } from "@/lib/excel-export";
+import DateRangeExcelExportModal from "@/components/ui/DateRangeExcelExportModal";
+import DateRangeFilter from "@/components/ui/DateRangeFilter";
 
 type SortField = "workorder" | "imei" | "brand" | "grade" | "storage" | "status" | "date";
 type SortOrder = "asc" | "desc";
@@ -53,6 +58,17 @@ export function formatStorageClean(raw?: string | null): string {
   return str;
 }
 
+const mobileGradeExcelColumns: ExcelColumn[] = [
+  { key: "workorderid", header: "Work Order ID" },
+  { key: "imei", header: "IMEI / Serial" },
+  { key: "brand", header: "Brand" },
+  { key: "model", header: "Model" },
+  { key: "storage", header: "Storage" },
+  { key: "grade", header: "Cosmetic Grade" },
+  { key: "qcResult", header: "QC Result" },
+  { key: "testedAt", header: "Evaluation Date" },
+];
+
 export default function GradeReportMobilePage() {
   const [grades, setGrades] = useState<GradeDistributionItem[]>([]);
   const [devices, setDevices] = useState<GradedDeviceItem[]>([]);
@@ -61,13 +77,20 @@ export default function GradeReportMobilePage() {
 
   // Filters State
   const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedGrade, setSelectedGrade] = useState("all");
   const [selectedBrand, setSelectedBrand] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [fromDate, setFromDate] = useState("2021-01-01");
-  const [toDate, setToDate] = useState(new Date().toISOString().split("T")[0]);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const [datePreset, setDatePreset] = useState<string>("all");
+
+  // Date Range Export Modal
+  const [isDateRangeModalOpen, setIsDateRangeModalOpen] = useState(false);
+
+  // Debounced filters
+  const debouncedSearch = useDebounce(search, 350);
+  const debouncedFromDate = useDebounce(fromDate, 400);
+  const debouncedToDate = useDebounce(toDate, 400);
 
   // Pagination State
   const [page, setPage] = useState(1);
@@ -83,41 +106,31 @@ export default function GradeReportMobilePage() {
 
   const requestIdRef = useRef(0);
 
-  // Debounced search (350ms)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(1);
-    }, 350);
-    return () => clearTimeout(timer);
-  }, [search]);
-
   // Quick Date Presets Handler
   const applyDatePreset = (preset: string) => {
     setDatePreset(preset);
-    const today = new Date();
-    const todayStr = today.toISOString().split("T")[0];
+    const d = new Date();
+    const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
     if (preset === "today") {
       setFromDate(todayStr);
       setToDate(todayStr);
     } else if (preset === "7d") {
-      const d = new Date();
-      d.setDate(d.getDate() - 7);
-      setFromDate(d.toISOString().split("T")[0]);
+      const past = new Date();
+      past.setDate(past.getDate() - 7);
+      setFromDate(`${past.getFullYear()}-${String(past.getMonth() + 1).padStart(2, "0")}-${String(past.getDate()).padStart(2, "0")}`);
       setToDate(todayStr);
     } else if (preset === "30d") {
-      const d = new Date();
-      d.setDate(d.getDate() - 30);
-      setFromDate(d.toISOString().split("T")[0]);
+      const past = new Date();
+      past.setDate(past.getDate() - 30);
+      setFromDate(`${past.getFullYear()}-${String(past.getMonth() + 1).padStart(2, "0")}-${String(past.getDate()).padStart(2, "0")}`);
       setToDate(todayStr);
     } else if (preset === "year") {
-      const d = new Date(today.getFullYear(), 0, 1);
-      setFromDate(d.toISOString().split("T")[0]);
+      setFromDate(`${d.getFullYear()}-01-01`);
       setToDate(todayStr);
     } else if (preset === "all") {
-      setFromDate("2021-01-01");
-      setToDate(todayStr);
+      setFromDate("");
+      setToDate("");
     }
     setPage(1);
   };
@@ -129,8 +142,8 @@ export default function GradeReportMobilePage() {
 
     try {
       const res = await gradesService.getMobileGradeReportPaginated({
-        fromDate,
-        toDate,
+        fromDate: debouncedFromDate,
+        toDate: debouncedToDate,
         search: debouncedSearch,
         grade: selectedGrade,
         brand: selectedBrand,
@@ -161,7 +174,7 @@ export default function GradeReportMobilePage() {
 
   useEffect(() => {
     loadData();
-  }, [page, pageSize, selectedGrade, selectedBrand, statusFilter, fromDate, toDate, debouncedSearch]);
+  }, [page, pageSize, selectedGrade, selectedBrand, statusFilter, debouncedFromDate, debouncedToDate, debouncedSearch]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -218,7 +231,6 @@ export default function GradeReportMobilePage() {
 
   const clearAllFilters = () => {
     setSearch("");
-    setDebouncedSearch("");
     setSelectedGrade("all");
     setSelectedBrand("all");
     setStatusFilter("all");
@@ -235,18 +247,62 @@ export default function GradeReportMobilePage() {
     statusFilter !== "all" ||
     fromDate !== "2021-01-01";
 
+  const handleExportCurrentExcel = () => {
+    const rows = sortedDevices.map((d) => ({
+      workorderid: d.workorderid || "—",
+      imei: d.imei || d.serialNumber || "—",
+      brand: d.brand || "—",
+      model: d.model || "—",
+      storage: formatStorageClean(d.storage),
+      grade: formatConditionCategory(d.rawGrade || d.grade),
+      qcResult: d.qcResult || "—",
+      testedAt: d.testedAt || "Recent",
+    }));
+
+    exportToExcel({
+      filename: `Mobile_Grade_Report_${fromDate}_to_${toDate}.xlsx`,
+      sheetName: "Mobile Grades",
+      columns: mobileGradeExcelColumns,
+      rows,
+      title: `Mobile Grade Intelligence Report (${fromDate} to ${toDate})`,
+    });
+  };
+
+  const handleFetchDateRangeData = async (startD: string, endD: string) => {
+    const res = await gradesService.getMobileGradeReportPaginated({
+      fromDate: startD,
+      toDate: endD,
+      pageSize: 100000,
+      search: debouncedSearch,
+      grade: selectedGrade,
+      brand: selectedBrand,
+      status: statusFilter,
+    });
+
+    return res.devices.map((d) => ({
+      workorderid: d.workorderid || "—",
+      imei: d.imei || d.serialNumber || "—",
+      brand: d.brand || "—",
+      model: d.model || "—",
+      storage: formatStorageClean(d.storage),
+      grade: formatConditionCategory(d.rawGrade || d.grade),
+      qcResult: d.qcResult || "—",
+      testedAt: d.testedAt || "Recent",
+    }));
+  };
+
   return (
     <div className="space-y-6">
       {/* 1. Header & Actions */}
       <div className="bg-white rounded-2xl p-5 border border-[#DDE4F3] shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center space-x-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/20">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
             <Smartphone className="w-6 h-6" />
           </div>
           <div>
             <div className="flex items-center space-x-2.5 flex-wrap">
               <h1 className="text-xl font-bold font-display text-[#17284D]">Mobile Grade Intelligence</h1>
-              <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-mono text-[11px] font-bold">
+              <span className="px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-[#0052CC] font-mono text-[11px] font-bold">
                 {totalEvaluated.toLocaleString()} Total Evaluated Mobiles
               </span>
             </div>
@@ -257,28 +313,6 @@ export default function GradeReportMobilePage() {
         </div>
 
         <div className="flex items-center space-x-2.5 shrink-0 flex-wrap">
-          {/* Quick Date Presets */}
-          <div className="hidden sm:flex items-center bg-[#F4F6FB] p-1 rounded-xl border border-[#DDE4F3] text-[11px] font-semibold text-slate-600">
-            {[
-              { id: "all", label: "All Time" },
-              { id: "30d", label: "30 Days" },
-              { id: "7d", label: "7 Days" },
-              { id: "today", label: "Today" },
-            ].map((p) => (
-              <button
-                key={p.id}
-                onClick={() => applyDatePreset(p.id)}
-                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                  datePreset === p.id
-                    ? "bg-white text-[#0052CC] font-bold shadow-xs border border-[#DDE4F3]"
-                    : "hover:text-[#17284D]"
-                }`}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
-
           <button
             onClick={() => loadData(true)}
             className="p-2 rounded-xl bg-[#F4F6FB] hover:bg-[#E9EEF9] border border-[#DDE4F3] text-[#17284D] transition-colors cursor-pointer"
@@ -286,9 +320,20 @@ export default function GradeReportMobilePage() {
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-[#0052CC]" : ""}`} />
           </button>
+
+          {/* Unified Export Data */}
+          <button
+            onClick={() => setIsDateRangeModalOpen(true)}
+            className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs flex items-center space-x-1.5 cursor-pointer"
+            title="Export evaluation ledger to Microsoft Excel"
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            <span>Export Data</span>
+          </button>
+
           <Link
             href="/gadgetiq/grades/mobile/visualize"
-            className="px-3.5 py-2 rounded-xl bg-[#0052CC] hover:bg-[#003D99] text-white text-xs font-bold transition-all shadow-xs flex items-center space-x-2 cursor-pointer"
+            className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-xs flex items-center space-x-1.5 cursor-pointer"
           >
             <BarChart3 className="w-4 h-4" />
             <span>Visualize</span>
@@ -317,12 +362,18 @@ export default function GradeReportMobilePage() {
                   type="text"
                   placeholder="Search IMEI, Model, WO..."
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPage(1);
+                  }}
                   className="w-full pl-8 pr-7 py-1.5 text-xs rounded-xl bg-white border border-[#DDE4F3] focus:border-[#0052CC] outline-none"
                 />
                 {search && (
                   <button
-                    onClick={() => setSearch("")}
+                    onClick={() => {
+                      setSearch("");
+                      setPage(1);
+                    }}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -361,31 +412,17 @@ export default function GradeReportMobilePage() {
                 <option value="FAIL">FAIL Only</option>
               </select>
 
-              {/* Custom Date Range */}
-              <div className="flex items-center space-x-1.5 bg-white px-2.5 py-1 rounded-xl border border-[#DDE4F3] text-xs">
-                <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                <input
-                  type="date"
-                  value={fromDate}
-                  onChange={(e) => {
-                    setFromDate(e.target.value);
-                    setDatePreset("custom");
-                    setPage(1);
-                  }}
-                  className="bg-transparent text-[11px] font-semibold text-slate-700 outline-none cursor-pointer"
-                />
-                <span className="text-slate-300">-</span>
-                <input
-                  type="date"
-                  value={toDate}
-                  onChange={(e) => {
-                    setToDate(e.target.value);
-                    setDatePreset("custom");
-                    setPage(1);
-                  }}
-                  className="bg-transparent text-[11px] font-semibold text-slate-700 outline-none cursor-pointer"
-                />
-              </div>
+              {/* Modern Date Range Filter with Presets & Staged Apply */}
+              <DateRangeFilter
+                fromDate={fromDate}
+                toDate={toDate}
+                onChange={({ fromDate: newFrom, toDate: newTo }) => {
+                  setFromDate(newFrom);
+                  setToDate(newTo);
+                  setDatePreset("custom");
+                  setPage(1);
+                }}
+              />
             </div>
           </div>
 
@@ -592,6 +629,18 @@ export default function GradeReportMobilePage() {
           </div>
         )}
       </div>
+
+      {/* Date Range Excel Export Modal */}
+      <DateRangeExcelExportModal
+        isOpen={isDateRangeModalOpen}
+        onClose={() => setIsDateRangeModalOpen(false)}
+        reportTitle="Mobile Grade Intelligence"
+        filenamePrefix="Mobile_Grade_Report"
+        columns={mobileGradeExcelColumns}
+        defaultFromDate={fromDate}
+        defaultToDate={toDate}
+        onFetchData={handleFetchDateRangeData}
+      />
     </div>
   );
 }

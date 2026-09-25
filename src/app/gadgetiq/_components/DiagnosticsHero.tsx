@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import StickyQuoteForm from "./StickyQuoteForm";
 
 import {
   Activity,
   ArrowRight,
-  Award,
+  Asterisk,
   BarChart3,
   BatteryCharging,
   Bluetooth,
@@ -22,7 +23,6 @@ import {
   HardDrive,
   Info,
   Keyboard,
-  Laptop,
   Leaf,
   Loader2,
   MemoryStick,
@@ -30,16 +30,16 @@ import {
   MonitorCheck,
   MousePointer2,
   Network,
-  Package,
   Play,
   QrCode,
   ScanLine,
   ShieldCheck,
-  Smartphone,
+  Slash,
   Sparkles,
   Usb,
   Users,
   Volume2,
+  Waves,
   Wifi,
 } from "lucide-react";
 
@@ -76,7 +76,7 @@ export default function DiagnosticsHero() {
             </span>
           </div>
 
-          <h1 className="mt-4 text-[42px] font-bold leading-[0.98] tracking-[-0.045em] text-[#12264D] sm:text-[48px] lg:text-[54px] xl:text-[60px]">
+          <h1 className="mt-4 text-[33.6px] font-bold leading-[0.98] tracking-[-0.045em] text-[#12264D] sm:text-[38.4px] lg:text-[43.2px] xl:text-[48px]">
             Test your device
             <br />
             before you{" "}
@@ -183,11 +183,6 @@ export default function DiagnosticsHero() {
                 label="Businesses"
               />
 
-              <Metric
-                icon={<Globe2 size={23} />}
-                value="25+"
-                label="Countries"
-              />
             </div>
           </div>
 
@@ -252,6 +247,17 @@ export default function DiagnosticsHero() {
           }
         }
 
+        @keyframes detectScan {
+          0%,
+          100% {
+            top: 8%;
+          }
+
+          50% {
+            top: 92%;
+          }
+        }
+
         .diagnostic-running-row {
           animation: rowRunning 1.3s ease-in-out infinite;
         }
@@ -268,11 +274,16 @@ export default function DiagnosticsHero() {
           animation: certificatePop 0.55s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
+        .detect-scan-line {
+          animation: detectScan 2.2s ease-in-out infinite;
+        }
+
         @media (prefers-reduced-motion: reduce) {
           .diagnostic-running-row,
           .diagnostic-run-button,
           .diagnostic-progress-shine,
           .diagnostic-certificate-pop,
+          .detect-scan-line,
           .animate-spin,
           .animate-ping {
             animation: none !important;
@@ -592,7 +603,7 @@ function LaptopDiagnosticsMockup() {
    GADGET IQ APPLICATION
 ========================================================= */
 
-type AppPhase = "running" | "certificate" | "admin";
+type AppPhase = "running" | "detect" | "certificate";
 
 function GadgetIQApplication() {
   const [completedTests, setCompletedTests] = useState(0);
@@ -606,7 +617,7 @@ function GadgetIQApplication() {
 
     if (phase === "running") {
       if (isFinished) {
-        timer = setTimeout(() => setPhase("certificate"), 3400);
+        timer = setTimeout(() => setPhase("detect"), 3400);
       } else {
         timer = setTimeout(() => {
           setCompletedTests((value) =>
@@ -614,8 +625,8 @@ function GadgetIQApplication() {
           );
         }, TEST_INTERVAL);
       }
-    } else if (phase === "certificate") {
-      timer = setTimeout(() => setPhase("admin"), 3400);
+    } else if (phase === "detect") {
+      timer = setTimeout(() => setPhase("certificate"), 3800);
     } else {
       timer = setTimeout(() => {
         setCompletedTests(0);
@@ -644,6 +655,10 @@ function GadgetIQApplication() {
     visibleStart + VISIBLE_ROWS
   );
 
+  if (phase === "detect") {
+    return <DetectIssuesScreen />;
+  }
+
   if (phase === "certificate") {
     return (
       <CertificateDocument
@@ -656,10 +671,6 @@ function GadgetIQApplication() {
         issuedDate="07 Aug 2026"
       />
     );
-  }
-
-  if (phase === "admin") {
-    return <AdminPanelScreen />;
   }
 
   return (
@@ -1300,203 +1311,172 @@ function CertificateSpec({
 }
 
 /* =========================================================
-   ADMIN PANEL SCREEN
+   DETECT ISSUES SCREEN
 
-   Shown right after the certificate, before the scan loops
-   back to a fresh run - a glimpse of the license/QC admin
-   dashboard behind the diagnostics.
+   Shown right after the diagnostic run finishes, before the
+   pass certificate - a glimpse of the AI cosmetic-defect
+   detection pass across a photo of the device.
 ========================================================= */
 
-const ADMIN_STATS = [
-  {
-    icon: Package,
-    value: "1,500",
-    label: "Total Licences Purchased",
-    bg: "#0875F7",
-  },
-  {
-    icon: BarChart3,
-    value: "714",
-    label: "Available Quota to Test",
-    bg: "#16A34A",
-  },
-  {
-    icon: CheckCircle2,
-    value: "786",
-    label: "Total Licences Used",
-    bg: "#F0653C",
-  },
-  {
-    icon: Award,
-    value: "52.4%",
-    label: "Overall QC Pass Yield",
-    bg: "#7C3AED",
-  },
+const DETECT_DEFECTS = [
+  { label: "Scratch", color: "#F59E0B" },
+  { label: "Dent", color: "#10B981" },
+  { label: "Crack", color: "#EF4444" },
+  { label: "Scuff", color: "#3B82F6" },
 ];
 
-const ADMIN_DEVICES = [
-  {
-    icon: Laptop,
-    title: "Laptop QC Diagnostics",
-    purchased: 500,
-    available: 59,
-    tested: 441,
-    utilization: 88,
-  },
-  {
-    icon: Smartphone,
-    title: "Mobile QC Diagnostics",
-    purchased: 1000,
-    available: 655,
-    tested: 345,
-    utilization: 35,
-  },
-  {
-    icon: Cpu,
-    title: "Motherboard QC Diagnostics",
-    purchased: 0,
-    available: 0,
-    tested: 0,
-    utilization: 0,
-  },
-  {
-    icon: Monitor,
-    title: "Desktop Station QC",
-    purchased: 0,
-    available: 0,
-    tested: 0,
-    utilization: 0,
-  },
+const DETECT_MARKERS = [
+  { x: 30, y: 33, tag: { x: 28, y: 17 }, Icon: Slash },
+  { x: 68, y: 30, tag: { x: 70, y: 15 }, Icon: Asterisk },
+  { x: 28, y: 56, tag: { x: 27, y: 67 }, Icon: Asterisk },
+  { x: 70, y: 72, tag: { x: 71, y: 82 }, Icon: Waves },
 ];
 
-function AdminPanelScreen() {
+function DetectIssuesScreen() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCount((value) =>
+        value >= DETECT_DEFECTS.length ? value : value + 1
+      );
+    }, 550);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const isComplete = count >= DETECT_DEFECTS.length;
+
   return (
-    <div className="diagnostic-certificate-pop flex h-full min-h-0 flex-col gap-[8px] bg-[#F5F7FB] p-[10px]">
-      {/* LICENSE STATS */}
-      <div className="grid grid-cols-4 gap-[8px]">
-        {ADMIN_STATS.map((stat) => (
-          <div
-            key={stat.label}
-            className="flex items-center gap-[8px] rounded-[9px] border border-[#DDE2EA] bg-white px-[9px] py-[8px]"
-          >
+    <div className="diagnostic-certificate-pop flex h-full min-h-0 flex-col gap-[10px] bg-white px-[16px] py-[13px]">
+      {/* HEADER */}
+      <div className="flex items-center gap-[8px] border-b border-[#E3E8EF] pb-[9px]">
+        <span className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-extrabold text-white shadow-[0_6px_14px_rgba(79,70,229,0.35)]">
+          2
+        </span>
+
+        <div className="min-w-0">
+          <p className="text-[14px] font-black leading-tight text-[#101A2C]">
+            AI Detects Issues
+          </p>
+
+          <p className="truncate text-[9.5px] font-medium text-[#66748C]">
+            AI-powered image recognition identifies visible defects.
+          </p>
+        </div>
+      </div>
+
+      {/* VISUAL */}
+      <div className="relative flex-1 overflow-hidden rounded-[12px] bg-[#EEF1F8]">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-60"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(79,70,229,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(79,70,229,0.06) 1px, transparent 1px)",
+            backgroundSize: "16px 16px",
+          }}
+        />
+
+        <span className="absolute left-[8px] top-[8px] z-10 flex items-center gap-[5px] rounded-[6px] bg-[#0B1220]/85 px-[9px] py-[5px] text-[9.5px] font-bold text-white">
+          {isComplete ? (
+            <>
+              <CheckCircle2 size={11} className="text-emerald-400" />
+              Complete
+            </>
+          ) : (
+            <>
+              <span className="h-[5px] w-[5px] animate-pulse rounded-full bg-indigo-400" />
+              Scanning
+            </>
+          )}
+        </span>
+
+        <span className="absolute right-[8px] top-[8px] z-10 rounded-[6px] bg-[#0B1220]/85 px-[9px] py-[5px] text-[9.5px] font-bold text-white">
+          {count} Found
+        </span>
+
+        {/* LAPTOP IMAGE */}
+        <div
+          className="absolute overflow-hidden"
+          style={{ left: "18%", top: "14%", width: "64%", height: "70%" }}
+        >
+          <Image
+            src="/images/dent-laptop.png"
+            alt="Laptop with detected cosmetic issues"
+            fill
+            sizes="320px"
+            className="object-contain"
+          />
+
+          {!isComplete && (
+            <span className="detect-scan-line pointer-events-none absolute left-0 top-[8%] h-[2px] w-full bg-indigo-400 shadow-[0_0_8px_2px_rgba(129,140,248,0.7)]" />
+          )}
+        </div>
+
+        {/* CONNECTOR LINES */}
+        <svg
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          className="pointer-events-none absolute inset-0 h-full w-full"
+        >
+          {DETECT_DEFECTS.map((defect, idx) => {
+            const marker = DETECT_MARKERS[idx];
+            const active = idx < count;
+
+            return (
+              <line
+                key={defect.label}
+                x1={marker.x}
+                y1={marker.y}
+                x2={marker.tag.x}
+                y2={marker.tag.y}
+                stroke={defect.color}
+                strokeWidth={1.25}
+                strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
+                className={`transition-opacity duration-300 ${active ? "opacity-100" : "opacity-0"}`}
+              />
+            );
+          })}
+        </svg>
+
+        {/* MARKERS */}
+        {DETECT_DEFECTS.map((defect, idx) => {
+          const marker = DETECT_MARKERS[idx];
+          const Icon = marker.Icon;
+          const active = idx < count;
+
+          return (
             <span
-              className="flex h-[24px] w-[24px] shrink-0 items-center justify-center rounded-[7px] text-white"
-              style={{ backgroundColor: stat.bg }}
+              key={defect.label}
+              className={`pointer-events-none absolute flex h-[18px] w-[18px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-[1.5px] bg-white/90 shadow-sm transition-all duration-300 ${
+                active ? "scale-100 opacity-100" : "scale-50 opacity-0"
+              }`}
+              style={{ left: `${marker.x}%`, top: `${marker.y}%`, borderColor: defect.color }}
             >
-              <stat.icon size={12} strokeWidth={2.2} />
+              <Icon size={9} strokeWidth={2.4} style={{ color: defect.color }} />
             </span>
+          );
+        })}
 
-            <div className="min-w-0">
-              <p className="truncate text-[11px] font-black leading-none text-[#17233A]">
-                {stat.value}
-              </p>
+        {/* TAGS */}
+        {DETECT_DEFECTS.map((defect, idx) => {
+          const marker = DETECT_MARKERS[idx];
+          const active = idx < count;
 
-              <p className="mt-[2px] truncate text-[5.5px] font-semibold text-[#7C899C]">
-                {stat.label}
-              </p>
-            </div>
-          </div>
-        ))}
+          return (
+            <span
+              key={defect.label}
+              className={`pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full px-[10px] py-[4px] text-[9.5px] font-bold text-white shadow-md transition-all duration-300 ${
+                active ? "scale-100 opacity-100" : "scale-90 opacity-0"
+              }`}
+              style={{ left: `${marker.tag.x}%`, top: `${marker.tag.y}%`, backgroundColor: defect.color }}
+            >
+              {defect.label} detected
+            </span>
+          );
+        })}
       </div>
-
-      {/* DEVICE QC CARDS */}
-      <div className="grid flex-1 grid-cols-2 gap-[8px]">
-        {ADMIN_DEVICES.map((device) => (
-          <div
-            key={device.title}
-            className="flex min-h-0 flex-col rounded-[10px] border border-[#DDE2EA] bg-white p-[9px]"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-[6px]">
-                <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[6px] bg-[#EAF0FB] text-[#0875F7]">
-                  <device.icon size={10} strokeWidth={2.2} />
-                </span>
-
-                <div className="min-w-0">
-                  <p className="truncate text-[7.5px] font-bold text-[#17233A]">
-                    {device.title}
-                  </p>
-
-                  <p className="truncate text-[5.5px] font-medium text-[#8896AC]">
-                    Diagnostic Hardware Suite
-                  </p>
-                </div>
-              </div>
-
-              <span className="shrink-0 text-[5.5px] font-bold text-[#0875F7]">
-                QC Reports &rarr;
-              </span>
-            </div>
-
-            <div className="mt-[7px] grid grid-cols-3 gap-[5px]">
-              <AdminStatBox
-                value={device.purchased}
-                label="Purchased"
-                color="#17233A"
-                bg="#F1F4F8"
-              />
-
-              <AdminStatBox
-                value={device.available}
-                label="Available"
-                color="#16A34A"
-                bg="#EAF8EF"
-              />
-
-              <AdminStatBox
-                value={device.tested}
-                label="Tested"
-                color="#F0653C"
-                bg="#FDF0EA"
-              />
-            </div>
-
-            <div className="mt-[7px]">
-              <div className="flex items-center justify-between text-[5.5px] font-semibold text-[#7C899C]">
-                <span>License Utilization</span>
-                <span>{device.utilization}%</span>
-              </div>
-
-              <div className="mt-[3px] h-[3px] overflow-hidden rounded-full bg-[#E7EBF1]">
-                <div
-                  className="h-full rounded-full bg-[#0875F7]"
-                  style={{ width: `${device.utilization}%` }}
-                />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function AdminStatBox({
-  value,
-  label,
-  color,
-  bg,
-}: {
-  value: number;
-  label: string;
-  color: string;
-  bg: string;
-}) {
-  return (
-    <div
-      className="rounded-[7px] px-[6px] py-[5px] text-center"
-      style={{ backgroundColor: bg }}
-    >
-      <p
-        className="text-[10px] font-black leading-none"
-        style={{ color }}
-      >
-        {value}
-      </p>
-
-      <p className="mt-[2px] text-[5px] font-bold uppercase tracking-[0.04em] text-[#8896AC]">
-        {label}
-      </p>
     </div>
   );
 }

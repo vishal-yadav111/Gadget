@@ -287,7 +287,7 @@ export default function WhatWeDo() {
                     <div className="flex items-center justify-between bg-slate-50 border border-slate-100 rounded-lg p-1.5 text-[7px] text-slate-400 font-medium shrink-0 mt-1">
                       <span>Legend: ✔ PASS meets criteria</span>
                       <span>✖ FAIL outside tolerance</span>
-                      <span>— N/A not fitted</span>
+                      <span>N/A: not fitted</span>
                     </div>
 
                   </div>

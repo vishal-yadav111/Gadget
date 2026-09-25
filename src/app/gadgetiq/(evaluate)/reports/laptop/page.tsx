@@ -18,12 +18,17 @@ import {
   FileText,
   Eye,
   Printer,
+  Calendar,
 } from "lucide-react";
 import { reportsService } from "../services";
 import { LaptopQCReportItem } from "../types";
 import { getFriendlyErrorMessage } from "../../core";
 import { ReportsPagination } from "../ReportsPagination";
 import LaptopQcDetailModal from "./_components/LaptopQcDetailModal";
+import { useDebounce } from "@/lib/hooks/useDebounce";
+import { exportToExcel, ExcelColumn } from "@/lib/excel-export";
+import DateRangeExcelExportModal from "@/components/ui/DateRangeExcelExportModal";
+import DateRangeFilter from "@/components/ui/DateRangeFilter";
 
 type SortField = "date" | "brand" | "model" | "serial" | "workorder" | "condition" | "status";
 type SortOrder = "asc" | "desc";
@@ -213,15 +218,37 @@ export function renderDeviceConditionBadge(rawCondition?: string | number | bool
   );
 }
 
+const laptopExcelColumns: ExcelColumn[] = [
+  { key: "certificate_number", header: "Certificate Number" },
+  { key: "workorderid", header: "Work Order ID" },
+  { key: "device_brand", header: "Brand" },
+  { key: "device_model", header: "Model" },
+  { key: "device_serial_number", header: "Serial Number" },
+  { key: "physical_condition_category", header: "Condition Grade" },
+  { key: "HDD_SSD", header: "Storage" },
+  { key: "RAM", header: "RAM" },
+  { key: "Processor_Family", header: "Processor" },
+  { key: "B_BatteryHealth", header: "Battery Health" },
+  { key: "test_result", header: "QC Result" },
+  { key: "test_date_time", header: "Evaluation Date" },
+];
+
 export default function LaptopQCReportPage() {
   const [reports, setReports] = useState<LaptopQCReportItem[]>([]);
   const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState("all");
-  const [fromDate, setFromDate] = useState("2021-01-01");
-  const [toDate, setToDate] = useState(new Date().toISOString().split("T")[0]);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+
+  // Date Range Excel Export Modal state
+  const [isDateRangeModalOpen, setIsDateRangeModalOpen] = useState(false);
+
+  // Debounced filters to prevent spamming API requests
+  const debouncedSearch = useDebounce(search, 350);
+  const debouncedFromDate = useDebounce(fromDate, 400);
+  const debouncedToDate = useDebounce(toDate, 400);
 
   // On-demand detail modal state
   const [selectedDetailId, setSelectedDetailId] = useState<string | number | null>(null);
@@ -248,15 +275,6 @@ export default function LaptopQCReportPage() {
   // Track latest request ID to prevent race conditions
   const requestIdRef = useRef(0);
 
-  // 350ms Debounced search input handler
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(1);
-    }, 350);
-    return () => clearTimeout(timer);
-  }, [search]);
-
   const loadReports = async () => {
     const currentReqId = ++requestIdRef.current;
     setLoading(true);
@@ -264,8 +282,8 @@ export default function LaptopQCReportPage() {
 
     try {
       const res = await reportsService.getLaptopReportsPaginated({
-        fromDate,
-        toDate,
+        fromDate: debouncedFromDate,
+        toDate: debouncedToDate,
         search: debouncedSearch,
         page,
         pageSize,
@@ -274,13 +292,14 @@ export default function LaptopQCReportPage() {
 
       if (currentReqId === requestIdRef.current) {
         setReports(res.data);
-        setTotalRecords(res.recordsFiltered || res.recordsTotal || res.data.length);
-        setTotalPages(res.totalPages || Math.ceil((res.recordsFiltered || res.data.length) / pageSize) || 1);
+        const resolvedTotal = res.recordsFiltered || res.recordsTotal || res.data.length;
+        setTotalRecords(resolvedTotal);
+        setTotalPages(res.totalPages || Math.ceil(resolvedTotal / (pageSize || 1)) || 1);
       }
     } catch (err: any) {
       if (currentReqId === requestIdRef.current) {
         console.error("Failed to load laptop reports:", err);
-        setError(getFriendlyErrorMessage(err, "Unable to load live laptop QC reports. Please check your network connection."));
+        setError(getFriendlyErrorMessage(err, "Unable to load laptop QC reports. Please check your network connection."));
       }
     } finally {
       if (currentReqId === requestIdRef.current) {
@@ -291,7 +310,7 @@ export default function LaptopQCReportPage() {
 
   useEffect(() => {
     loadReports();
-  }, [page, pageSize, statusFilter, fromDate, toDate, debouncedSearch]);
+  }, [page, pageSize, statusFilter, debouncedFromDate, debouncedToDate, debouncedSearch]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -302,7 +321,7 @@ export default function LaptopQCReportPage() {
     }
   };
 
-  // Sort and filter data (Zero Deduplication: all duplicate serials/records are preserved)
+  // Sort and filter data (Zero Deduplication: all records preserved)
   const sortedReports = useMemo(() => {
     const items = [...reports];
     return items.sort((a, b) => {
@@ -347,21 +366,54 @@ export default function LaptopQCReportPage() {
     );
   };
 
-  const exportCSV = () => {
-    const headers = "CertNumber,WorkOrderID,Brand,Model,SerialNumber,DeviceCondition,Storage,BatteryHealth,Status,Date\n";
-    const rows = sortedReports
-      .map(
-        (r) =>
-          `"${r.certificate_number || ""}","${r.workorderid || ""}","${r.device_brand || r.brand_name || ""}","${r.device_model || r.model_name || ""}","${r.device_serial_number || r.serial_number || r.imei_1 || ""}","${r.physical_condition_category || r.test_status || ""}","${r.HDD_SSD || r.storage || ""}","${r.B_BatteryHealth || ""}","${r.test_result || r.QCResult || ""}","${r.test_date_time || r.CreatedOn || ""}"`
-      )
-      .join("\n");
-    const blob = new Blob([headers + rows], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `Laptop_QC_Report_${new Date().toISOString().split("T")[0]}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const handleExportCurrentExcel = () => {
+    const rows = sortedReports.map((r) => ({
+      certificate_number: r.certificate_number || `XC-LP-${r.mstid}`,
+      workorderid: r.workorderid || "—",
+      device_brand: r.device_brand || r.brand_name || "—",
+      device_model: r.device_model || r.model_name || "—",
+      device_serial_number: r.device_serial_number || r.serial_number || r.imei_1 || "—",
+      physical_condition_category: formatConditionCategory(r.physical_condition_category || r.test_status),
+      HDD_SSD: formatStorageClean(r.HDD_SSD || r.storage),
+      RAM: r.RAM || "—",
+      Processor_Family: r.Processor_Family || "—",
+      B_BatteryHealth: r.B_BatteryHealth || "—",
+      test_result: r.test_result || r.QCResult || "—",
+      test_date_time: r.test_date_time || r.CreatedOn || "—",
+    }));
+
+    exportToExcel({
+      filename: `Laptop_QC_Report_${fromDate}_to_${toDate}.xlsx`,
+      sheetName: "Laptop QC",
+      columns: laptopExcelColumns,
+      rows,
+      title: `Laptop & Notebooks QC Report (${fromDate} to ${toDate})`,
+    });
+  };
+
+  const handleFetchDateRangeData = async (startD: string, endD: string) => {
+    const res = await reportsService.getLaptopReportsPaginated({
+      fromDate: startD || undefined,
+      toDate: endD || undefined,
+      pageSize: 100000,
+      search: debouncedSearch,
+      status: statusFilter === "all" ? "ALL" : statusFilter.toUpperCase(),
+    });
+
+    return res.data.map((r) => ({
+      certificate_number: r.certificate_number || `XC-LP-${r.mstid}`,
+      workorderid: r.workorderid || "—",
+      device_brand: r.device_brand || r.brand_name || "—",
+      device_model: r.device_model || r.model_name || "—",
+      device_serial_number: r.device_serial_number || r.serial_number || r.imei_1 || "—",
+      physical_condition_category: formatConditionCategory(r.physical_condition_category || r.test_status),
+      HDD_SSD: formatStorageClean(r.HDD_SSD || r.storage),
+      RAM: r.RAM || "—",
+      Processor_Family: r.Processor_Family || "—",
+      B_BatteryHealth: r.B_BatteryHealth || "—",
+      test_result: r.test_result || r.QCResult || "—",
+      test_date_time: r.test_date_time || r.CreatedOn || "—",
+    }));
   };
 
   return (
@@ -378,7 +430,7 @@ export default function LaptopQCReportPage() {
                 QC Report (Laptop & Notebooks)
               </h1>
               <span className="px-2 py-0.5 rounded-full bg-blue-50 text-[#0052CC] font-mono text-[11px] font-bold">
-                {totalRecords.toLocaleString()} Records Live
+                {totalRecords.toLocaleString()} Verified Records
               </span>
             </div>
             <p className="text-xs text-[#5F6A86]">
@@ -387,7 +439,7 @@ export default function LaptopQCReportPage() {
           </div>
         </div>
 
-        <div className="flex items-center space-x-2.5 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
           <button
             onClick={loadReports}
             className="p-2 rounded-xl bg-[#F4F6FB] hover:bg-[#E9EEF9] border border-[#DDE4F3] text-[#17284D] transition-colors cursor-pointer"
@@ -395,33 +447,38 @@ export default function LaptopQCReportPage() {
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-[#0052CC]" : ""}`} />
           </button>
+
+          {/* Unified Export Data Button */}
           <button
-            onClick={exportCSV}
-            disabled={sortedReports.length === 0}
-            className="px-3.5 py-2 rounded-xl bg-[#0052CC] hover:bg-[#003D99] disabled:opacity-50 text-white text-xs font-bold transition-all shadow-xs flex items-center space-x-2 cursor-pointer"
+            onClick={() => setIsDateRangeModalOpen(true)}
+            className="px-3.5 py-2 rounded-xl bg-[#0052CC] hover:bg-[#003D99] text-white text-xs font-bold transition-all shadow-xs flex items-center space-x-1.5 cursor-pointer"
+            title="Export diagnostic data to Microsoft Excel (.xlsx)"
           >
             <FileSpreadsheet className="w-4 h-4" />
-            <span>Export CSV</span>
+            <span>Export Data</span>
           </button>
         </div>
       </div>
 
-      {/* Control Bar: Debounced Search, Date Filters, and Status */}
+      {/* Control Bar: Debounced Search, Date Filter Popover, and Status */}
       <div className="bg-white rounded-2xl p-4 border border-[#DDE4F3] shadow-xs flex flex-wrap items-center justify-between gap-3">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
-            placeholder="Search Serial, Model, Certificate, ServiceKey..."
+            placeholder="Search Serial Number, Model, Brand, Certificate..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
             className="w-full pl-9 pr-4 py-2 bg-[#F4F6FB] border border-[#DDE4F3] rounded-xl text-xs text-[#17284D] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0052CC]/20 focus:border-[#0052CC] transition-all"
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           {/* Status Filter */}
-          <div className="flex items-center space-x-1.5 bg-[#F4F6FB] p-1 rounded-xl border border-[#DDE4F3]">
+          <div className="flex items-center space-x-1 bg-[#F4F6FB] p-1 rounded-xl border border-[#DDE4F3]">
             {["all", "pass", "fail"].map((status) => (
               <button
                 key={status}
@@ -440,30 +497,16 @@ export default function LaptopQCReportPage() {
             ))}
           </div>
 
-          {/* Date Range Pickers */}
-          <div className="flex items-center space-x-2 bg-[#F4F6FB] px-3 py-1.5 rounded-xl border border-[#DDE4F3]">
-            <span className="text-[11px] font-semibold text-[#5F6A86]">From:</span>
-            <input
-              type="date"
-              value={fromDate}
-              onChange={(e) => {
-                setFromDate(e.target.value);
-                setPage(1);
-              }}
-              className="bg-transparent text-xs font-bold text-[#17284D] focus:outline-none cursor-pointer"
-            />
-            <span className="text-slate-300">|</span>
-            <span className="text-[11px] font-semibold text-[#5F6A86]">To:</span>
-            <input
-              type="date"
-              value={toDate}
-              onChange={(e) => {
-                setToDate(e.target.value);
-                setPage(1);
-              }}
-              className="bg-transparent text-xs font-bold text-[#17284D] focus:outline-none cursor-pointer"
-            />
-          </div>
+          {/* Premium Date Range Filter Popover */}
+          <DateRangeFilter
+            fromDate={fromDate}
+            toDate={toDate}
+            onChange={({ fromDate: newFrom, toDate: newTo }) => {
+              setFromDate(newFrom);
+              setToDate(newTo);
+              setPage(1);
+            }}
+          />
         </div>
       </div>
 
@@ -472,7 +515,7 @@ export default function LaptopQCReportPage() {
         {loading ? (
           <div className="py-20 flex flex-col items-center justify-center space-y-3">
             <RefreshCw className="w-8 h-8 animate-spin text-[#0052CC]" />
-            <p className="text-xs font-medium text-[#5F6A86]">Loading live Laptop QC diagnostic records...</p>
+            <p className="text-xs font-medium text-[#5F6A86]">Loading Laptop QC diagnostic reports...</p>
           </div>
         ) : error ? (
           <div className="p-8 text-center space-y-3">
@@ -546,75 +589,24 @@ export default function LaptopQCReportPage() {
                     </tr>
                   ) : (
                     sortedReports.map((item, idx) => {
-                    const rawResult = (item.test_result || item.QCResult || "").trim();
-                    const normalized = rawResult.toUpperCase();
-                    const isPass = normalized === "PASS" || normalized === "PASSED";
-                    const isFail = normalized === "FAIL" || normalized === "FAILED" || normalized === "TEST INCOMPLETE" || normalized.includes("FAIL");
-                    const displayResult = rawResult || "Not Tested";
+                      const rawResult = (item.test_result || item.QCResult || "").trim();
+                      const normalized = rawResult.toUpperCase();
+                      const isPass = normalized === "PASS" || normalized === "PASSED";
+                      const isFail = normalized === "FAIL" || normalized === "FAILED" || normalized === "TEST INCOMPLETE" || normalized.includes("FAIL");
+                      const displayResult = rawResult || "Not Tested";
 
-                    return (
-                      <tr
-                        key={`row-${item.mstid || "rec"}-${item.ServiceKey || item.certificate_number || idx}-${idx}`}
-                        className="hover:bg-[#F4F6FB]/50 transition-colors"
-                      >
-                        <td className="py-3.5 px-4 font-bold text-[#17284D]">
-                          <div>{item.workorderid || item.certificate_number || item.ServiceKey || `XC-LP-${item.mstid || idx}`}</div>
-                          {item.certificate_number && item.workorderid && (
-                            <div className="text-[10px] text-slate-400 font-mono">{item.certificate_number}</div>
-                          )}
-                        </td>
-                        <td className="py-3.5 px-4 font-mono text-[11px] text-[#17284D]">
-                          <Link
-                            href={`/gadgetiq/reports/laptop/${item.mstid || item.serial_number || item.imei_1}?servicekey=${item.ServiceKey || ""}&serial=${item.device_serial_number || item.serial_number || item.imei_1 || ""}`}
-                            onClick={() => {
-                              if (typeof window !== "undefined") {
-                                sessionStorage.setItem("selected_laptop_report", JSON.stringify(item));
-                              }
-                            }}
-                            className="font-bold text-[#0052CC] hover:text-[#003D99] hover:underline cursor-pointer text-left block"
-                            title="Click to view full hardware telemetry and specs"
-                          >
-                            {item.serial_number || item.device_serial_number || item.imei_1 || "N/A"}
-                          </Link>
-                          {item.MacAddress && (
-                            <div className="text-[10px] text-slate-400">MAC: {item.MacAddress}</div>
-                          )}
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <div className="font-bold text-[#17284D]">{item.brand_name || item.device_brand || "N/A"}</div>
-                          <div className="text-[11px] text-slate-500">{item.model_name || item.device_model || ""}</div>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          {renderDeviceConditionBadge(item.physical_condition_category || item.test_status)}
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <div className="text-slate-700 font-semibold text-xs">{formatStorageClean(item.storage || item.HDD_SSD) || "—"}</div>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <span
-                            className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full font-bold text-[11px] ${
-                              isPass
-                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                : isFail
-                                ? "bg-rose-50 text-rose-700 border border-rose-200"
-                                : "bg-slate-100 text-slate-700 border border-slate-200"
-                            }`}
-                          >
-                            {isPass ? (
-                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                            ) : isFail ? (
-                              <XCircle className="w-3 h-3 text-rose-600" />
-                            ) : (
-                              <MinusCircle className="w-3 h-3 text-slate-400" />
+                      return (
+                        <tr
+                          key={`row-${item.mstid || "rec"}-${item.ServiceKey || item.certificate_number || idx}-${idx}`}
+                          className="hover:bg-[#F4F6FB]/50 transition-colors"
+                        >
+                          <td className="py-3.5 px-4 font-bold text-[#17284D]">
+                            <div>{item.workorderid || item.certificate_number || item.ServiceKey || `XC-LP-${item.mstid || idx}`}</div>
+                            {item.certificate_number && item.workorderid && (
+                              <div className="text-[10px] text-slate-400 font-mono">{item.certificate_number}</div>
                             )}
-                            <span>{displayResult}</span>
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 text-slate-500 font-mono text-[11px]">
-                          {item.test_date_time || item.CreatedOn || "Recent"}
-                        </td>
-                        <td className="py-3.5 px-4 text-right">
-                          <div className="inline-flex items-center space-x-1.5 justify-end">
+                          </td>
+                          <td className="py-3.5 px-4 font-mono text-[11px] text-[#17284D]">
                             <Link
                               href={`/gadgetiq/reports/laptop/${item.mstid || item.serial_number || item.imei_1}?servicekey=${item.ServiceKey || ""}&serial=${item.device_serial_number || item.serial_number || item.imei_1 || ""}`}
                               onClick={() => {
@@ -622,33 +614,84 @@ export default function LaptopQCReportPage() {
                                   sessionStorage.setItem("selected_laptop_report", JSON.stringify(item));
                                 }
                               }}
-                              className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-[#F4F6FB] hover:bg-[#0052CC] text-[#17284D] hover:text-white border border-[#DDE4F3] hover:border-[#0052CC] font-bold text-[11px] transition-colors cursor-pointer"
-                              title="View on-demand hardware diagnostics and component specs"
+                              className="font-bold text-[#0052CC] hover:text-[#003D99] hover:underline cursor-pointer text-left block"
+                              title="Click to view full hardware telemetry and specs"
                             >
-                              <Eye className="w-3.5 h-3.5" />
-                              <span>View</span>
+                              {item.serial_number || item.device_serial_number || item.imei_1 || "N/A"}
                             </Link>
+                            {item.MacAddress && (
+                              <div className="text-[10px] text-slate-400">MAC: {item.MacAddress}</div>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="font-bold text-[#17284D]">{item.brand_name || item.device_brand || "N/A"}</div>
+                            <div className="text-[11px] text-slate-500">{item.model_name || item.device_model || ""}</div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            {renderDeviceConditionBadge(item.physical_condition_category || item.test_status)}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="text-slate-700 font-semibold text-xs">{formatStorageClean(item.storage || item.HDD_SSD) || "—"}</div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span
+                              className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full font-bold text-[11px] ${
+                                isPass
+                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                  : isFail
+                                  ? "bg-rose-50 text-rose-700 border border-rose-200"
+                                  : "bg-slate-100 text-slate-700 border border-slate-200"
+                              }`}
+                            >
+                              {isPass ? (
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                              ) : isFail ? (
+                                <XCircle className="w-3 h-3 text-rose-600" />
+                              ) : (
+                                <MinusCircle className="w-3 h-3 text-slate-400" />
+                              )}
+                              <span>{displayResult}</span>
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-slate-500 font-mono text-[11px]">
+                            {item.test_date_time || item.CreatedOn || "Recent"}
+                          </td>
+                          <td className="py-3.5 px-4 text-right">
+                            <div className="inline-flex items-center space-x-1.5 justify-end">
+                              <Link
+                                href={`/gadgetiq/reports/laptop/${item.mstid || item.serial_number || item.imei_1}?servicekey=${item.ServiceKey || ""}&serial=${item.device_serial_number || item.serial_number || item.imei_1 || ""}`}
+                                onClick={() => {
+                                  if (typeof window !== "undefined") {
+                                    sessionStorage.setItem("selected_laptop_report", JSON.stringify(item));
+                                  }
+                                }}
+                                className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-[#F4F6FB] hover:bg-[#0052CC] text-[#17284D] hover:text-white border border-[#DDE4F3] hover:border-[#0052CC] font-bold text-[11px] transition-colors cursor-pointer"
+                                title="View on-demand hardware diagnostics and component specs"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>View</span>
+                              </Link>
 
-                            <Link
-                              href={`/gadgetiq/reports/laptop/certificate?id=${item.mstid || item.ServiceKey || item.certificate_number || ""}&servicekey=${item.ServiceKey || ""}&serial=${item.device_serial_number || item.serial_number || item.imei_1 || ""}`}
-                              onClick={() => {
-                                if (typeof window !== "undefined") {
-                                  sessionStorage.setItem("selected_laptop_report", JSON.stringify(item));
-                                }
-                              }}
-                              className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-blue-50 text-[#0052CC] hover:bg-[#0052CC] hover:text-white font-bold text-[11px] transition-colors"
-                              title="View and print official 3-page certificate"
-                            >
-                              <Printer className="w-3.5 h-3.5" />
-                              <span>Certificate</span>
-                            </Link>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
+                              <Link
+                                href={`/gadgetiq/reports/laptop/certificate?id=${item.mstid || item.ServiceKey || item.certificate_number || ""}&servicekey=${item.ServiceKey || ""}&serial=${item.device_serial_number || item.serial_number || item.imei_1 || ""}`}
+                                onClick={() => {
+                                  if (typeof window !== "undefined") {
+                                    sessionStorage.setItem("selected_laptop_report", JSON.stringify(item));
+                                  }
+                                }}
+                                className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-blue-50 text-[#0052CC] hover:bg-[#0052CC] hover:text-white font-bold text-[11px] transition-colors"
+                                title="View and print official certificate"
+                              >
+                                <Printer className="w-3.5 h-3.5" />
+                                <span>Certificate</span>
+                              </Link>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
               </table>
             </div>
 
@@ -680,6 +723,18 @@ export default function LaptopQCReportPage() {
         }}
         mstidOrSerial={selectedDetailId}
         fallbackItem={selectedDetailItem}
+      />
+
+      {/* Date Range Excel Export Modal */}
+      <DateRangeExcelExportModal
+        isOpen={isDateRangeModalOpen}
+        onClose={() => setIsDateRangeModalOpen(false)}
+        reportTitle="Laptop & Notebooks QC Report"
+        filenamePrefix="Laptop_QC_Report"
+        columns={laptopExcelColumns}
+        defaultFromDate={fromDate}
+        defaultToDate={toDate}
+        onFetchData={handleFetchDateRangeData}
       />
     </div>
   );

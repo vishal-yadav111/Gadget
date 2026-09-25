@@ -16,26 +16,53 @@ import {
   ArrowUp,
   ArrowDown,
   Eye,
+  Calendar,
 } from "lucide-react";
 import { reportsService } from "../services";
 import { DesktopMotherboardQCReportItem } from "../types";
 import { getFriendlyErrorMessage } from "../../core";
 import { ReportsPagination } from "../ReportsPagination";
 import { HardwareDetailModal } from "../_components/HardwareDetailModal";
+import { useDebounce } from "@/lib/hooks/useDebounce";
+import { exportToExcel, ExcelColumn } from "@/lib/excel-export";
+import DateRangeExcelExportModal from "@/components/ui/DateRangeExcelExportModal";
+import DateRangeFilter from "@/components/ui/DateRangeFilter";
 
 type SortField = "date" | "brand" | "model" | "serial" | "workorder" | "socket" | "chipset" | "status";
 type SortOrder = "asc" | "desc";
+
+const dtmbExcelColumns: ExcelColumn[] = [
+  { key: "certificate_number", header: "Certificate Number" },
+  { key: "workorderid", header: "Work Order ID" },
+  { key: "brand_name", header: "Brand" },
+  { key: "model_name", header: "Model" },
+  { key: "serial_number", header: "Serial Number" },
+  { key: "Socket_Type", header: "Socket Type" },
+  { key: "Chipset", header: "Chipset" },
+  { key: "RAM_Slots", header: "RAM Slots" },
+  { key: "SATA_Ports", header: "SATA Ports" },
+  { key: "M2_Slots", header: "M.2 Slots" },
+  { key: "test_result", header: "QC Result" },
+  { key: "test_date_time", header: "Evaluation Date" },
+];
 
 export default function DesktopMotherboardQCReportPage() {
   const [reports, setReports] = useState<DesktopMotherboardQCReportItem[]>([]);
   const [selectedDetailId, setSelectedDetailId] = useState<string | number | null>(null);
   const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState("all");
-  const [fromDate, setFromDate] = useState("2024-01-01");
-  const [toDate, setToDate] = useState(new Date().toISOString().split("T")[0]);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+
+  // Date Range Excel Export Modal state
+  const [isDateRangeModalOpen, setIsDateRangeModalOpen] = useState(false);
+
+  // Debounced filters to prevent API spamming
+  const debouncedSearch = useDebounce(search, 350);
+  const debouncedFromDate = useDebounce(fromDate, 400);
+  const debouncedToDate = useDebounce(toDate, 400);
 
   // Dynamic Pagination State
   const [page, setPage] = useState(1);
@@ -50,15 +77,6 @@ export default function DesktopMotherboardQCReportPage() {
   // Track latest request ID to prevent race conditions
   const requestIdRef = useRef(0);
 
-  // 350ms Debounced search input handler
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(1);
-    }, 350);
-    return () => clearTimeout(timer);
-  }, [search]);
-
   const loadReports = async () => {
     const currentReqId = ++requestIdRef.current;
     setLoading(true);
@@ -66,8 +84,8 @@ export default function DesktopMotherboardQCReportPage() {
 
     try {
       const res = await reportsService.getDesktopMotherboardReportsPaginated({
-        fromDate,
-        toDate,
+        fromDate: debouncedFromDate,
+        toDate: debouncedToDate,
         search: debouncedSearch,
         page,
         pageSize,
@@ -76,13 +94,14 @@ export default function DesktopMotherboardQCReportPage() {
 
       if (currentReqId === requestIdRef.current) {
         setReports(res.data);
-        setTotalRecords(res.recordsFiltered || res.recordsTotal || res.data.length);
-        setTotalPages(res.totalPages || Math.ceil((res.recordsFiltered || res.data.length) / pageSize) || 1);
+        const resolvedTotal = res.recordsFiltered || res.recordsTotal || res.data.length;
+        setTotalRecords(resolvedTotal);
+        setTotalPages(res.totalPages || Math.ceil(resolvedTotal / (pageSize || 1)) || 1);
       }
     } catch (err: any) {
       if (currentReqId === requestIdRef.current) {
         console.error("Failed to load Desktop Motherboard reports:", err);
-        setError(getFriendlyErrorMessage(err, "Unable to load live Desktop Motherboard QC records. Please check your network connection."));
+        setError(getFriendlyErrorMessage(err, "Unable to load Desktop Motherboard QC records. Please check your network connection."));
       }
     } finally {
       if (currentReqId === requestIdRef.current) {
@@ -93,7 +112,7 @@ export default function DesktopMotherboardQCReportPage() {
 
   useEffect(() => {
     loadReports();
-  }, [page, pageSize, statusFilter, fromDate, toDate, debouncedSearch]);
+  }, [page, pageSize, statusFilter, debouncedFromDate, debouncedToDate, debouncedSearch]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -145,21 +164,54 @@ export default function DesktopMotherboardQCReportPage() {
     );
   };
 
-  const exportCSV = () => {
-    const headers = "CertNumber,WorkOrderID,Brand,Model,SerialNumber,SocketType,Chipset,RAMSlots,SATAPorts,M2Slots,Status,Date\n";
-    const rows = sortedReports
-      .map(
-        (r) =>
-          `"${r.certificate_number || ""}","${r.workorderid || ""}","${r.brand_name || ""}","${r.model_name || ""}","${r.serial_number || r.imei_1 || ""}","${r.Socket_Type || ""}","${r.Chipset || ""}","${r.RAM_Slots || ""}","${r.SATA_Ports || ""}","${r.M2_Slots || ""}","${r.test_result || r.QCResult || ""}","${r.test_date_time || r.CreatedOn || ""}"`
-      )
-      .join("\n");
-    const blob = new Blob([headers + rows], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `Desktop_Motherboard_QC_Report_${new Date().toISOString().split("T")[0]}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const handleExportCurrentExcel = () => {
+    const rows = sortedReports.map((r) => ({
+      certificate_number: r.certificate_number || `XC-DTMB-${r.mstid}`,
+      workorderid: r.workorderid || "—",
+      brand_name: r.brand_name || "—",
+      model_name: r.model_name || "—",
+      serial_number: r.serial_number || r.imei_1 || "—",
+      Socket_Type: r.Socket_Type || "—",
+      Chipset: r.Chipset || "—",
+      RAM_Slots: r.RAM_Slots || "—",
+      SATA_Ports: r.SATA_Ports || "—",
+      M2_Slots: r.M2_Slots || "—",
+      test_result: r.test_result || r.QCResult || "—",
+      test_date_time: r.test_date_time || r.CreatedOn || "—",
+    }));
+
+    exportToExcel({
+      filename: `Desktop_Motherboard_QC_Report_${fromDate}_to_${toDate}.xlsx`,
+      sheetName: "Desktop MB QC",
+      columns: dtmbExcelColumns,
+      rows,
+      title: `Desktop Motherboards QC Report (${fromDate} to ${toDate})`,
+    });
+  };
+
+  const handleFetchDateRangeData = async (startD: string, endD: string) => {
+    const res = await reportsService.getDesktopMotherboardReportsPaginated({
+      fromDate: startD,
+      toDate: endD,
+      pageSize: 100000,
+      search: debouncedSearch,
+      status: statusFilter === "all" ? "ALL" : statusFilter.toUpperCase(),
+    });
+
+    return res.data.map((r) => ({
+      certificate_number: r.certificate_number || `XC-DTMB-${r.mstid}`,
+      workorderid: r.workorderid || "—",
+      brand_name: r.brand_name || "—",
+      model_name: r.model_name || "—",
+      serial_number: r.serial_number || r.imei_1 || "—",
+      Socket_Type: r.Socket_Type || "—",
+      Chipset: r.Chipset || "—",
+      RAM_Slots: r.RAM_Slots || "—",
+      SATA_Ports: r.SATA_Ports || "—",
+      M2_Slots: r.M2_Slots || "—",
+      test_result: r.test_result || r.QCResult || "—",
+      test_date_time: r.test_date_time || r.CreatedOn || "—",
+    }));
   };
 
   return (
@@ -176,7 +228,7 @@ export default function DesktopMotherboardQCReportPage() {
                 Desktop Motherboard QC Reports
               </h1>
               <span className="px-2 py-0.5 rounded-full bg-blue-50 text-[#0052CC] font-mono text-[11px] font-bold">
-                {totalRecords.toLocaleString()} Records Live
+                {totalRecords.toLocaleString()} Verified Records
               </span>
             </div>
             <p className="text-xs text-[#5F6A86]">
@@ -185,7 +237,7 @@ export default function DesktopMotherboardQCReportPage() {
           </div>
         </div>
 
-        <div className="flex items-center space-x-2.5 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
           <button
             onClick={loadReports}
             className="p-2 rounded-xl bg-[#F4F6FB] hover:bg-[#E9EEF9] border border-[#DDE4F3] text-[#17284D] transition-colors cursor-pointer"
@@ -193,33 +245,38 @@ export default function DesktopMotherboardQCReportPage() {
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-[#0052CC]" : ""}`} />
           </button>
+
+          {/* Unified Export Data Button */}
           <button
-            onClick={exportCSV}
-            disabled={sortedReports.length === 0}
-            className="px-3.5 py-2 rounded-xl bg-[#0052CC] hover:bg-[#003D99] disabled:opacity-50 text-white text-xs font-bold transition-all shadow-xs flex items-center space-x-2 cursor-pointer"
+            onClick={() => setIsDateRangeModalOpen(true)}
+            className="px-3.5 py-2 rounded-xl bg-[#0052CC] hover:bg-[#003D99] text-white text-xs font-bold transition-all shadow-xs flex items-center space-x-1.5 cursor-pointer"
+            title="Export diagnostic data to Microsoft Excel (.xlsx)"
           >
             <FileSpreadsheet className="w-4 h-4" />
-            <span>Export CSV</span>
+            <span>Export Data</span>
           </button>
         </div>
       </div>
 
-      {/* Control Bar: Debounced Search, Date Filters, and Status */}
+      {/* Control Bar: Debounced Search, Date Filter Popover, and Status */}
       <div className="bg-white rounded-2xl p-4 border border-[#DDE4F3] shadow-xs flex flex-wrap items-center justify-between gap-3">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
-            placeholder="Search Serial, Model, Socket, Chipset, Work Order..."
+            placeholder="Search Serial Number, Model, Brand, Work Order..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
             className="w-full pl-9 pr-4 py-2 bg-[#F4F6FB] border border-[#DDE4F3] rounded-xl text-xs text-[#17284D] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0052CC]/20 focus:border-[#0052CC] transition-all"
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           {/* Status Filter */}
-          <div className="flex items-center space-x-1.5 bg-[#F4F6FB] p-1 rounded-xl border border-[#DDE4F3]">
+          <div className="flex items-center space-x-1 bg-[#F4F6FB] p-1 rounded-xl border border-[#DDE4F3]">
             {["all", "pass", "fail"].map((status) => (
               <button
                 key={status}
@@ -238,30 +295,16 @@ export default function DesktopMotherboardQCReportPage() {
             ))}
           </div>
 
-          {/* Date Range Pickers */}
-          <div className="flex items-center space-x-2 bg-[#F4F6FB] px-3 py-1.5 rounded-xl border border-[#DDE4F3]">
-            <span className="text-[11px] font-semibold text-[#5F6A86]">From:</span>
-            <input
-              type="date"
-              value={fromDate}
-              onChange={(e) => {
-                setFromDate(e.target.value);
-                setPage(1);
-              }}
-              className="bg-transparent text-xs font-bold text-[#17284D] focus:outline-none cursor-pointer"
-            />
-            <span className="text-slate-300">|</span>
-            <span className="text-[11px] font-semibold text-[#5F6A86]">To:</span>
-            <input
-              type="date"
-              value={toDate}
-              onChange={(e) => {
-                setToDate(e.target.value);
-                setPage(1);
-              }}
-              className="bg-transparent text-xs font-bold text-[#17284D] focus:outline-none cursor-pointer"
-            />
-          </div>
+          {/* Premium Date Range Filter Popover */}
+          <DateRangeFilter
+            fromDate={fromDate}
+            toDate={toDate}
+            onChange={({ fromDate: newFrom, toDate: newTo }) => {
+              setFromDate(newFrom);
+              setToDate(newTo);
+              setPage(1);
+            }}
+          />
         </div>
       </div>
 
@@ -270,7 +313,7 @@ export default function DesktopMotherboardQCReportPage() {
         {loading ? (
           <div className="py-20 flex flex-col items-center justify-center space-y-3">
             <RefreshCw className="w-8 h-8 animate-spin text-[#0052CC]" />
-            <p className="text-xs font-medium text-[#5F6A86]">Loading live Desktop Motherboard QC diagnostic records...</p>
+            <p className="text-xs font-medium text-[#5F6A86]">Loading Desktop Motherboard QC diagnostic reports...</p>
           </div>
         ) : error ? (
           <div className="p-8 text-center space-y-3">
@@ -301,22 +344,27 @@ export default function DesktopMotherboardQCReportPage() {
                       className="py-3 px-4 cursor-pointer hover:text-[#0052CC] transition-colors"
                       onClick={() => handleSort("serial")}
                     >
-                      Serial / Asset Tag {renderSortIcon("serial")}
+                      Serial Number {renderSortIcon("serial")}
                     </th>
                     <th
                       className="py-3 px-4 cursor-pointer hover:text-[#0052CC] transition-colors"
                       onClick={() => handleSort("brand")}
                     >
-                      Brand / Model {renderSortIcon("brand")}
+                      Board Brand / Model {renderSortIcon("brand")}
                     </th>
                     <th
                       className="py-3 px-4 cursor-pointer hover:text-[#0052CC] transition-colors"
                       onClick={() => handleSort("socket")}
                     >
-                      Socket & Chipset {renderSortIcon("socket")}
+                      Socket Type {renderSortIcon("socket")}
                     </th>
-                    <th className="py-3 px-4">RAM Slots & SATA</th>
-                    <th className="py-3 px-4">M.2 & Headers</th>
+                    <th
+                      className="py-3 px-4 cursor-pointer hover:text-[#0052CC] transition-colors"
+                      onClick={() => handleSort("chipset")}
+                    >
+                      Chipset {renderSortIcon("chipset")}
+                    </th>
+                    <th className="py-3 px-4">RAM / Storage</th>
                     <th
                       className="py-3 px-4 cursor-pointer hover:text-[#0052CC] transition-colors"
                       onClick={() => handleSort("status")}
@@ -345,91 +393,91 @@ export default function DesktopMotherboardQCReportPage() {
                     </tr>
                   ) : (
                     sortedReports.map((item, idx) => {
-                    const rawResult = (item.test_result || item.QCResult || "").trim();
-                    const normalized = rawResult.toUpperCase();
-                    const isPass = normalized === "PASS" || normalized === "PASSED";
-                    const isFail = normalized === "FAIL" || normalized === "FAILED" || normalized === "TEST INCOMPLETE" || normalized.includes("FAIL");
-                    const displayResult = rawResult || "Not Tested";
+                      const rawResult = (item.test_result || item.QCResult || "").trim();
+                      const normalized = rawResult.toUpperCase();
+                      const isPass = normalized === "PASS" || normalized === "PASSED";
+                      const isFail = normalized === "FAIL" || normalized === "FAILED" || normalized === "TEST INCOMPLETE" || normalized.includes("FAIL");
+                      const displayResult = rawResult || "Not Tested";
 
-                    return (
-                      <tr
-                        key={`row-${item.mstid || "rec"}-${item.ServiceKey || item.certificate_number || idx}-${idx}`}
-                        className="hover:bg-[#F4F6FB]/80 transition-colors cursor-pointer"
-                        onClick={() => setSelectedDetailId(item.mstid || item.serial_number || item.imei_1 || item.ServiceKey || null)}
-                      >
-                        <td className="py-3.5 px-4 font-bold text-[#17284D]">
-                          <div>{item.certificate_number || item.ServiceKey || `XC-DTMB-${item.mstid}`}</div>
-                          {item.workorderid && (
-                            <div className="text-[10px] text-slate-400 font-mono">{item.workorderid}</div>
-                          )}
-                        </td>
-                        <td className="py-3.5 px-4 font-mono text-[11px] text-[#17284D]">
-                          <div className="font-semibold text-indigo-600 hover:underline">{item.serial_number || item.imei_1 || "N/A"}</div>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <div className="font-bold text-[#17284D]">{item.brand_name || "—"}</div>
-                          <div className="text-[11px] text-slate-500">{item.model_name || ""}</div>
-                        </td>
-                        <td className="py-3.5 px-4 text-slate-700">
-                          <div className="font-semibold text-[#17284D]">{item.Socket_Type || "—"}</div>
-                          <div className="text-[10px] text-slate-400">{item.Chipset ? `Chipset: ${item.Chipset}` : ""}</div>
-                        </td>
-                        <td className="py-3.5 px-4 text-slate-600">
-                          <div>{item.RAM_Slots ? `RAM: ${item.RAM_Slots}` : "—"}</div>
-                          <div className="text-[10px] text-slate-400">{item.SATA_Ports ? `SATA: ${item.SATA_Ports}` : ""}</div>
-                        </td>
-                        <td className="py-3.5 px-4 text-slate-600">
-                          <div>{item.M2_Slots ? `M.2: ${item.M2_Slots}` : "—"}</div>
-                          <div className="text-[10px] text-slate-400">{item.Front_Panel_Headers ? `Front: ${item.Front_Panel_Headers}` : ""}</div>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <span
-                            className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full font-bold text-[11px] ${
-                              isPass
-                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                : isFail
-                                ? "bg-rose-50 text-rose-700 border border-rose-200"
-                                : "bg-slate-100 text-slate-700 border border-slate-200"
-                            }`}
-                          >
-                            {isPass ? (
-                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                            ) : isFail ? (
-                              <XCircle className="w-3 h-3 text-rose-600" />
-                            ) : (
-                              <MinusCircle className="w-3 h-3 text-slate-400" />
+                      return (
+                        <tr
+                          key={`row-${item.mstid || "rec"}-${item.ServiceKey || item.certificate_number || idx}-${idx}`}
+                          className="hover:bg-[#F4F6FB]/80 transition-colors cursor-pointer"
+                          onClick={() => setSelectedDetailId(item.mstid || item.serial_number || item.imei_1 || item.ServiceKey || null)}
+                        >
+                          <td className="py-3.5 px-4 font-bold text-[#17284D]">
+                            <div>{item.certificate_number || item.ServiceKey || `XC-DTMB-${item.mstid}`}</div>
+                            {item.workorderid && (
+                              <div className="text-[10px] text-slate-400 font-mono">{item.workorderid}</div>
                             )}
-                            <span>{displayResult}</span>
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 text-slate-500 font-mono text-[11px]">
-                          {item.test_date_time || item.CreatedOn || "Recent"}
-                        </td>
-                        <td className="py-3.5 px-4 text-right">
-                          <div className="inline-flex items-center space-x-1.5" onClick={(e) => e.stopPropagation()}>
-                            <button
-                              onClick={() => setSelectedDetailId(item.mstid || item.serial_number || item.imei_1 || item.ServiceKey || null)}
-                              className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white font-bold text-[11px] transition-colors cursor-pointer"
-                              title="Inspect Diagnostics"
+                          </td>
+                          <td className="py-3.5 px-4 font-mono text-[11px] text-[#17284D]">
+                            <div className="font-semibold text-indigo-600 hover:underline">{item.serial_number || item.imei_1 || "N/A"}</div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="font-bold text-[#17284D]">{item.brand_name || "—"}</div>
+                            <div className="text-[11px] text-slate-500">{item.model_name || ""}</div>
+                          </td>
+                          <td className="py-3.5 px-4 text-slate-700 font-semibold">
+                            {item.Socket_Type || "—"}
+                          </td>
+                          <td className="py-3.5 px-4 text-slate-600">
+                            {item.Chipset || "—"}
+                          </td>
+                          <td className="py-3.5 px-4 text-slate-600">
+                            <div>RAM: {item.RAM_Slots || "—"}</div>
+                            <div className="text-[10px] text-slate-400">
+                              {item.SATA_Ports ? `SATA: ${item.SATA_Ports}` : ""} {item.M2_Slots ? `M.2: ${item.M2_Slots}` : ""}
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span
+                              className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full font-bold text-[11px] ${
+                                isPass
+                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                  : isFail
+                                  ? "bg-rose-50 text-rose-700 border border-rose-200"
+                                  : "bg-slate-100 text-slate-700 border border-slate-200"
+                              }`}
                             >
-                              <Eye className="w-3 h-3" />
-                              <span>Inspect</span>
-                            </button>
-                            <Link
-                              href={`/gadgetiq/certificate/${item.mstid || item.ServiceKey || item.certificate_number}`}
-                              className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-blue-50 text-[#0052CC] hover:bg-[#0052CC] hover:text-white font-bold text-[11px] transition-colors cursor-pointer"
-                              title="View Certificate"
-                            >
-                              <span>Audit</span>
-                              <ExternalLink className="w-3 h-3" />
-                            </Link>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
+                              {isPass ? (
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                              ) : isFail ? (
+                                <XCircle className="w-3 h-3 text-rose-600" />
+                              ) : (
+                                <MinusCircle className="w-3 h-3 text-slate-400" />
+                              )}
+                              <span>{displayResult}</span>
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-slate-500 font-mono text-[11px]">
+                            {item.test_date_time || item.CreatedOn || "Recent"}
+                          </td>
+                          <td className="py-3.5 px-4 text-right">
+                            <div className="inline-flex items-center space-x-1.5" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                onClick={() => setSelectedDetailId(item.mstid || item.serial_number || item.imei_1 || item.ServiceKey || null)}
+                                className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white font-bold text-[11px] transition-colors cursor-pointer"
+                                title="Inspect Diagnostics"
+                              >
+                                <Eye className="w-3 h-3" />
+                                <span>Inspect</span>
+                              </button>
+                              <Link
+                                href={`/gadgetiq/certificate/${item.mstid || item.ServiceKey || item.certificate_number}`}
+                                className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-blue-50 text-[#0052CC] hover:bg-[#0052CC] hover:text-white font-bold text-[11px] transition-colors cursor-pointer"
+                                title="View Certificate"
+                              >
+                                <span>Audit</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </Link>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
               </table>
             </div>
 
@@ -455,6 +503,18 @@ export default function DesktopMotherboardQCReportPage() {
       <HardwareDetailModal
         identifier={selectedDetailId}
         onClose={() => setSelectedDetailId(null)}
+      />
+
+      {/* Date Range Excel Export Modal */}
+      <DateRangeExcelExportModal
+        isOpen={isDateRangeModalOpen}
+        onClose={() => setIsDateRangeModalOpen(false)}
+        reportTitle="Desktop Motherboard QC Reports"
+        filenamePrefix="Desktop_Motherboard_QC_Report"
+        columns={dtmbExcelColumns}
+        defaultFromDate={fromDate}
+        defaultToDate={toDate}
+        onFetchData={handleFetchDateRangeData}
       />
     </div>
   );

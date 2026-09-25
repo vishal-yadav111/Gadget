@@ -1,16 +1,21 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { KeyRound, Search, CheckCircle2, AlertTriangle, RefreshCw, FileSpreadsheet, AlertCircle } from "lucide-react";
+import { KeyRound, Search, CheckCircle2, AlertTriangle, RefreshCw, FileSpreadsheet, Calendar, AlertCircle } from "lucide-react";
 import { licensesService } from "../services";
 import { LicenseBatchItem } from "../types";
 import { getFriendlyErrorMessage } from "../../core";
+import { useDebounce } from "@/lib/hooks/useDebounce";
+import { exportToExcel } from "@/lib/excel-export";
+import DateRangeExcelExportModal from "@/components/ui/DateRangeExcelExportModal";
 
 export default function MobileLicenseReportPage() {
   const [batches, setBatches] = useState<LicenseBatchItem[]>([]);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 350);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   const loadData = async () => {
     setLoading(true);
@@ -20,7 +25,7 @@ export default function MobileLicenseReportPage() {
       setBatches(data);
     } catch (err: any) {
       console.error(err);
-      setError(getFriendlyErrorMessage(err, "Unable to load live mobile license batches. Please check server connection."));
+      setError(getFriendlyErrorMessage(err, "Unable to load mobile license batches. Please check server connection."));
     } finally {
       setLoading(false);
     }
@@ -32,26 +37,61 @@ export default function MobileLicenseReportPage() {
 
   const filtered = batches.filter(
     (b) =>
-      !search ||
-      (b.batchCode && b.batchCode.toLowerCase().includes(search.toLowerCase())) ||
-      (b.companyName && b.companyName.toLowerCase().includes(search.toLowerCase())) ||
-      (b.assignedStore && b.assignedStore.toLowerCase().includes(search.toLowerCase()))
+      !debouncedSearch ||
+      (b.batchCode && b.batchCode.toLowerCase().includes(debouncedSearch.toLowerCase())) ||
+      (b.companyName && b.companyName.toLowerCase().includes(debouncedSearch.toLowerCase())) ||
+      (b.assignedStore && b.assignedStore.toLowerCase().includes(debouncedSearch.toLowerCase()))
   );
 
-  const exportCSV = () => {
-    const headers = "WorkOrderID,Company,Store,Purchased,Utilised,Balance,AllocatedDate,ExpiryDate,Status\n";
-    const rows = filtered
-      .map(
-        (b) =>
-          `"${b.batchCode}","${b.companyName}","${b.assignedStore}","${b.totalPurchased}","${b.consumed}","${b.remaining}","${b.allocatedDate}","${b.expiryDate}","${b.status}"`
-      )
-      .join("\n");
-    const blob = new Blob([headers + rows], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `Mobile_License_Report_${new Date().toISOString().split("T")[0]}.csv`;
-    a.click();
+  const handleExportExcel = () => {
+    if (filtered.length === 0) return;
+    exportToExcel({
+      filename: `Mobile_License_Report_${new Date().toISOString().split("T")[0]}`,
+      sheetName: "Mobile Licenses",
+      columns: [
+        { header: "Work Order No", key: "batchCode", width: 20 },
+        { header: "Company / Partner", key: "companyName", width: 25 },
+        { header: "Store", key: "assignedStore", width: 18 },
+        { header: "Total Licences", key: "totalPurchased", width: 16, format: "number" },
+        { header: "Used Licences", key: "consumed", width: 16, format: "number" },
+        { header: "Balance Licences", key: "remaining", width: 16, format: "number" },
+        { header: "Order Date", key: "allocatedDate", width: 16, format: "date" },
+        { header: "Quota Status", key: "status", width: 14, format: "status" },
+      ],
+      data: filtered.map((b) => ({
+        batchCode: b.batchCode,
+        companyName: b.companyName,
+        assignedStore: b.assignedStore,
+        totalPurchased: b.totalPurchased,
+        consumed: b.consumed,
+        remaining: b.remaining,
+        allocatedDate: b.allocatedDate,
+        status: b.status,
+      })),
+    });
+  };
+
+  const fetchExportDataForDateRange = async (fromDate: string, toDate: string) => {
+    const from = fromDate ? new Date(fromDate).getTime() : 0;
+    const to = toDate ? new Date(toDate).getTime() + 86400000 : Infinity;
+
+    return batches
+      .filter((b) => {
+        if (!b.allocatedDate) return true;
+        const allocTime = new Date(b.allocatedDate).getTime();
+        if (isNaN(allocTime)) return true;
+        return allocTime >= from && allocTime <= to;
+      })
+      .map((b) => ({
+        batchCode: b.batchCode,
+        companyName: b.companyName,
+        assignedStore: b.assignedStore,
+        totalPurchased: b.totalPurchased,
+        consumed: b.consumed,
+        remaining: b.remaining,
+        allocatedDate: b.allocatedDate,
+        status: b.status,
+      }));
   };
 
   return (
@@ -65,7 +105,7 @@ export default function MobileLicenseReportPage() {
             <div className="flex items-center space-x-2">
               <h1 className="text-xl font-bold font-display text-[#17284D]">Licence Report (Mobile)</h1>
               <span className="px-2 py-0.5 rounded-full bg-blue-50 text-[#0052CC] font-mono text-[11px] font-bold">
-                {filtered.length} Live Batches
+                {filtered.length} Batches
               </span>
             </div>
             <p className="text-xs text-[#5F6A86]">
@@ -82,12 +122,12 @@ export default function MobileLicenseReportPage() {
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-[#0052CC]" : ""}`} />
           </button>
           <button
-            onClick={exportCSV}
-            disabled={filtered.length === 0}
-            className="px-3.5 py-2 rounded-xl bg-[#0052CC] hover:bg-[#003D99] disabled:opacity-50 text-white text-xs font-bold transition-all shadow-xs flex items-center space-x-2 cursor-pointer"
+            onClick={() => setIsExportModalOpen(true)}
+            className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs flex items-center space-x-2 cursor-pointer"
+            title="Export mobile license quotas to Excel"
           >
             <FileSpreadsheet className="w-4 h-4" />
-            <span>Export CSV</span>
+            <span>Export Data</span>
           </button>
         </div>
       </div>
@@ -109,7 +149,7 @@ export default function MobileLicenseReportPage() {
         {loading ? (
           <div className="p-12 text-center">
             <div className="w-8 h-8 border-3 border-[#0052CC] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-xs font-semibold text-slate-500">Querying live license ledger...</p>
+            <p className="text-xs font-semibold text-slate-500">Loading mobile license batches...</p>
           </div>
         ) : error ? (
           <div className="p-12 text-center space-y-3">
@@ -120,7 +160,7 @@ export default function MobileLicenseReportPage() {
               onClick={loadData}
               className="px-4 py-1.5 rounded-xl bg-[#0052CC] text-white text-xs font-bold hover:bg-[#003D99] transition-colors cursor-pointer"
             >
-              Retry Fetch
+              Retry
             </button>
           </div>
         ) : (
@@ -146,7 +186,7 @@ export default function MobileLicenseReportPage() {
                         <AlertCircle className="w-8 h-8 text-slate-300" />
                         <h3 className="text-sm font-bold text-[#17284D]">No License Batches Found</h3>
                         <p className="text-xs text-slate-500 max-w-sm">
-                          No active or historical mobile license batches found for this partner rig.
+                          No active or historical mobile license batches found matching filter.
                         </p>
                       </div>
                     </td>
@@ -182,6 +222,24 @@ export default function MobileLicenseReportPage() {
           </div>
         )}
       </div>
+
+      <DateRangeExcelExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        title="Export Mobile License Report"
+        filenamePrefix="Mobile_License_Report"
+        columns={[
+          { header: "Work Order No", key: "batchCode", width: 20 },
+          { header: "Company / Partner", key: "companyName", width: 25 },
+          { header: "Store", key: "assignedStore", width: 18 },
+          { header: "Total Licences", key: "totalPurchased", width: 16, format: "number" },
+          { header: "Used Licences", key: "consumed", width: 16, format: "number" },
+          { header: "Balance Licences", key: "remaining", width: 16, format: "number" },
+          { header: "Order Date", key: "allocatedDate", width: 16, format: "date" },
+          { header: "Quota Status", key: "status", width: 14, format: "status" },
+        ]}
+        fetchData={fetchExportDataForDateRange}
+      />
     </div>
   );
 }

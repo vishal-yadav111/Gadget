@@ -89,7 +89,7 @@ export default function DeviceLifecycle() {
         {/* Circular Ecosystem Message */}
         <div className="mt-16 text-center max-w-2xl mx-auto">
           <p className="text-brand-text-secondary text-sm md:text-base font-light italic leading-relaxed">
-            "Better information creates better decisions—and longer device lifecycles."
+            "Better information creates better decisions and longer device lifecycles."
           </p>
           <p className="text-brand-[11px] text-brand-text-muted font-semibold uppercase tracking-widest mt-3">
             A Circular Economy Initiative by XtraCover

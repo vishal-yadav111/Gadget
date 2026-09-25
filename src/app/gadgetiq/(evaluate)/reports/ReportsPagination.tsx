@@ -7,12 +7,14 @@ import {
   ChevronsLeft,
   ChevronsRight,
   ListFilter,
+  Check,
+  Layers,
 } from "lucide-react";
 
 export interface ReportsPaginationProps {
   currentPage?: number;
   page?: number;
-  totalPages: number;
+  totalPages?: number;
   pageSize: number;
   totalRecords: number;
   currentCount?: number;
@@ -31,25 +33,33 @@ export const ReportsPagination: React.FC<ReportsPaginationProps> = ({
   currentCount = 0,
   onPageChange,
   onPageSizeChange,
-  pageSizeOptions = [10, 20, 50, 100, 250],
+  pageSizeOptions = [10, 25, 50, 100, 250, -1],
   disabled = false,
 }) => {
   const [jumpInput, setJumpInput] = useState("");
   const activePage = currentPage ?? page ?? 1;
 
-  const effectiveTotalPages = Math.max(1, totalPages);
-  const startRecord =
-    totalRecords > 0 ? (activePage - 1) * pageSize + 1 : 0;
-  const endRecord =
-    totalRecords > 0
-      ? Math.min(
-          startRecord + (currentCount > 0 ? currentCount - 1 : pageSize - 1),
-          totalRecords
-        )
-      : 0;
+  const isAllSelected = pageSize === -1 || pageSize >= 10000 || (totalRecords > 0 && pageSize >= totalRecords);
+  const resolvedTotalPages = totalPages || Math.ceil(totalRecords / (pageSize > 0 ? pageSize : 1)) || 1;
+  const effectiveTotalPages = isAllSelected ? 1 : Math.max(1, resolvedTotalPages);
+
+  const startRecord = isAllSelected
+    ? totalRecords > 0 ? 1 : 0
+    : totalRecords > 0 ? (activePage - 1) * pageSize + 1 : 0;
+
+  const endRecord = isAllSelected
+    ? totalRecords
+    : totalRecords > 0
+    ? Math.min(
+        startRecord + (currentCount > 0 ? currentCount - 1 : pageSize - 1),
+        totalRecords
+      )
+    : 0;
 
   // Smart page numbers pagination algorithm
   const getPageNumbers = () => {
+    if (isAllSelected || effectiveTotalPages <= 1) return [1];
+
     const pages: (number | string)[] = [];
     if (effectiveTotalPages <= 7) {
       for (let i = 1; i <= effectiveTotalPages; i++) {
@@ -92,37 +102,61 @@ export const ReportsPagination: React.FC<ReportsPaginationProps> = ({
     }
   };
 
+  const handlePageSizeSelect = (val: string) => {
+    const size = parseInt(val, 10);
+    if (size === -1) {
+      // Full data: request total records or high limit
+      onPageSizeChange(totalRecords > 0 ? totalRecords : 10000);
+      onPageChange(1);
+    } else {
+      onPageSizeChange(size);
+      onPageChange(1);
+    }
+  };
+
   return (
-    <div className="p-4 border-t border-[#DDE4F3] bg-[#F8FAFC] flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-[#5F6A86]">
+    <div className="p-4 border-t border-[#DDE4F3] bg-[#F8FAFC] flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-[#5F6A86] rounded-b-2xl">
       {/* Left: Entries Info & Rows Per Page */}
       <div className="flex flex-wrap items-center gap-3.5">
         <div className="flex items-center space-x-1.5 font-medium">
-          <span>Showing</span>
-          <span className="font-bold text-[#17284D]">{startRecord}</span>
-          <span>to</span>
-          <span className="font-bold text-[#17284D]">{endRecord}</span>
-          <span>of</span>
-          <span className="font-bold text-[#17284D]">{totalRecords.toLocaleString()}</span>
-          <span>entries</span>
+          {isAllSelected ? (
+            <div className="flex items-center space-x-1.5">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-bold text-[11px] border border-emerald-200">
+                <Layers className="w-3 h-3 mr-1" />
+                Full Data View
+              </span>
+              <span>Showing all</span>
+              <span className="font-bold text-[#17284D]">{totalRecords.toLocaleString()}</span>
+              <span>records</span>
+            </div>
+          ) : (
+            <>
+              <span>Showing</span>
+              <span className="font-bold text-[#17284D]">{startRecord}</span>
+              <span>to</span>
+              <span className="font-bold text-[#17284D]">{endRecord}</span>
+              <span>of</span>
+              <span className="font-bold text-[#17284D]">{totalRecords.toLocaleString()}</span>
+              <span>entries</span>
+            </>
+          )}
         </div>
 
         <div className="h-4 w-[1px] bg-slate-300 hidden sm:block" />
 
-        <div className="flex items-center space-x-2">
-          <ListFilter className="w-3.5 h-3.5 text-slate-400" />
-          <span className="text-[11px] font-semibold text-slate-500">Rows per page:</span>
+        {/* Data View / Page Size Selector */}
+        <div className="flex items-center space-x-2 bg-white px-2.5 py-1 rounded-xl border border-[#DDE4F3] shadow-2xs">
+          <ListFilter className="w-3.5 h-3.5 text-[#0052CC]" />
+          <span className="text-[11px] font-semibold text-slate-500">View Data:</span>
           <select
-            value={pageSize}
+            value={isAllSelected ? -1 : pageSize}
             disabled={disabled}
-            onChange={(e) => {
-              const newSize = parseInt(e.target.value, 10);
-              onPageSizeChange(newSize);
-            }}
-            className="px-2.5 py-1 bg-white border border-[#DDE4F3] rounded-lg text-xs font-bold text-[#17284D] focus:outline-none focus:ring-2 focus:ring-[#0052CC]/20 cursor-pointer disabled:opacity-50"
+            onChange={(e) => handlePageSizeSelect(e.target.value)}
+            className="bg-transparent text-xs font-bold text-[#17284D] focus:outline-none cursor-pointer disabled:opacity-50"
           >
             {pageSizeOptions.map((opt) => (
               <option key={opt} value={opt}>
-                {opt}
+                {opt === -1 ? `All Records (${totalRecords.toLocaleString()})` : `${opt} rows`}
               </option>
             ))}
           </select>
@@ -137,7 +171,7 @@ export const ReportsPagination: React.FC<ReportsPaginationProps> = ({
           <button
             type="button"
             title="First Page"
-            disabled={disabled || activePage <= 1}
+            disabled={disabled || activePage <= 1 || isAllSelected}
             onClick={() => onPageChange(1)}
             className="p-1.5 rounded-lg border border-[#DDE4F3] bg-white text-[#17284D] font-bold disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#F4F6FB] transition-colors cursor-pointer"
           >
@@ -148,7 +182,7 @@ export const ReportsPagination: React.FC<ReportsPaginationProps> = ({
           <button
             type="button"
             title="Previous Page"
-            disabled={disabled || activePage <= 1}
+            disabled={disabled || activePage <= 1 || isAllSelected}
             onClick={() => onPageChange(activePage - 1)}
             className="px-2.5 py-1.5 rounded-lg border border-[#DDE4F3] bg-white text-[#17284D] font-bold text-xs disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#F4F6FB] transition-colors flex items-center space-x-1 cursor-pointer"
           >
@@ -177,7 +211,7 @@ export const ReportsPagination: React.FC<ReportsPaginationProps> = ({
                 <button
                   key={`page-${pageNum}`}
                   type="button"
-                  disabled={disabled}
+                  disabled={disabled || isAllSelected}
                   onClick={() => onPageChange(pageNum)}
                   className={`min-w-[30px] h-7 px-2 rounded-lg font-bold text-xs transition-all cursor-pointer ${
                     isActive
@@ -195,7 +229,7 @@ export const ReportsPagination: React.FC<ReportsPaginationProps> = ({
           <button
             type="button"
             title="Next Page"
-            disabled={disabled || activePage >= effectiveTotalPages}
+            disabled={disabled || activePage >= effectiveTotalPages || isAllSelected}
             onClick={() => onPageChange(activePage + 1)}
             className="px-2.5 py-1.5 rounded-lg border border-[#DDE4F3] bg-white text-[#17284D] font-bold text-xs disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#F4F6FB] transition-colors flex items-center space-x-1 cursor-pointer"
           >
@@ -207,7 +241,7 @@ export const ReportsPagination: React.FC<ReportsPaginationProps> = ({
           <button
             type="button"
             title="Last Page"
-            disabled={disabled || activePage >= effectiveTotalPages}
+            disabled={disabled || activePage >= effectiveTotalPages || isAllSelected}
             onClick={() => onPageChange(effectiveTotalPages)}
             className="p-1.5 rounded-lg border border-[#DDE4F3] bg-white text-[#17284D] font-bold disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#F4F6FB] transition-colors cursor-pointer"
           >
@@ -216,7 +250,7 @@ export const ReportsPagination: React.FC<ReportsPaginationProps> = ({
         </div>
 
         {/* Quick Jump */}
-        {effectiveTotalPages > 5 && (
+        {!isAllSelected && effectiveTotalPages > 5 && (
           <form
             onSubmit={handleJumpSubmit}
             className="flex items-center space-x-1.5 pl-1.5 border-l border-slate-200"
@@ -245,3 +279,5 @@ export const ReportsPagination: React.FC<ReportsPaginationProps> = ({
     </div>
   );
 };
+
+export default ReportsPagination;

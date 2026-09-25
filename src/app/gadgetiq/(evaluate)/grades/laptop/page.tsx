@@ -8,23 +8,14 @@ import {
   Search,
   CheckCircle2,
   XCircle,
-  ExternalLink,
   FileSpreadsheet,
   AlertCircle,
   Calendar,
-  Laptop,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
   X,
   BarChart3,
-  PieChart,
-  HardDrive,
-  Users,
-  Check,
-  ChevronDown,
-  TrendingUp,
-  SlidersHorizontal,
 } from "lucide-react";
 import { gradesService, parseEvaluationDateToTime } from "../services";
 import { GradeDistributionItem, GradedDeviceItem } from "../types";
@@ -35,11 +26,13 @@ import {
   formatConditionCategory,
   getGradeRank,
 } from "../../reports/laptop/page";
+import { useDebounce } from "@/lib/hooks/useDebounce";
+import { exportToExcel, ExcelColumn } from "@/lib/excel-export";
+import DateRangeExcelExportModal from "@/components/ui/DateRangeExcelExportModal";
+import DateRangeFilter from "@/components/ui/DateRangeFilter";
 
 type SortField = "workorder" | "serial" | "brand" | "storage" | "grade" | "status" | "uid" | "date";
 type SortOrder = "asc" | "desc";
-
-const POPULAR_BRANDS = ["All", "LENOVO", "HP", "Dell Inc.", "Apple Inc.", "Acer", "ASUSTeK"];
 
 export function formatTesterName(raw?: string | null): string {
   if (!raw || raw === "—" || raw.toLowerCase() === "none" || raw.toLowerCase() === "null") return "—";
@@ -66,6 +59,18 @@ export function formatStorageClean(raw?: string | null): string {
   return str;
 }
 
+const laptopGradeExcelColumns: ExcelColumn[] = [
+  { key: "workorderid", header: "Work Order ID" },
+  { key: "serialNumber", header: "Serial Number" },
+  { key: "brand", header: "Brand" },
+  { key: "model", header: "Model" },
+  { key: "storage", header: "Storage" },
+  { key: "grade", header: "Cosmetic Grade" },
+  { key: "qcResult", header: "QC Result" },
+  { key: "score", header: "Health Score" },
+  { key: "testedAt", header: "Evaluation Date" },
+];
+
 export default function GradeReportLaptopPage() {
   const [grades, setGrades] = useState<GradeDistributionItem[]>([]);
   const [devices, setDevices] = useState<GradedDeviceItem[]>([]);
@@ -74,13 +79,20 @@ export default function GradeReportLaptopPage() {
 
   // Filters State
   const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedGrade, setSelectedGrade] = useState("all");
   const [selectedBrand, setSelectedBrand] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [fromDate, setFromDate] = useState("2021-01-01");
-  const [toDate, setToDate] = useState(new Date().toISOString().split("T")[0]);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const [datePreset, setDatePreset] = useState<string>("all");
+
+  // Date Range Modal
+  const [isDateRangeModalOpen, setIsDateRangeModalOpen] = useState(false);
+
+  // Debounced filters to prevent API spamming
+  const debouncedSearch = useDebounce(search, 350);
+  const debouncedFromDate = useDebounce(fromDate, 400);
+  const debouncedToDate = useDebounce(toDate, 400);
 
   // Pagination State
   const [page, setPage] = useState(1);
@@ -96,41 +108,31 @@ export default function GradeReportLaptopPage() {
 
   const requestIdRef = useRef(0);
 
-  // Debounced search
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(1);
-    }, 350);
-    return () => clearTimeout(timer);
-  }, [search]);
-
   // Quick Date Presets Handler
   const applyDatePreset = (preset: string) => {
     setDatePreset(preset);
-    const today = new Date();
-    const todayStr = today.toISOString().split("T")[0];
+    const d = new Date();
+    const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
     if (preset === "today") {
       setFromDate(todayStr);
       setToDate(todayStr);
     } else if (preset === "7d") {
-      const d = new Date();
-      d.setDate(d.getDate() - 7);
-      setFromDate(d.toISOString().split("T")[0]);
+      const past = new Date();
+      past.setDate(past.getDate() - 7);
+      setFromDate(`${past.getFullYear()}-${String(past.getMonth() + 1).padStart(2, "0")}-${String(past.getDate()).padStart(2, "0")}`);
       setToDate(todayStr);
     } else if (preset === "30d") {
-      const d = new Date();
-      d.setDate(d.getDate() - 30);
-      setFromDate(d.toISOString().split("T")[0]);
+      const past = new Date();
+      past.setDate(past.getDate() - 30);
+      setFromDate(`${past.getFullYear()}-${String(past.getMonth() + 1).padStart(2, "0")}-${String(past.getDate()).padStart(2, "0")}`);
       setToDate(todayStr);
     } else if (preset === "year") {
-      const d = new Date(today.getFullYear(), 0, 1);
-      setFromDate(d.toISOString().split("T")[0]);
+      setFromDate(`${d.getFullYear()}-01-01`);
       setToDate(todayStr);
     } else if (preset === "all") {
-      setFromDate("2021-01-01");
-      setToDate(todayStr);
+      setFromDate("");
+      setToDate("");
     }
     setPage(1);
   };
@@ -142,8 +144,8 @@ export default function GradeReportLaptopPage() {
 
     try {
       const res = await gradesService.getLaptopGradeReportPaginated({
-        fromDate,
-        toDate,
+        fromDate: debouncedFromDate,
+        toDate: debouncedToDate,
         search: debouncedSearch,
         grade: selectedGrade,
         brand: selectedBrand,
@@ -174,7 +176,7 @@ export default function GradeReportLaptopPage() {
 
   useEffect(() => {
     loadData();
-  }, [page, pageSize, selectedGrade, selectedBrand, statusFilter, fromDate, toDate, debouncedSearch]);
+  }, [page, pageSize, selectedGrade, selectedBrand, statusFilter, debouncedFromDate, debouncedToDate, debouncedSearch]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -231,11 +233,8 @@ export default function GradeReportLaptopPage() {
     });
   }, [devices, sortField, sortOrder]);
 
-
-
   const clearAllFilters = () => {
     setSearch("");
-    setDebouncedSearch("");
     setSelectedGrade("all");
     setSelectedBrand("all");
     setStatusFilter("all");
@@ -252,26 +251,50 @@ export default function GradeReportLaptopPage() {
     statusFilter !== "all" ||
     fromDate !== "2021-01-01";
 
-  const exportCSV = () => {
-    const headers =
-      "WorkOrderID,SerialNumber,Brand,Model,Storage,Grade,QCResult,Score,TesterName,EvaluationDate,CertificateNumber\n";
-    const rows = sortedDevices
-      .map(
-        (d) =>
-          `"${d.workorderid}","${d.serialNumber || d.imei}","${d.brand}","${d.model}","${formatStorageClean(
-            d.storage
-          )}","${formatConditionCategory(d.rawGrade || d.grade)}","${d.qcResult}","${d.score || ""}","${formatTesterName(
-            d.uid
-          )}","${d.testedAt}","${d.certificateNumber || ""}"`
-      )
-      .join("\n");
-    const blob = new Blob([headers + rows], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `Laptop_Grade_Report_${new Date().toISOString().split("T")[0]}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const handleExportCurrentExcel = () => {
+    const rows = sortedDevices.map((d) => ({
+      workorderid: d.workorderid || "—",
+      serialNumber: d.serialNumber || d.imei || "—",
+      brand: d.brand || "—",
+      model: d.model || "—",
+      storage: formatStorageClean(d.storage),
+      grade: formatConditionCategory(d.rawGrade || d.grade),
+      qcResult: d.qcResult || "—",
+      score: d.score || "—",
+      testedAt: d.testedAt || "Recent",
+    }));
+
+    exportToExcel({
+      filename: `Laptop_Grade_Report_${fromDate}_to_${toDate}.xlsx`,
+      sheetName: "Laptop Grades",
+      columns: laptopGradeExcelColumns,
+      rows,
+      title: `Laptop Grade Intelligence Report (${fromDate} to ${toDate})`,
+    });
+  };
+
+  const handleFetchDateRangeData = async (startD: string, endD: string) => {
+    const res = await gradesService.getLaptopGradeReportPaginated({
+      fromDate: startD,
+      toDate: endD,
+      pageSize: 100000,
+      search: debouncedSearch,
+      grade: selectedGrade,
+      brand: selectedBrand,
+      status: statusFilter,
+    });
+
+    return res.devices.map((d) => ({
+      workorderid: d.workorderid || "—",
+      serialNumber: d.serialNumber || d.imei || "—",
+      brand: d.brand || "—",
+      model: d.model || "—",
+      storage: formatStorageClean(d.storage),
+      grade: formatConditionCategory(d.rawGrade || d.grade),
+      qcResult: d.qcResult || "—",
+      score: d.score || "—",
+      testedAt: d.testedAt || "Recent",
+    }));
   };
 
   return (
@@ -290,7 +313,7 @@ export default function GradeReportLaptopPage() {
               </span>
             </div>
             <p className="text-xs text-[#5F6A86] mt-0.5">
-              Certified 64-point diagnostic grading and cosmetic condition breakdown.
+              Certified diagnostic grading and cosmetic condition breakdown.
             </p>
           </div>
         </div>
@@ -325,9 +348,20 @@ export default function GradeReportLaptopPage() {
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-[#0052CC]" : ""}`} />
           </button>
+
+          {/* Unified Export Data Button */}
+          <button
+            onClick={() => setIsDateRangeModalOpen(true)}
+            className="px-3.5 py-2 rounded-xl bg-[#0052CC] hover:bg-[#003D99] text-white text-xs font-bold transition-all shadow-xs flex items-center space-x-1.5 cursor-pointer"
+            title="Export evaluation records to Microsoft Excel (.xlsx)"
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            <span>Export Data</span>
+          </button>
+
           <Link
             href="/gadgetiq/grades/laptop/visualize"
-            className="px-3.5 py-2 rounded-xl bg-[#0052CC] hover:bg-[#003D99] text-white text-xs font-bold transition-all shadow-xs flex items-center space-x-2 cursor-pointer"
+            className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-xs flex items-center space-x-1.5 cursor-pointer"
           >
             <BarChart3 className="w-4 h-4" />
             <span>Visualize</span>
@@ -356,12 +390,18 @@ export default function GradeReportLaptopPage() {
                   type="text"
                   placeholder="Search Serial, Model, WO..."
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPage(1);
+                  }}
                   className="w-full pl-8 pr-7 py-1.5 text-xs rounded-xl bg-white border border-[#DDE4F3] focus:border-[#0052CC] outline-none"
                 />
                 {search && (
                   <button
-                    onClick={() => setSearch("")}
+                    onClick={() => {
+                      setSearch("");
+                      setPage(1);
+                    }}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -400,31 +440,17 @@ export default function GradeReportLaptopPage() {
                 <option value="FAIL">FAIL Only</option>
               </select>
 
-              {/* Custom Date Range */}
-              <div className="flex items-center space-x-1.5 bg-white px-2.5 py-1 rounded-xl border border-[#DDE4F3] text-xs">
-                <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                <input
-                  type="date"
-                  value={fromDate}
-                  onChange={(e) => {
-                    setFromDate(e.target.value);
-                    setDatePreset("custom");
-                    setPage(1);
-                  }}
-                  className="bg-transparent text-[11px] font-semibold text-slate-700 outline-none cursor-pointer"
-                />
-                <span className="text-slate-300">-</span>
-                <input
-                  type="date"
-                  value={toDate}
-                  onChange={(e) => {
-                    setToDate(e.target.value);
-                    setDatePreset("custom");
-                    setPage(1);
-                  }}
-                  className="bg-transparent text-[11px] font-semibold text-slate-700 outline-none cursor-pointer"
-                />
-              </div>
+              {/* Premium Date Range Filter */}
+              <DateRangeFilter
+                fromDate={fromDate}
+                toDate={toDate}
+                onChange={({ fromDate: newFrom, toDate: newTo }) => {
+                  setFromDate(newFrom);
+                  setToDate(newTo);
+                  setDatePreset("custom");
+                  setPage(1);
+                }}
+              />
             </div>
           </div>
 
@@ -631,6 +657,18 @@ export default function GradeReportLaptopPage() {
           </div>
         )}
       </div>
+
+      {/* Date Range Excel Export Modal */}
+      <DateRangeExcelExportModal
+        isOpen={isDateRangeModalOpen}
+        onClose={() => setIsDateRangeModalOpen(false)}
+        reportTitle="Laptop Grade Intelligence"
+        filenamePrefix="Laptop_Grade_Report"
+        columns={laptopGradeExcelColumns}
+        defaultFromDate={fromDate}
+        defaultToDate={toDate}
+        onFetchData={handleFetchDateRangeData}
+      />
     </div>
   );
 }

@@ -35,6 +35,7 @@ import LensAdminLayout from "@/app/gadgetiq/(lens)/layout";
 import LensDashboardPage from "@/app/gadgetiq/(lens)/dashboard/LensDashboardView";
 import GadgetEvaluateLayout from "@/app/gadgetiq/(evaluate)/layout";
 import GadgetEvaluateDashboardPage from "@/app/gadgetiq/(evaluate)/dashboard/EvaluateDashboardView";
+import { LogoutConfirmModal } from "@/components/ui/LogoutConfirmModal";
 
 function GadgetIqDashboardContent() {
   const router = useRouter();
@@ -44,6 +45,7 @@ function GadgetIqDashboardContent() {
   const [user, setUser] = useState<GadgetIqUser | null>(null);
   const [projectAccess, setProjectAccess] = useState<ProjectAccess | null>(null);
   const [switching, setSwitching] = useState<string | null>(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     const currentUser = getGadgetIqUser();
@@ -188,7 +190,7 @@ function GadgetIqDashboardContent() {
           <div className="h-8 w-[1px] bg-slate-800 hidden sm:block" />
 
           <button
-            onClick={handleLogout}
+            onClick={() => setShowLogoutConfirm(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-rose-500/20 border border-slate-700/80 hover:border-rose-500/40 text-slate-300 hover:text-rose-300 text-xs font-medium transition-all duration-200 cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" />
@@ -381,6 +383,15 @@ function GadgetIqDashboardContent() {
           </div>
         </div>
       </main>
+
+      {/* Double confirmation modal for logout */}
+      <LogoutConfirmModal
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleLogout}
+        userName={user?.fullName || user?.username}
+        userRole={user?.role || "Operator"}
+      />
     </div>
   );
 }

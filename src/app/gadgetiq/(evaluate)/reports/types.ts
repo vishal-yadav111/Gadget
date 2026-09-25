@@ -318,18 +318,26 @@ export interface MonthlySummaryItem {
   mobileEvaluations: number;
   mobilePassed?: number;
   mobileFailed?: number;
+  mobilePassRate?: number;
+  mobileDefectRate?: number;
   mobileAvgScore?: number;
   laptopEvaluations: number;
   laptopPassed?: number;
   laptopFailed?: number;
+  laptopPassRate?: number;
+  laptopDefectRate?: number;
   laptopAvgScore?: number;
   desktopEvaluations: number;
   desktopPassed?: number;
   desktopFailed?: number;
+  desktopPassRate?: number;
+  desktopDefectRate?: number;
   totalPassed: number;
   totalFailed: number;
+  passRate: number;
+  defectRate: number;
   licensesConsumed: number;
-  avgScore: number;
+  avgScore?: number;
 }
 
 // ----------------------------------------------------

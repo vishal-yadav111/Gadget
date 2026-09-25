@@ -17,9 +17,10 @@ import {
   Smartphone,
   Server,
   Zap,
+  Award,
 } from "lucide-react";
 
-export default function DummyHomePage() {
+export default function LandingHomePage() {
   const platforms = [
     {
       title: "GadgetIQ Core Platform",
@@ -62,24 +63,24 @@ export default function DummyHomePage() {
       cta: "Explore Gadget Evaluate",
     },
     {
-      title: "Enterprise Command Portal",
-      badge: "Command Center",
+      title: "QC Reports & Grade Intelligence",
+      badge: "Quality Audit",
       badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
       description:
-        "Multi-station technician command dashboard, live batch throughput tracking, station metrics, and warranty  management.",
-      href: "/portal/dashboard",
-      routeBadge: "localhost/portal",
-      icon: Server,
+        "Multi-station QC diagnostic ledgers, cosmetic grading classification, Excel (.xlsx) data exports, and batch throughput tracking.",
+      href: "/gadgetiq/reports/laptop",
+      routeBadge: "localhost/gadgetiq/reports",
+      icon: Award,
       gradient: "from-emerald-500/10 to-emerald-500/5",
       borderColor: "border-emerald-500/30 hover:border-emerald-500",
-      btnBg: "bg-[#17284D] hover:bg-[#0F1B35] text-white",
+      btnBg: "bg-emerald-600 hover:bg-emerald-700 text-white",
       features: [
-        "Live Technician Fleet Tracking",
-        "Granular Role-Based Access (RBAC)",
-        "Real-Time Batch Device Sync",
-        "Enterprise Diagnostics Export",
+        "Laptop & Mobile Diagnostic Reports",
+        "52/64-Point Hardware Inspections",
+        "Native .xlsx Excel Data Export",
+        "Granular Cosmetic Grade Tiers",
       ],
-      cta: "Access Portal",
+      cta: "View QC Reports",
     },
     {
       title: "Certificate Authenticator",
@@ -155,10 +156,22 @@ export default function DummyHomePage() {
               Dashboard
             </Link>
             <Link
-              href="/portal/dashboard"
-              className="px-3.5 py-1.5 rounded-full bg-[#0052CC] text-white text-xs font-bold hover:bg-[#003D99] transition-all shadow-xs"
+              href="/gadgetiq/reports/laptop"
+              className="text-xs sm:text-sm font-semibold text-[#626F86] hover:text-emerald-600 transition-colors hidden md:inline-block"
             >
-              Enterprise Portal
+              QC Reports
+            </Link>
+            <Link
+              href="/gadgetiq/certificate"
+              className="text-xs sm:text-sm font-semibold text-[#626F86] hover:text-purple-600 transition-colors hidden sm:inline-block"
+            >
+              Certificate
+            </Link>
+            <Link
+              href="/gadgetiq/login"
+              className="px-3.5 py-1.5 rounded-full bg-[#0052CC] text-white text-xs font-bold hover:bg-[#003D99] transition-all shadow-xs cursor-pointer"
+            >
+              Sign In
             </Link>
           </div>
         </div>
@@ -201,18 +214,79 @@ export default function DummyHomePage() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="mt-5 text-base sm:text-lg text-[#626F86] font-normal leading-relaxed"
           >
-            Select a suite below to explore the core diagnostics platform, deep algorithmic evaluation tools, command portal, or certificate validation.
+            Select a suite below to explore the core diagnostics platform, deep algorithmic evaluation tools, quality audit reports, or certificate validation.
           </motion.p>
         </div>
 
+        {/* Platforms Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+          {platforms.map((p, idx) => {
+            const Icon = p.icon;
+            return (
+              <motion.div
+                key={p.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 * idx }}
+                className={`bg-white rounded-3xl p-6 border ${p.borderColor} shadow-xs hover:shadow-lg transition-all flex flex-col justify-between`}
+              >
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-slate-100 to-slate-50 border border-slate-200/80 flex items-center justify-center text-[#17284D] shadow-xs">
+                      <Icon className="w-6 h-6 text-[#0052CC]" />
+                    </div>
+                    <span
+                      className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${p.badgeColor}`}
+                    >
+                      {p.badge}
+                    </span>
+                  </div>
 
+                  <div>
+                    <h2 className="text-lg font-bold font-display text-[#17284D]">
+                      {p.title}
+                    </h2>
+                    <p className="text-xs text-[#626F86] mt-2 leading-relaxed">
+                      {p.description}
+                    </p>
+                  </div>
 
+                  <ul className="space-y-1.5 pt-2 border-t border-slate-100 text-xs text-[#17284D]">
+                    {p.features.map((f) => (
+                      <li key={f} className="flex items-center space-x-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        <span className="font-medium text-[11px] text-slate-600">{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
+                <div className="pt-6">
+                  <Link
+                    href={p.href}
+                    className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 ${p.btnBg}`}
+                  >
+                    <span>{p.cta}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
 
+        {/* Quick Stats Banner */}
+        <div className="bg-white rounded-3xl p-6 border border-[#DDE4F3] shadow-xs grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+          {quickStats.map((st) => (
+            <div key={st.label} className="space-y-1">
+              <div className="text-2xl sm:text-3xl font-black font-display text-[#0052CC]">
+                {st.value}
+              </div>
+              <div className="text-xs font-semibold text-[#626F86]">{st.label}</div>
+            </div>
+          ))}
+        </div>
       </main>
-
-
-
     </div>
   );
 }

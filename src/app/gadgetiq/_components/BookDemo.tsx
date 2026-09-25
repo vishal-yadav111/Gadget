@@ -176,8 +176,8 @@ export default function BookDemo({ ctaLabel = "Request Free Trial" }: BookDemoPr
                 Connect with our team to explore automated diagnostics criteria, AI cosmetic grading rules, and flexible recovery pricing structures designed for scale.
               </p>
 
-              <div className="mt-7 pt-2 grid gap-3 sm:grid-cols-3">
-                {["QC Workflow", "Grading Rules", "Pricing Outputs"].map((item) => (
+              <div className="mt-7 pt-2 grid gap-3 sm:grid-cols-2">
+                {["QC Workflow", "Grading Rules"].map((item) => (
                   <div
                     key={item}
                     className="rounded-2xl text-center border border-[#DDE4F3] bg-white px-4 py-3.5 text-sm text-[#17284D] font-bold font-display shadow-xs"

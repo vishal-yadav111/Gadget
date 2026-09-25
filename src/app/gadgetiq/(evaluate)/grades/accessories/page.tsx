@@ -2,20 +2,25 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { Headphones, RefreshCw, Search, CheckCircle2, XCircle, ExternalLink, FileSpreadsheet, AlertCircle } from "lucide-react";
+import { Headphones, RefreshCw, Search, CheckCircle2, XCircle, ExternalLink, FileSpreadsheet, Calendar, AlertCircle } from "lucide-react";
 import { gradesService } from "../services";
 import { GradeDistributionItem, GradedDeviceItem } from "../types";
 import { getFriendlyErrorMessage } from "../../core";
 import { renderDeviceConditionBadge } from "../../reports/laptop/page";
+import { useDebounce } from "@/lib/hooks/useDebounce";
+import { exportToExcel } from "@/lib/excel-export";
+import DateRangeExcelExportModal from "@/components/ui/DateRangeExcelExportModal";
 
 export default function GradeReportAccessoriesPage() {
   const [grades, setGrades] = useState<GradeDistributionItem[]>([]);
   const [devices, setDevices] = useState<GradedDeviceItem[]>([]);
   const [totalEvaluated, setTotalEvaluated] = useState(0);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 350);
   const [selectedGrade, setSelectedGrade] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   const loadData = async () => {
     setLoading(true);
@@ -38,7 +43,7 @@ export default function GradeReportAccessoriesPage() {
   }, []);
 
   const filteredDevices = devices.filter((d) => {
-    const s = search.toLowerCase();
+    const s = debouncedSearch.toLowerCase();
     const matchesSearch =
       !s ||
       d.imei.toLowerCase().includes(s) ||
@@ -51,20 +56,55 @@ export default function GradeReportAccessoriesPage() {
     return matchesSearch && matchesGrade;
   });
 
-  const exportCSV = () => {
-    const headers = "WorkOrderID,Serial,Brand,Model,Score,Grade,Status,TestedAt\n";
-    const rows = filteredDevices
-      .map(
-        (d) =>
-          `"${d.workorderid}","${d.imei}","${d.brand}","${d.model}","${d.score}","${d.grade}","${d.qcResult}","${d.testedAt}"`
-      )
-      .join("\n");
-    const blob = new Blob([headers + rows], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `Accessories_Grade_Report_${new Date().toISOString().split("T")[0]}.csv`;
-    a.click();
+  const handleExportExcel = () => {
+    if (filteredDevices.length === 0) return;
+    exportToExcel({
+      filename: `Accessories_Grade_Report_${new Date().toISOString().split("T")[0]}`,
+      sheetName: "Accessories Grading",
+      columns: [
+        { header: "Work Order", key: "workorderid", width: 18 },
+        { header: "Serial / Tag", key: "imei", width: 20 },
+        { header: "Brand", key: "brand", width: 16 },
+        { header: "Model", key: "model", width: 22 },
+        { header: "Score", key: "score", width: 12, format: "number" },
+        { header: "Grade", key: "grade", width: 12 },
+        { header: "QC Status", key: "qcResult", width: 14, format: "status" },
+        { header: "Evaluation Date", key: "testedAt", width: 18, format: "date" },
+      ],
+      data: filteredDevices.map((d) => ({
+        workorderid: d.workorderid,
+        imei: d.imei,
+        brand: d.brand,
+        model: d.model,
+        score: d.score,
+        grade: d.grade,
+        qcResult: d.qcResult,
+        testedAt: d.testedAt,
+      })),
+    });
+  };
+
+  const fetchExportDataForDateRange = async (fromDate: string, toDate: string) => {
+    const from = fromDate ? new Date(fromDate).getTime() : 0;
+    const to = toDate ? new Date(toDate).getTime() + 86400000 : Infinity;
+
+    return devices
+      .filter((d) => {
+        if (!d.testedAt) return true;
+        const testTime = new Date(d.testedAt).getTime();
+        if (isNaN(testTime)) return true;
+        return testTime >= from && testTime <= to;
+      })
+      .map((d) => ({
+        workorderid: d.workorderid,
+        imei: d.imei,
+        brand: d.brand,
+        model: d.model,
+        score: d.score,
+        grade: d.grade,
+        qcResult: d.qcResult,
+        testedAt: d.testedAt,
+      }));
   };
 
   return (
@@ -79,7 +119,7 @@ export default function GradeReportAccessoriesPage() {
             <div className="flex items-center space-x-2">
               <h1 className="text-xl font-bold font-display text-[#17284D]">Grade Report Accessories</h1>
               <span className="px-2 py-0.5 rounded-full bg-blue-50 text-[#0052CC] font-mono text-[11px] font-bold">
-                {totalEvaluated} Accessories Graded Live
+                {totalEvaluated} Accessories Graded
               </span>
             </div>
             <p className="text-xs text-[#5F6A86]">
@@ -96,12 +136,12 @@ export default function GradeReportAccessoriesPage() {
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-[#0052CC]" : ""}`} />
           </button>
           <button
-            onClick={exportCSV}
-            disabled={filteredDevices.length === 0}
-            className="px-3.5 py-2 rounded-xl bg-[#0052CC] hover:bg-[#003D99] disabled:opacity-50 text-white text-xs font-bold transition-all shadow-xs flex items-center space-x-2 cursor-pointer"
+            onClick={() => setIsExportModalOpen(true)}
+            className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs flex items-center space-x-2 cursor-pointer"
+            title="Export accessories evaluation data to Excel"
           >
             <FileSpreadsheet className="w-4 h-4" />
-            <span>Export CSV</span>
+            <span>Export Data</span>
           </button>
         </div>
       </div>
@@ -167,7 +207,7 @@ export default function GradeReportAccessoriesPage() {
         {loading ? (
           <div className="p-12 text-center">
             <div className="w-8 h-8 border-3 border-[#0052CC] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-xs font-semibold text-slate-500">Aggregating live accessories grading...</p>
+            <p className="text-xs font-semibold text-slate-500">Loading accessories grading reports...</p>
           </div>
         ) : error ? (
           <div className="p-12 text-center space-y-3">
@@ -178,7 +218,7 @@ export default function GradeReportAccessoriesPage() {
               onClick={loadData}
               className="px-4 py-1.5 rounded-xl bg-[#0052CC] text-white text-xs font-bold hover:bg-[#003D99] transition-colors cursor-pointer"
             >
-              Retry Fetch
+              Retry
             </button>
           </div>
         ) : filteredDevices.length === 0 ? (
@@ -186,7 +226,7 @@ export default function GradeReportAccessoriesPage() {
             <AlertCircle className="w-8 h-8 text-slate-300 mx-auto" />
             <h3 className="text-sm font-bold text-[#17284D]">No Graded Accessories Found</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              No accessory evaluation logs match the selected grade filter.
+              No accessory evaluation logs match the selected search or grade filter.
             </p>
           </div>
         ) : (
@@ -248,6 +288,24 @@ export default function GradeReportAccessoriesPage() {
           </div>
         )}
       </div>
+
+      <DateRangeExcelExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        title="Export Accessories Grade Report"
+        filenamePrefix="Accessories_Grade_Report"
+        columns={[
+          { header: "Work Order", key: "workorderid", width: 18 },
+          { header: "Serial / Tag", key: "imei", width: 20 },
+          { header: "Brand", key: "brand", width: 16 },
+          { header: "Model", key: "model", width: 22 },
+          { header: "Score", key: "score", width: 12, format: "number" },
+          { header: "Grade", key: "grade", width: 12 },
+          { header: "QC Status", key: "qcResult", width: 14, format: "status" },
+          { header: "Evaluation Date", key: "testedAt", width: 18, format: "date" },
+        ]}
+        fetchData={fetchExportDataForDateRange}
+      />
     </div>
   );
 }

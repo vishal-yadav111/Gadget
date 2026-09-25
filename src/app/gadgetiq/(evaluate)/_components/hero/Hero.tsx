@@ -40,16 +40,23 @@ export default function Hero() {
         <div className="contents lg:flex lg:flex-col lg:col-span-6 lg:space-y-6 lg:order-1 text-center lg:text-left z-10">
           {/* 1. HEADING: Order 1 on mobile & tablet */}
           <motion.div variants={itemVariants} className="order-1 lg:order-none">
-            <h1 className="font-display text-[2.65rem] xs:text-[3rem] sm:text-[3.5rem] md:text-[3.25rem] lg:text-[3.75rem] xl:text-[4.5rem] 2xl:text-[5rem] font-extrabold tracking-tight text-brand-text-primary leading-[1.03] sm:leading-[1.04]">
-              <span className="block whitespace-nowrap">Test your device</span>
-              <span className="block whitespace-nowrap">before you</span>
-              <span className="block whitespace-nowrap text-gradient-accent">trust it.</span>
+            <div className="inline-flex rounded-full bg-[#E9F1FC] px-4 py-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#0068E8]">
+                Global Device Intelligence
+              </span>
+            </div>
+
+            <h1 className="mt-4 text-[33.6px] font-bold leading-[0.98] tracking-[-0.045em] text-[#12264D] sm:text-[38.4px] lg:text-[43.2px] xl:text-[48px]">
+              Test your device
+              <br />
+              before you{" "}
+              <span className="whitespace-nowrap italic text-[#0868E9]">Trust It.</span>
             </h1>
           </motion.div>
 
           {/* 3. SUBHEADING / DESCRIPTION: Order 3 on mobile & tablet */}
           <motion.div variants={itemVariants} className="order-3 lg:order-none">
-            <p className="text-sm xs:text-base sm:text-lg md:text-base lg:text-xl xl:text-2xl font-bold text-brand-accent-ink leading-relaxed max-w-xl mx-auto lg:mx-0 px-2 sm:px-0">
+            <p className="mt-5 max-w-[560px] text-[14px] leading-6 text-[#647391] lg:text-[15px]">
               Functional device diagnostics for smarter buy, sell, repair, and refurbishment decisions.
             </p>
           </motion.div>

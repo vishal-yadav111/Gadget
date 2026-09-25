@@ -95,17 +95,17 @@ function HeroStepCard({
   children: ReactNode;
 }) {
   return (
-    <div className="relative flex min-h-[400px] flex-col gap-3 rounded-3xl border border-[#E4EAF5] bg-white p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:min-h-[430px] sm:gap-4 sm:p-5 md:min-h-[460px] md:p-6">
+    <div className="relative flex min-h-[360px] flex-col gap-3 rounded-3xl border border-[#E4EAF5] bg-white p-3 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:min-h-[430px] sm:gap-4 sm:p-5 md:min-h-[460px] md:p-6">
       <div className="flex items-start gap-3 sm:gap-4">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-extrabold text-white shadow-[0_10px_20px_rgba(79,70,229,0.35)] sm:h-11 sm:w-11 sm:text-base">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-extrabold text-white shadow-[0_10px_20px_rgba(79,70,229,0.35)] sm:h-11 sm:w-11 sm:text-base">
           {number}
         </span>
         <div className="min-w-0">
-          <h3 className="text-base font-bold text-[#17284D] sm:text-lg md:text-xl">{title}</h3>
-          <p className="mt-1 text-xs leading-relaxed text-[#5F6A86] sm:text-sm md:text-base">{description}</p>
+          <h3 className="text-sm font-bold text-[#17284D] sm:text-lg md:text-xl">{title}</h3>
+          <p className="mt-1 text-[11px] leading-relaxed text-[#5F6A86] sm:text-sm md:text-base">{description}</p>
         </div>
       </div>
-      <div className="relative flex flex-1 items-center justify-center overflow-hidden rounded-2xl bg-[#EDF0F6] p-3 sm:p-5 md:p-6">
+      <div className="relative flex flex-1 items-center justify-center overflow-hidden rounded-2xl bg-[#EDF0F6] p-2.5 sm:p-5 md:p-6">
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(79,70,229,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(79,70,229,0.05)_1px,transparent_1px)] bg-[size:24px_24px]" />
         <motion.span
           className="pointer-events-none absolute h-56 w-56 rounded-full bg-indigo-300/25 blur-3xl"
@@ -197,9 +197,9 @@ function CaptureVisual() {
   }, []);
 
   return (
-    <div className="flex w-full flex-col items-center gap-4 sm:gap-5">
-      <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4 md:gap-6">
-        <div className="flex flex-col gap-2 sm:gap-2.5">
+    <div className="flex w-full flex-col items-center gap-3 sm:gap-5">
+      <div className="grid w-full grid-cols-1 items-center gap-3 sm:grid-cols-[1fr_auto_1fr] sm:gap-4 md:gap-6">
+        <div className="order-2 flex flex-col gap-2 sm:order-1 sm:gap-2.5">
           {CAPTURE_LEFT.map((angle) => (
             <CaptureRow
               key={angle}
@@ -210,31 +210,33 @@ function CaptureVisual() {
           ))}
         </div>
 
-        <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-indigo-200 sm:h-24 sm:w-24 md:h-28 md:w-28">
-          <motion.span
-            className="absolute h-14 w-14 rounded-full border-2 border-indigo-300 sm:h-16 sm:w-16 md:h-20 md:w-20"
-            animate={isComplete ? { scale: 1, opacity: 0 } : { scale: [1, 1.4], opacity: [0.55, 0] }}
-            transition={{ duration: 1.6, repeat: isComplete ? 0 : Infinity, ease: "easeOut" }}
-          />
-          <Laptop className="relative h-8 w-8 text-indigo-600 sm:h-9 sm:w-9 md:h-11 md:w-11" strokeWidth={1.5} />
-          <motion.span
-            key={isComplete ? "done" : "capturing"}
-            initial={{ scale: 0.7, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className={`absolute -bottom-2 flex h-5 w-5 items-center justify-center rounded-full text-white shadow-md sm:-bottom-2.5 sm:h-6 sm:w-6 md:h-7 md:w-7 ${
-              isComplete ? "bg-emerald-500" : "bg-indigo-600"
-            }`}
-          >
-            {isComplete ? (
-              <CheckCircle2 className="h-2.5 w-2.5 sm:h-3 sm:w-3 md:h-3.5 md:w-3.5" />
-            ) : (
-              <Camera className="h-2.5 w-2.5 sm:h-3 sm:w-3 md:h-3.5 md:w-3.5" />
-            )}
-          </motion.span>
+        <div className="order-1 flex items-center justify-center sm:order-2">
+          <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-indigo-200 sm:h-24 sm:w-24 md:h-28 md:w-28">
+            <motion.span
+              className="absolute h-14 w-14 rounded-full border-2 border-indigo-300 sm:h-16 sm:w-16 md:h-20 md:w-20"
+              animate={isComplete ? { scale: 1, opacity: 0 } : { scale: [1, 1.4], opacity: [0.55, 0] }}
+              transition={{ duration: 1.6, repeat: isComplete ? 0 : Infinity, ease: "easeOut" }}
+            />
+            <Laptop className="relative h-8 w-8 text-indigo-600 sm:h-9 sm:w-9 md:h-11 md:w-11" strokeWidth={1.5} />
+            <motion.span
+              key={isComplete ? "done" : "capturing"}
+              initial={{ scale: 0.7, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className={`absolute -bottom-2 flex h-5 w-5 items-center justify-center rounded-full text-white shadow-md sm:-bottom-2.5 sm:h-6 sm:w-6 md:h-7 md:w-7 ${
+                isComplete ? "bg-emerald-500" : "bg-indigo-600"
+              }`}
+            >
+              {isComplete ? (
+                <CheckCircle2 className="h-2.5 w-2.5 sm:h-3 sm:w-3 md:h-3.5 md:w-3.5" />
+              ) : (
+                <Camera className="h-2.5 w-2.5 sm:h-3 sm:w-3 md:h-3.5 md:w-3.5" />
+              )}
+            </motion.span>
+          </div>
         </div>
 
-        <div className="flex flex-col gap-2 sm:gap-2.5">
+        <div className="order-3 flex flex-col gap-2 sm:order-3 sm:gap-2.5">
           {CAPTURE_RIGHT.map((angle) => (
             <CaptureRow
               key={angle}
@@ -266,10 +268,10 @@ function CaptureVisual() {
 }
 
 const DETECT_MARKERS = [
-  { marker: { x: 30, y: 33 }, tag: { x: 16, y: 22 }, tagStyle: { left: "2%", top: "18%" }, Icon: Slash },
-  { marker: { x: 68, y: 30 }, tag: { x: 84, y: 22 }, tagStyle: { right: "2%", top: "18%" }, Icon: Asterisk },
-  { marker: { x: 28, y: 56 }, tag: { x: 16, y: 68 }, tagStyle: { left: "2%", top: "62%" }, Icon: Asterisk },
-  { marker: { x: 70, y: 72 }, tag: { x: 84, y: 78 }, tagStyle: { right: "2%", top: "72%" }, Icon: Waves },
+  { marker: { x: 30, y: 33 }, tag: { x: 22, y: 26 }, tagStyle: { left: "2%", top: "18%" }, Icon: Slash },
+  { marker: { x: 68, y: 30 }, tag: { x: 78, y: 25 }, tagStyle: { right: "2%", top: "18%" }, Icon: Asterisk },
+  { marker: { x: 28, y: 56 }, tag: { x: 21, y: 63 }, tagStyle: { left: "2%", top: "62%" }, Icon: Asterisk },
+  { marker: { x: 70, y: 72 }, tag: { x: 78, y: 76 }, tagStyle: { right: "2%", top: "72%" }, Icon: Waves },
 ];
 
 function DetectVisual() {
@@ -667,12 +669,12 @@ const BUSINESS_BENEFITS = [
 const FAQ_ITEMS = [
   {
     question: "How can I start a free trial?",
-    answer: "Click \"Book a Free Trial\" and our team will help you get started — no commitment required.",
+    answer: "Click \"Book a Free Trial\" and our team will help you get started, with no commitment required.",
   },
   {
     question: "Does Lens check functional issues?",
     answer:
-      "No. Gadget Lens focuses on cosmetic condition — scratches, dents, and wear. Functional testing is handled separately by Gadget Evaluate.",
+      "No. Gadget Lens focuses on cosmetic condition, including scratches, dents, and wear. Functional testing is handled separately by Gadget Evaluate.",
   },
   {
     question: "Can I download and share reports?",
@@ -729,11 +731,16 @@ export default function GadgetIQLensPage() {
           <div className="grid grid-cols-1 xl:grid-cols-[40%_60%] gap-8 lg:gap-12 items-center w-full">
             {/* Left Column: Hero Text */}
             <div className="space-y-6">
-              <h1 className="text-left text-[28px] font-bold leading-[1.08] tracking-[-0.03em] text-[#17284D] sm:text-[30px] lg:text-[32px] xl:text-[34px]">
-                AI-Powered Laptop Grading.{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0052CC] via-[#2563EB] to-[#10B981]">
-                  Made Simple.
+              <div className="inline-flex rounded-full bg-[#E9F1FC] px-4 py-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#0068E8]">
+                  Global Device Intelligence
                 </span>
+              </div>
+
+              <h1 className="mt-4 text-left text-[33.6px] font-bold leading-[0.98] tracking-[-0.045em] text-[#12264D] sm:text-[38.4px] lg:text-[43.2px] xl:text-[48px]">
+                AI-Powered Laptop
+                <br />
+                <span className="whitespace-nowrap italic text-[#0868E9]">Grading Made Simple.</span>
               </h1>
 
               <p className="text-sm sm:text-base lg:text-lg text-[#5F6A86] leading-relaxed max-w-2xl">
@@ -779,7 +786,7 @@ export default function GadgetIQLensPage() {
         {/* Proof & Credibility Section */}
         <div className="w-full bg-white">
           <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-            <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
+            <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-16">
               {/* Left: copy + features */}
               <div>
                 <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-4 py-1.5">
@@ -805,11 +812,11 @@ export default function GadgetIQLensPage() {
                   provides a clear grade with image evidence.
                 </p>
 
-                <div className="mt-8 space-y-6">
+                <div className="mt-8 space-y-4 sm:space-y-6">
                   {PROOF_FEATURES.map((feature) => (
-                    <div key={feature.title} className="flex items-start gap-4">
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
-                        <feature.icon className="h-5 w-5" />
+                    <div key={feature.title} className="flex items-start gap-3 sm:gap-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 sm:h-11 sm:w-11">
+                        <feature.icon className="h-4 w-4 sm:h-5 sm:w-5" />
                       </div>
                       <div>
                         <p className="text-sm font-bold text-[#17284D]">{feature.title}</p>
@@ -823,29 +830,30 @@ export default function GadgetIQLensPage() {
               </div>
 
               {/* Right: annotated laptop + grade card + thumbnails */}
-              <div>
-                <div className="relative aspect-[550/370] w-full">
+              <div className="w-full">
+                <div className="relative aspect-[550/370] w-full overflow-hidden rounded-2xl">
                   <Image
-                    src="/images/hp-laptop.png"
+                    src="/images/hp-laptop.jpg"
                     alt="Laptop with AI-annotated scratch, dent, crack, and scuff defects"
                     fill
                     sizes="(min-width: 1024px) 500px, 90vw"
                     className="rounded-2xl object-contain"
                   />
 
-                  <div className="absolute -right-2 top-2 w-[180px] rounded-2xl border border-[#DDE4F3] bg-white p-4 shadow-xl sm:right-2 sm:w-[200px]">
+                  {/* Desktop/tablet: grade card floats over the image */}
+                  <div className="absolute right-2 top-2 hidden w-[200px] rounded-2xl border border-[#DDE4F3] bg-white p-4 shadow-xl sm:block">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-[#5F6A86]">
                       Cosmetic Grade
                     </p>
-                    <p className="mt-1 text-3xl font-extrabold text-blue-600">B</p>
-                    <p className="mt-1 text-sm font-bold text-[#17284D]">Good Condition</p>
-                    <p className="text-xs text-[#5F6A86]">Light visible wear</p>
+                    <p className="mt-1 text-3xl font-extrabold leading-none text-blue-600">B</p>
+                    <p className="mt-1 text-sm font-bold leading-tight text-[#17284D]">Good Condition</p>
+                    <p className="text-xs leading-tight text-[#5F6A86]">Light visible wear</p>
 
                     <div className="mt-3 border-t border-[#DDE4F3] pt-3">
                       <p className="text-[10px] font-bold uppercase tracking-wider text-[#5F6A86]">
                         Confidence Score
                       </p>
-                      <p className="mt-1 text-xl font-extrabold text-blue-600">87%</p>
+                      <p className="mt-1 text-xl font-extrabold leading-none text-blue-600">87%</p>
                       <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[#E4EAF5]">
                         <motion.div
                           className="h-full rounded-full bg-blue-500"
@@ -859,10 +867,36 @@ export default function GadgetIQLensPage() {
                   </div>
                 </div>
 
+                {/* Mobile: grade card sits below the image instead of overlaying it */}
+                <div className="mt-3 w-full rounded-xl border border-[#DDE4F3] bg-white p-3 shadow-lg sm:hidden">
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-[#5F6A86]">
+                    Cosmetic Grade
+                  </p>
+                  <p className="mt-1 text-2xl font-extrabold leading-none text-blue-600">B</p>
+                  <p className="mt-1 text-xs font-bold leading-tight text-[#17284D]">Good Condition</p>
+                  <p className="text-[10px] leading-tight text-[#5F6A86]">Light visible wear</p>
+
+                  <div className="mt-2 border-t border-[#DDE4F3] pt-2">
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-[#5F6A86]">
+                      Confidence Score
+                    </p>
+                    <p className="mt-1 text-lg font-extrabold leading-none text-blue-600">87%</p>
+                    <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-[#E4EAF5]">
+                      <motion.div
+                        className="h-full rounded-full bg-blue-500"
+                        initial={{ width: 0 }}
+                        whileInView={{ width: "87%" }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 1, ease: "easeOut", delay: 0.3 }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 <div className="mt-4 flex flex-col items-start justify-between gap-3 rounded-xl bg-[#F4F6FB] px-4 py-3 text-xs sm:flex-row sm:items-center sm:text-sm">
                   <div className="flex items-start gap-2">
                     <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#5F6A86]" />
-                    <span className="whitespace-nowrap text-[#5F6A86]">
+                    <span className="text-[#5F6A86] sm:whitespace-nowrap">
                       Grading is based on visible external condition only.
                     </span>
                   </div>
@@ -895,9 +929,7 @@ export default function GadgetIQLensPage() {
             <div className="max-w-sm shrink-0 text-left lg:pl-[2%]">
               <h2 className="text-[15px] font-bold leading-tight tracking-tight text-white sm:text-[21px] lg:text-[25px] font-display">
                 Better grading.{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400">
-                  Better decisions.
-                </span>
+                <span className="text-white">Better decisions.</span>
               </h2>
             </div>
 
@@ -1023,7 +1055,7 @@ export default function GadgetIQLensPage() {
                   sizes="(min-width: 1024px) 500px, 90vw"
                   className="object-contain"
                 />
-                <span className="absolute left-1/2 top-2 -translate-x-1/2 rounded-full bg-slate-900/80 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow">
+                <span className="absolute left-1/2 top-2 -translate-x-1/2 whitespace-nowrap rounded-full bg-slate-900/80 px-2 py-1 text-[8px] font-bold uppercase tracking-wider text-white shadow sm:px-3 sm:text-[10px]">
                   Illustrative sample
                 </span>
               </div>
