@@ -87,29 +87,29 @@ function LaptopCertificateContent() {
         // Merge with baselineItem if available so summary metadata is preserved
         const merged = baselineItem
           ? {
-              ...baselineItem,
-              ...detailRes,
-              identification: {
-                ...(baselineItem.identification || baselineItem),
-                ...(detailRes.identification || detailRes),
-              },
-              hardware_diagnostics: {
-                ...(baselineItem.hardware_diagnostics || {}),
-                ...(detailRes.hardware_diagnostics || {}),
-              },
-              component_specs: {
-                ...(baselineItem.component_specs || {}),
-                ...(detailRes.component_specs || {}),
-              },
-              battery_analytics: {
-                ...(baselineItem.battery_analytics || {}),
-                ...(detailRes.battery_analytics || {}),
-              },
-              all_fields: {
-                ...(baselineItem.all_fields || baselineItem),
-                ...(detailRes.all_fields || detailRes),
-              },
-            }
+            ...baselineItem,
+            ...detailRes,
+            identification: {
+              ...(baselineItem.identification || baselineItem),
+              ...(detailRes.identification || detailRes),
+            },
+            hardware_diagnostics: {
+              ...(baselineItem.hardware_diagnostics || {}),
+              ...(detailRes.hardware_diagnostics || {}),
+            },
+            component_specs: {
+              ...(baselineItem.component_specs || {}),
+              ...(detailRes.component_specs || {}),
+            },
+            battery_analytics: {
+              ...(baselineItem.battery_analytics || {}),
+              ...(detailRes.battery_analytics || {}),
+            },
+            all_fields: {
+              ...(baselineItem.all_fields || baselineItem),
+              ...(detailRes.all_fields || detailRes),
+            },
+          }
           : detailRes;
 
         if (typeof window !== "undefined") {
@@ -130,17 +130,17 @@ function LaptopCertificateContent() {
       if (res && res.data && res.data.length > 0) {
         const matchedItem = (queryTarget || serialParam || idParam)
           ? res.data.find(
-              (item) =>
-                (idParam && String(item.mstid) === idParam) ||
-                (serialParam && (item.serial_number === serialParam || item.device_serial_number === serialParam || item.imei_1 === serialParam)) ||
-                (serviceKeyParam && item.ServiceKey === serviceKeyParam) ||
-                String(item.mstid) === queryTarget ||
-                item.ServiceKey === queryTarget ||
-                item.certificate_number === queryTarget ||
-                item.device_serial_number === queryTarget ||
-                item.serial_number === queryTarget ||
-                item.imei_1 === queryTarget
-            ) || res.data[0]
+            (item) =>
+              (idParam && String(item.mstid) === idParam) ||
+              (serialParam && (item.serial_number === serialParam || item.device_serial_number === serialParam || item.imei_1 === serialParam)) ||
+              (serviceKeyParam && item.ServiceKey === serviceKeyParam) ||
+              String(item.mstid) === queryTarget ||
+              item.ServiceKey === queryTarget ||
+              item.certificate_number === queryTarget ||
+              item.device_serial_number === queryTarget ||
+              item.serial_number === queryTarget ||
+              item.imei_1 === queryTarget
+          ) || res.data[0]
           : res.data[0];
 
         if (matchedItem) {

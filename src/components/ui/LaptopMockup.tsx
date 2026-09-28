@@ -193,11 +193,7 @@ export default function LaptopMockup() {
 
                       {/* Bottom alert index */}
                       <div className="bg-slate-100/80 rounded-md p-1 sm:p-1.5 text-[5.5px] sm:text-[7px] lg:text-[8px] text-slate-500 font-medium border border-slate-200/50 leading-tight">
-                        {isPage2 ? (
-                          <span>Verifying peripherals...</span>
-                        ) : (
-                          <span>Probing core system...</span>
-                        )}
+                        <span>Checking your device…</span>
                       </div>
                     </div>
 
@@ -366,12 +362,6 @@ export default function LaptopMockup() {
                   </motion.div>
                 )}
 
-              </div>
-
-              {/* Status bar of bottom */}
-              <div className="h-4 sm:h-4.5 lg:h-5 border-t border-slate-100 bg-[#FFFFFF] px-2 sm:px-3 lg:px-4 flex items-center justify-between shrink-0 text-[6px] sm:text-[7px] lg:text-[8px] text-slate-400 font-mono">
-                <span>Audit Protocol v4.2.1</span>
-                <span>Registry: Connected</span>
               </div>
             </div>
 

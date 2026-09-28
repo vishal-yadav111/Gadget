@@ -30,7 +30,8 @@ import {
   Zap,
   Radio,
   Thermometer,
-  Lock
+  Lock,
+  Bell
 } from "lucide-react";
 import SectionHeading from "@/components/ui/SectionHeading";
 
@@ -146,9 +147,10 @@ const deviceSupportCards = [
     title: "Laptop Devices",
     device: "laptop",
     label: "Windows + Mac OS QC Applications",
-    badge: "Win 7 SP1+ / M1-M4",
+    badge: "Windows 7 and newer · Apple M1–M4 Macs",
     platforms: ["Windows", "Mac OS"],
     coverage: "Windows laptops, desktops, MacBook Air and MacBook Pro with device identity, component, thermal, battery and display validation.",
+    comingSoon: false,
   },
   {
     title: "Mobile Devices (Coming Soon)",
@@ -157,6 +159,7 @@ const deviceSupportCards = [
     badge: "Phones + tablets",
     platforms: ["Android", "iOS"],
     coverage: "Android smartphones, iPhones, tablets and iPads with assisted diagnostics, identity checks, sensor validation and cosmetic grading support.",
+    comingSoon: true,
   },
 ];
 
@@ -205,21 +208,29 @@ function DeviceCardItem({
     });
   };
 
+  const comingSoon = Boolean(card.comingSoon);
+
   return (
     <motion.div variants={fadeUp} className="h-full">
       <div
         ref={cardRef}
-        onMouseMove={handleMouseMove}
-        onClick={onOpen}
-        className="device-card group relative h-full overflow-hidden rounded-[32px] border border-brand-border bg-white transition duration-300 hover:-translate-y-1.5 hover:border-brand-primary/40 hover:shadow-2xl hover:shadow-brand-primary/10 cursor-pointer flex flex-col justify-between"
+        onMouseMove={!comingSoon ? handleMouseMove : undefined}
+        onClick={!comingSoon ? onOpen : undefined}
+        className={`device-card group relative h-full overflow-hidden rounded-[32px] border border-brand-border bg-white transition duration-300 flex flex-col justify-between ${
+          comingSoon
+            ? "opacity-60 grayscale cursor-default"
+            : "hover:-translate-y-1.5 hover:border-brand-primary/40 hover:shadow-2xl hover:shadow-brand-primary/10 cursor-pointer"
+        }`}
       >
         {/* Dynamic Cobalt Cursor Follower Light Spotlight */}
-        <div
-          className="pointer-events-none absolute -inset-px rounded-[32px] opacity-0 transition-opacity duration-300 group-hover:opacity-100 z-0"
-          style={{
-            background: `radial-gradient(380px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(0, 82, 204, 0.08), transparent 75%)`,
-          }}
-        />
+        {!comingSoon && (
+          <div
+            className="pointer-events-none absolute -inset-px rounded-[32px] opacity-0 transition-opacity duration-300 group-hover:opacity-100 z-0"
+            style={{
+              background: `radial-gradient(380px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(0, 82, 204, 0.08), transparent 75%)`,
+            }}
+          />
+        )}
 
         <div className="relative p-6 lg:p-7 flex flex-col h-full justify-between z-10">
           <div>
@@ -263,23 +274,41 @@ function DeviceCardItem({
 
           {/* Highlighted Call To Action Button with Bluish Theme on Card Hover */}
           <div className="mt-8">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onOpen();
-              }}
-              className="w-full flex items-center justify-between gap-3 rounded-2xl border border-brand-border bg-white text-brand-text-primary px-5 py-3.5 sm:py-4 text-sm font-semibold shadow-sm transition-all duration-300 group-hover:bg-brand-primary group-hover:border-brand-primary group-hover:text-white group-hover:shadow-lg group-hover:shadow-brand-primary/25 cursor-pointer"
-            >
-              <span className="flex items-center gap-3">
-                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-brand-primary/10 text-brand-primary group-hover:bg-white/20 group-hover:text-white transition-colors duration-300">
-                  <Info size={14} />
+            {comingSoon ? (
+              <a
+                href="#contact"
+                onClick={(e) => e.stopPropagation()}
+                className="w-full flex items-center justify-between gap-3 rounded-2xl border border-brand-border bg-white text-brand-text-primary px-5 py-3.5 sm:py-4 text-sm font-semibold shadow-sm transition-all duration-300 hover:bg-brand-primary hover:border-brand-primary hover:text-white cursor-pointer"
+              >
+                <span className="flex items-center gap-3">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-brand-primary/10 text-brand-primary">
+                    <Bell size={14} />
+                  </span>
+                  Notify Me
                 </span>
-                Explore Diagnostics & Info
-              </span>
-              <svg className="h-4 w-4 transform transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-              </svg>
-            </button>
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                </svg>
+              </a>
+            ) : (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpen();
+                }}
+                className="w-full flex items-center justify-between gap-3 rounded-2xl border border-brand-border bg-white text-brand-text-primary px-5 py-3.5 sm:py-4 text-sm font-semibold shadow-sm transition-all duration-300 group-hover:bg-brand-primary group-hover:border-brand-primary group-hover:text-white group-hover:shadow-lg group-hover:shadow-brand-primary/25 cursor-pointer"
+              >
+                <span className="flex items-center gap-3">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-brand-primary/10 text-brand-primary group-hover:bg-white/20 group-hover:text-white transition-colors duration-300">
+                    <Info size={14} />
+                  </span>
+                  Explore Diagnostics & Info
+                </span>
+                <svg className="h-4 w-4 transform transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -310,6 +339,18 @@ export default function DeviceSupport() {
   useEffect(() => {
     setLaptopSearchQuery("");
     setMobileSearchQuery("");
+  }, [activeModal]);
+
+  // Close modal on Escape key
+  useEffect(() => {
+    if (!activeModal) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setActiveModal(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [activeModal]);
 
   // Filter Laptop Diagnostics

@@ -4,28 +4,12 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard,
-  Smartphone,
-  Laptop,
-  Cpu,
-  Monitor,
-  ShieldCheck,
-  KeyRound,
-  Key,
-  FileKey,
-  Award,
-  Medal,
-  UploadCloud,
-  CalendarCheck,
-  Headphones,
   ChevronRight,
   ChevronLeft,
   Menu,
   X,
   LogOut,
-  ChevronDown,
 } from "lucide-react";
-
 
 import {
   getAuthToken,
@@ -35,128 +19,11 @@ import {
   EvaluateAuthUser,
 } from "./core";
 import { LogoutConfirmModal } from "@/components/ui/LogoutConfirmModal";
-
-const PAGE_METADATA: Record<string, { title: string; subtitle: string }> = {
-  "/gadgetiq/dashboard": {
-    title: "Dashboard",
-    subtitle: "Real-time hardware license quotas & diagnostic operations",
-  },
-  "/gadgetiq/reports/laptop": {
-    title: "QC Laptop Report",
-    subtitle: "Comprehensive 64-point laptop diagnostics and hardware audit",
-  },
-  "/gadgetiq/reports/laptop/certificate": {
-    title: "Laptop Quality Certificate",
-    subtitle: "Official 34-point hardware quality and diagnostic certificate",
-  },
-  "/gadgetiq/reports/mobile": {
-    title: "QC Report (Mobile)",
-    subtitle: "Complete mobile battery, sensor, and functional testing records",
-  },
-  "/gadgetiq/reports/mobile/certificate": {
-    title: "Mobile Quality Certificate",
-    subtitle: "Official 24-point mobile hardware quality and diagnostic certificate",
-  },
-
-  "/gadgetiq/reports/motherboard": {
-    title: "Motherboard QC Report",
-    subtitle: "Motherboard hardware inspection and component integrity verification",
-  },
-  "/gadgetiq/reports/desktop": {
-    title: "Desktop QC Report",
-    subtitle: "Desktop diagnostics and performance benchmarks",
-  },
-  "/gadgetiq/reports/desktop-motherboard": {
-    title: "Desktop Motherboard QC Report",
-    subtitle: "Desktop motherboard evaluation and PCIe bus test logs",
-  },
-  "/gadgetiq/reports/monthly-summary": {
-    title: "QC Monthly Summary Report",
-    subtitle: "Aggregated monthly testing throughput, pass ratios, and license velocity",
-  },
-  "/gadgetiq/licenses/mobile": {
-    title: "Licence Report (Mobile)",
-    subtitle: "Mobile testing license allocation, activations, and remaining quota",
-  },
-  "/gadgetiq/licenses/laptop": {
-    title: "Licence Report (Laptop)",
-    subtitle: "Laptop diagnostics license batch tracking and usage records",
-  },
-  "/gadgetiq/licenses/motherboard": {
-    title: "Licence Report (Motherboard)",
-    subtitle: "Motherboard testing license provisioning and store quotas",
-  },
-  "/gadgetiq/grades/laptop": {
-    title: "Grade Report Laptop",
-    subtitle: "Laptop cosmetic and functional grade distributions (Grade A/B/C/D)",
-  },
-  "/gadgetiq/grades/mobile": {
-    title: "Grade Report Mobile",
-    subtitle: "Smartphone condition distribution and grading telemetry",
-  },
-  "/gadgetiq/grades/accessories": {
-    title: "Grade Report Accessories",
-    subtitle: "Chargers, cables, and peripherals grading and inspection breakdown",
-  },
-  "/gadgetiq/system-config": {
-    title: "Upload System Config",
-    subtitle: "Upload and calibrate diagnostic XML/Excel test specifications",
-  },
-  "/gadgetiq/onboarding": {
-    title: "User Onboarding & Approvals",
-    subtitle: "Review applicant registrations and approve technician accounts",
-  },
-  "/gadgetiq/users": {
-    title: "User Management",
-    subtitle: "Manage all system technicians, company operators, and administrators",
-  },
-};
-
-
-// Grouped Navigation Structure mirroring Lens standard
-const NAV_SECTIONS = [
-  {
-    title: "Overview",
-    items: [
-      { path: "/gadgetiq/dashboard", label: "Dashboard", icon: LayoutDashboard },
-      { path: "/gadgetiq/reports/monthly-summary", label: "Monthly Summary", icon: CalendarCheck },
-    ],
-  },
-  {
-    title: "QC Diagnostics",
-    items: [
-      { path: "/gadgetiq/reports/laptop", label: "Laptop QC", icon: Laptop },
-      { path: "/gadgetiq/reports/mobile", label: "Mobile QC", icon: Smartphone },
-      { path: "/gadgetiq/reports/motherboard", label: "Motherboard QC", icon: Cpu },
-      { path: "/gadgetiq/reports/desktop", label: "Desktop QC", icon: Monitor },
-      { path: "/gadgetiq/reports/desktop-motherboard", label: "Desktop Motherboard QC", icon: Cpu },
-    ],
-  },
-  {
-    title: "License Quota",
-    items: [
-      { path: "/gadgetiq/licenses/laptop", label: "Laptop Licences", icon: Key },
-      { path: "/gadgetiq/licenses/mobile", label: "Mobile Licences", icon: KeyRound },
-      { path: "/gadgetiq/licenses/motherboard", label: "MB Licences", icon: FileKey },
-    ],
-  },
-  {
-    title: "Grading Telemetry",
-    items: [
-      { path: "/gadgetiq/grades/laptop", label: "Laptop Grades", icon: Award },
-      { path: "/gadgetiq/grades/mobile", label: "Mobile Grades", icon: Medal },
-      { path: "/gadgetiq/grades/accessories", label: "Accessory Grades", icon: Headphones },
-    ],
-  },
-  {
-    title: "Configuration",
-    items: [
-      { path: "/gadgetiq/system-config", label: "System Config", icon: UploadCloud },
-    ],
-  },
-];
-
-
+import {
+  UNIFIED_NAV_SECTIONS,
+  getPageMetadata,
+  isNavItemActive,
+} from "../_components/unifiedNavigation";
 
 export default function GadgetEvaluateLayout({
   children,
@@ -256,10 +123,7 @@ export default function GadgetEvaluateLayout({
     );
   }
 
-  const currentMeta = PAGE_METADATA[pathname || ""] || {
-    title: "Gadget Evaluate",
-    subtitle: "Hardware Diagnostics & QC Management Suite",
-  };
+  const currentMeta = getPageMetadata(pathname);
 
   return (
     <div className="min-h-screen bg-[#F4F6FB] text-[#17284D] font-sans flex">
@@ -331,7 +195,7 @@ export default function GadgetEvaluateLayout({
 
           {/* Categorized Navigation Menu */}
           <div className="flex-1 overflow-y-auto p-3 space-y-4">
-            {NAV_SECTIONS.map((section) => (
+            {UNIFIED_NAV_SECTIONS.map((section) => (
               <div key={section.title} className="space-y-1">
                 {!isCollapsed && (
                   <div className="px-3 pt-1 pb-1 text-[10px] font-bold text-[#5F6A86] tracking-wider uppercase">
@@ -341,7 +205,7 @@ export default function GadgetEvaluateLayout({
                 <nav className="space-y-0.5">
                   {section.items.map((item) => {
                     const Icon = item.icon;
-                    const isActive = pathname === item.path;
+                    const isActive = isNavItemActive(item.path, pathname);
 
                     return (
                       <Link

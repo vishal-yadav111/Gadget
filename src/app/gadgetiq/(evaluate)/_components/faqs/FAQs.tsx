@@ -81,7 +81,27 @@ export default function FAQs() {
     },
     {
       question: "How can I try it?",
-      answer: "Get a free trial with our team and see Gadget Evaluate in action.",
+      answer: "Book a demo with our team and see Gadget Evaluate in action.",
+    },
+    {
+      question: "What is a license?",
+      answer:
+        "A license lets you run one device through Gadget Evaluate's diagnostics and grading. Your plan includes a set number of licenses, and each completed assessment uses one.",
+    },
+    {
+      question: "Do licenses expire?",
+      answer:
+        "Yes. Licenses are valid for a set period from the date they're issued. You can check your renewal date and remaining balance from your account dashboard.",
+    },
+    {
+      question: "Can one license be used for Evaluate and Lens?",
+      answer:
+        "No. Gadget Evaluate and Gadget Lens draw from separate license pools, since they run different assessments: functional testing versus cosmetic grading.",
+    },
+    {
+      question: "How do I top up my wallet?",
+      answer:
+        "Reach out to your account manager or our support team to add funds or purchase more licenses. We'll confirm once your balance is updated.",
     },
   ];
 

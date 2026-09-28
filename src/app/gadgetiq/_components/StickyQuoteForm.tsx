@@ -31,7 +31,7 @@ const INITIAL_FORM: DemoFormState = {
   company: "",
   email: "",
   phone: "",
-  device: "Both",
+  device: "Windows",
   volume: "",
   message: "",
 };
@@ -84,7 +84,9 @@ export default function StickyQuoteForm() {
       fieldErrors.phone = "Invalid phone number";
     }
 
-    if (demoForm.company && demoForm.company.length > 80) {
+    if (!demoForm.company.trim()) {
+      fieldErrors.company = "Company is required";
+    } else if (demoForm.company.length > 80) {
       fieldErrors.company = "Company name cannot exceed 80 characters";
     }
 
@@ -211,7 +213,7 @@ export default function StickyQuoteForm() {
                       </label>
 
                       <label className="block">
-                        <span className={labelClass}>company</span>
+                        <span className={labelClass}>company *</span>
                         <input
                           name="company"
                           value={demoForm.company}
@@ -257,10 +259,9 @@ export default function StickyQuoteForm() {
                           onChange={updateDemoForm}
                           className={`${fieldClass} cursor-pointer font-medium`}
                         >
-                          <option value="Both">Laptop and Mobile</option>
-                          <option value="Laptop">Laptop only</option>
-                          <option value="Mobile">Mobile only</option>
+                          <option value="Windows">Windows laptop</option>
                           <option value="MacBook">MacBook</option>
+                          <option value="Mobile" disabled>Mobile (coming soon)</option>
                         </select>
                       </label>
 
@@ -311,7 +312,7 @@ export default function StickyQuoteForm() {
                         ) : (
                           <>
                             <Mail size={14} />
-                            <span>Request Free Trial</span>
+                            <span>Book a Demo</span>
                           </>
                         )}
                       </button>
@@ -342,7 +343,7 @@ export default function StickyQuoteForm() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed right-0 top-1/2 z-40 flex -translate-y-1/2 items-center gap-2 rounded-l-2xl border border-r-0 border-brand-btn-orange/30 bg-gradient-to-b from-brand-btn-orange to-brand-btn-orange-highlight px-3 py-5 text-white shadow-lg shadow-brand-btn-orange/25 transition-transform duration-300 hover:-translate-x-1 cursor-pointer"
+        className="fixed right-0 top-1/2 z-40 hidden -translate-y-1/2 items-center gap-2 rounded-l-2xl border border-r-0 border-brand-btn-orange/30 bg-gradient-to-b from-brand-btn-orange to-brand-btn-orange-highlight px-3 py-5 text-white shadow-lg shadow-brand-btn-orange/25 transition-transform duration-300 hover:-translate-x-1 cursor-pointer sm:flex"
         aria-label="Book a demo"
       >
         <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-bold uppercase tracking-[0.18em]">

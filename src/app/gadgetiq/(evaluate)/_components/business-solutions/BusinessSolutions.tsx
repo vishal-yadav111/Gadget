@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import SectionHeading from "@/components/ui/SectionHeading";
+import SectionHeading from "../../../_components/SectionHeading";
 import { ArrowRight, Server, Smartphone, Laptop, Monitor, Database, Sliders, Search, Award, Cpu } from "lucide-react";
 import MagneticButton from "@/components/ui/MagneticButton";
 

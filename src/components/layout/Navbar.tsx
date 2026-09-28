@@ -314,11 +314,7 @@ export default function Navbar() {
               className="h-8 sm:h-9 md:h-10 w-auto object-contain transition-all duration-300"
             />
 
-            {isEvaluate && (
-              <span className="text-xs sm:text-sm md:text-[15px] font-black uppercase tracking-[0.22em] text-gradient-accent font-display leading-tight w-full text-left pl-5 mt-0.5">
-                Evaluate
-              </span>
-            )}
+
           </Link>
 
           {/* ================= DESKTOP NAVIGATION ================= */}
@@ -561,12 +557,6 @@ export default function Navbar() {
                     alt="Gadget IQ"
                     className="h-7 sm:h-8 w-auto object-contain"
                   />
-
-                  {isEvaluate && (
-                    <span className="text-xs sm:text-sm font-black uppercase tracking-[0.22em] text-gradient-accent font-display leading-tight w-full text-left pl-5 mt-0.5">
-                      Evaluate
-                    </span>
-                  )}
                 </Link>
 
                 <button

@@ -59,7 +59,7 @@ export default function BookDemo() {
     company: "",
     email: "",
     phone: "",
-    device: "Both",
+    device: "Windows",
     volume: "",
     message: "",
   });
@@ -104,7 +104,9 @@ export default function BookDemo() {
       fieldErrors.phone = "Invalid phone number";
     }
 
-    if (demoForm.company && demoForm.company.length > 80) {
+    if (!demoForm.company.trim()) {
+      fieldErrors.company = "Company is required";
+    } else if (demoForm.company.length > 80) {
       fieldErrors.company = "Company name cannot exceed 80 characters";
     }
 
@@ -155,7 +157,7 @@ export default function BookDemo() {
         company: "",
         email: "",
         phone: "",
-        device: "Both",
+        device: "Windows",
         volume: "",
         message: "",
       });
@@ -190,13 +192,13 @@ export default function BookDemo() {
           <div className="relative grid gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:items-center z-10">
             {/* Left Info Column */}
             <motion.div variants={fadeLeft} className="flex flex-col space-y-6">
-              <span className="text-xs font-semibold tracking-[0.25em] uppercase text-brand-accent">
+              <span className="text-xs font-bold tracking-[0.25em] uppercase text-[#0052CC] font-display">
                 BOOK A FREE TRIAL
               </span>
-              <h2 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-brand-text-primary leading-tight font-display">
-                See how Gadget Evaluate can fit your <span className="text-gradient-accent">device workflow.</span>
+              <h2 className="text-[16px] font-bold leading-tight tracking-tight text-[#17284D] sm:text-[22px] lg:text-[26px] font-display">
+                See how Gadget Evaluate can fit your <span className="font-bold italic text-[#0052CC]">device workflow.</span>
               </h2>
-              <p className="text-brand-text-secondary font-light text-base md:text-lg leading-relaxed">
+              <p className="text-sm leading-7 text-[#4A5875] sm:text-base font-normal font-sans">
                 Connect with our team to explore optimized quality check criteria, customized grading rule outputs, and flexible pricing structures designed for scale.
               </p>
 
@@ -240,7 +242,7 @@ export default function BookDemo() {
                   </label>
 
                   <label className="block">
-                    <span className={labelClass}>company</span>
+                    <span className={labelClass}>company *</span>
                     <input
                       name="company"
                       value={demoForm.company}
@@ -290,10 +292,9 @@ export default function BookDemo() {
                       onChange={updateDemoForm}
                       className={fieldClass}
                     >
-                      <option value="Both">Laptop and Mobile</option>
-                      <option value="Laptop">Laptop only</option>
-                      <option value="Mobile">Mobile only</option>
+                      <option value="Windows">Windows laptop</option>
                       <option value="MacBook">MacBook</option>
+                      <option value="Mobile" disabled>Mobile (coming soon)</option>
                     </select>
                   </label>
 
@@ -342,7 +343,7 @@ export default function BookDemo() {
                     ) : (
                       <>
                         <Mail size={16} className="shrink-0" />
-                        <span className="uppercase tracking-wider">request free trial</span>
+                        <span className="uppercase tracking-wider">book a demo</span>
                       </>
                     )}
                   </button>

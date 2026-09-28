@@ -38,7 +38,7 @@ export default function PaperTrail() {
               </div>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 {[
-                  ["pass yield", "688", "+8.4%"],
+                  ["devices passed", "88%", "+8.4%"],
                   ["avg grade score", "91.2%", "+3.1%"],
                 ].map(([a, b, c]) => (
                   <div key={a} className="rounded-xl border border-[#DDE4F3] bg-[#F4F6FB] p-4 shadow-xs">
@@ -55,10 +55,11 @@ export default function PaperTrail() {
                   </p>
                   <div className="mt-5 space-y-3.5">
                     {[
-                      ["A grade", "82%"],
-                      ["B grade", "61%"],
-                      ["C grade", "26%"],
-                      ["reject", "9%"],
+                      ["A grade", "42%"],
+                      ["B grade", "28%"],
+                      ["C grade", "15%"],
+                      ["D grade", "9%"],
+                      ["E grade", "6%"],
                     ].map(([label, width]) => (
                       <div key={label}>
                         <div className="mb-1.5 flex justify-between text-xs text-[#4A5875] font-semibold">
@@ -115,7 +116,7 @@ export default function PaperTrail() {
                 </div>
                 <div className="mt-5 space-y-2.5">
                   {[
-                    ["IMEI / SN", "35099232086XXXX"],
+                    ["Serial No.", "35099232086XXXX"],
                     ["Battery Health", "94%"],
                     ["CPU / GPU", "Pass"],
                     ["Cosmetics (Body / Screen)", "No Scratches or Dents"],

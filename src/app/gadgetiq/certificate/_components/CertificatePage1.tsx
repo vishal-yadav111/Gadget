@@ -105,8 +105,8 @@ export default function CertificatePage1({ data }: Props) {
 
         {/* Large PASS / Status Banner */}
         <div className={`p-3 rounded-xl border-2 mb-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${isPass
-            ? "bg-emerald-50/70 border-emerald-500/40 text-emerald-950"
-            : "bg-rose-50/70 border-rose-500/40 text-rose-950"
+          ? "bg-emerald-50/70 border-emerald-500/40 text-emerald-950"
+          : "bg-rose-50/70 border-rose-500/40 text-rose-950"
           }`}>
           <div className="flex items-center space-x-3">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm ${isPass ? "bg-emerald-600 text-white" : "bg-rose-600 text-white"

@@ -117,10 +117,10 @@ export default function LaptopCertPage1({ data }: Props) {
         {/* Large Result Banner */}
         <div
           className={`p-3 rounded-xl border-2 mb-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${isPass
-              ? "bg-emerald-50/70 border-emerald-500/40 text-emerald-950"
-              : isFail
-                ? "bg-rose-50/70 border-rose-500/40 text-rose-950"
-                : "bg-slate-50/70 border-slate-300 text-slate-900"
+            ? "bg-emerald-50/70 border-emerald-500/40 text-emerald-950"
+            : isFail
+              ? "bg-rose-50/70 border-rose-500/40 text-rose-950"
+              : "bg-slate-50/70 border-slate-300 text-slate-900"
             }`}
         >
           <div className="flex items-center space-x-3">
@@ -202,7 +202,7 @@ export default function LaptopCertPage1({ data }: Props) {
               Tests Completed
             </span>
             <span className="text-lg font-black text-[#17284D] block">
-              {data.passedTestsCount}/{data.totalApplicableTests}
+              {data.passedTestsCount}/35
             </span>
             <div className="w-full bg-gray-200 h-1 rounded-full overflow-hidden my-1">
               <div

@@ -286,7 +286,7 @@ export default function CertificatePage3({ data }: Props) {
                 <span className="text-[#17284D] font-medium">{specs.operatingSystem.publisher}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#5F6A86]">Licence status</span>
+                <span className="text-[#5F6A86]">License status</span>
                 <span className="text-emerald-700 font-bold">{specs.operatingSystem.licenceStatus}</span>
               </div>
               <div className="flex justify-between">

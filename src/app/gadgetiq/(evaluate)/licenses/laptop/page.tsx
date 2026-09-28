@@ -52,9 +52,9 @@ export default function LaptopLicenseReportPage() {
         { header: "Work Order No", key: "batchCode", width: 20 },
         { header: "Company / Partner", key: "companyName", width: 25 },
         { header: "Store", key: "assignedStore", width: 18 },
-        { header: "Total Licences", key: "totalPurchased", width: 16, format: "number" },
-        { header: "Used Licences", key: "consumed", width: 16, format: "number" },
-        { header: "Balance Licences", key: "remaining", width: 16, format: "number" },
+        { header: "Total Licenses", key: "totalPurchased", width: 16, format: "number" },
+        { header: "Used Licenses", key: "consumed", width: 16, format: "number" },
+        { header: "Balance Licenses", key: "remaining", width: 16, format: "number" },
         { header: "Allocated Date", key: "allocatedDate", width: 16, format: "date" },
         { header: "Expiry Date", key: "expiryDate", width: 16, format: "date" },
         { header: "Status", key: "status", width: 14, format: "status" },
@@ -106,7 +106,7 @@ export default function LaptopLicenseReportPage() {
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <h1 className="text-xl font-bold font-display text-[#17284D]">Licence Report (Laptop)</h1>
+              <h1 className="text-xl font-bold font-display text-[#17284D]">License Report (Laptop)</h1>
               <span className="px-2 py-0.5 rounded-full bg-blue-50 text-[#0052CC] font-mono text-[11px] font-bold">
                 {filtered.length} Batches
               </span>
@@ -174,7 +174,7 @@ export default function LaptopLicenseReportPage() {
                   <th className="py-3 px-4">Work Order No</th>
                   <th className="py-3 px-4">Company / Partner</th>
                   <th className="py-3 px-4">Store</th>
-                  <th className="py-3 px-4">Total Licences</th>
+                  <th className="py-3 px-4">Total Licenses</th>
                   <th className="py-3 px-4">Used</th>
                   <th className="py-3 px-4">Pending</th>
                   <th className="py-3 px-4 text-right">Status</th>
@@ -225,9 +225,9 @@ export default function LaptopLicenseReportPage() {
           { header: "Work Order No", key: "batchCode", width: 20 },
           { header: "Company / Partner", key: "companyName", width: 25 },
           { header: "Store", key: "assignedStore", width: 18 },
-          { header: "Total Licences", key: "totalPurchased", width: 16, format: "number" },
-          { header: "Used Licences", key: "consumed", width: 16, format: "number" },
-          { header: "Balance Licences", key: "remaining", width: 16, format: "number" },
+          { header: "Total Licenses", key: "totalPurchased", width: 16, format: "number" },
+          { header: "Used Licenses", key: "consumed", width: 16, format: "number" },
+          { header: "Balance Licenses", key: "remaining", width: 16, format: "number" },
           { header: "Allocated Date", key: "allocatedDate", width: 16, format: "date" },
           { header: "Expiry Date", key: "expiryDate", width: 16, format: "date" },
           { header: "Status", key: "status", width: 14, format: "status" },

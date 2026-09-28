@@ -99,7 +99,7 @@ export default function MotherboardLicenseReportPage() {
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <h1 className="text-xl font-bold font-display text-[#17284D]">Licence Report (Motherboard)</h1>
+              <h1 className="text-xl font-bold font-display text-[#17284D]">License Report (Motherboard)</h1>
               <span className="px-2 py-0.5 rounded-full bg-blue-50 text-[#0052CC] font-mono text-[11px] font-bold">
                 {filtered.length} Batches
               </span>

@@ -83,8 +83,8 @@ const BUSINESS_BENEFITS = [
 
 const FAQ_ITEMS = [
   {
-    question: "How can I start a free trial?",
-    answer: "Click \"Book a Free Trial\" and our team will help you get started, with no commitment required.",
+    question: "How can I book a demo?",
+    answer: "Click \"Book a Demo\" and our team will help you get started, with no commitment required.",
   },
   {
     question: "Does Lens check functional issues?",
@@ -109,17 +109,34 @@ const FAQ_ITEMS = [
     question: "Which devices does Lens support?",
     answer: "Gadget Lens currently supports laptop grading.",
   },
+  {
+    question: "What is a license?",
+    answer:
+      "A license lets you run one device through Gadget Lens's cosmetic grading. Your plan includes a set number of licenses, and each completed inspection uses one.",
+  },
+  {
+    question: "Do licenses expire?",
+    answer:
+      "Yes. Licenses are valid for a set period from the date they're issued. You can check your renewal date and remaining balance from your account dashboard.",
+  },
+  {
+    question: "Can one license be used for Evaluate and Lens?",
+    answer:
+      "No. Gadget Evaluate and Gadget Lens draw from separate license pools, since they run different assessments: functional testing versus cosmetic grading.",
+  },
+  {
+    question: "How do I top up my wallet?",
+    answer:
+      "Reach out to your account manager or our support team to add funds or purchase more licenses. We'll confirm once your balance is updated.",
+  },
 ];
 
 const GRADE_SCALE = [
-  { grade: "A+", color: "#16A34A", title: "Like New", desc: "No visible issues" },
-  { grade: "A", color: "#34D399", title: "Excellent", desc: "Minimal signs of use" },
-  { grade: "B", color: "#3B82F6", title: "Good", desc: "Light wear" },
-  { grade: "C", color: "#FBBF24", title: "Fair", desc: "Noticeable wear" },
-  { grade: "D", color: "#F97316", title: "Used", desc: "Visible marks" },
-  { grade: "E", color: "#EA580C", title: "Heavy Wear", desc: "Multiple issues" },
-  { grade: "F", color: "#DC2626", title: "Poor", desc: "Significant damage" },
-  { grade: "H", color: "#7F1D1D", title: "For Parts", desc: "Major cosmetic issues" },
+  { grade: "A", color: "#10B981", title: "Like New", desc: "No visible issues" },
+  { grade: "B", color: "#34D399", title: "Very Good", desc: "Minimal signs of use" },
+  { grade: "C", color: "#0052CC", title: "Good", desc: "Light, standard wear" },
+  { grade: "D", color: "#F59E0B", title: "Fair", desc: "Noticeable wear" },
+  { grade: "E", color: "#EF4444", title: "Quarantine", desc: "Damage or defect found" },
 ];
 
 export default function GadgetIQLensPage() {
@@ -169,12 +186,12 @@ export default function GadgetIQLensPage() {
                   href="#contact"
                   className="px-6 py-3.5 rounded-full bg-gradient-to-r from-brand-btn-orange to-brand-btn-orange-highlight hover:shadow-brand-btn-orange/45 text-white font-bold text-sm shadow-lg shadow-brand-btn-orange/25 flex items-center space-x-2 transition-all group btn-shimmer"
                 >
-                  <span>Book a Free Trial</span>
+                  <span>Book a Demo</span>
                   <ArrowRight className="w-4 h-4 text-white group-hover:translate-x-0.5 transition-transform" />
                 </a>
 
                 <Link
-                  href="/gadgetiq/lens/login"
+                  href="/gadgetiq/login"
                   className="px-6 py-3.5 rounded-full bg-white hover:bg-slate-50 text-[#17284D] border border-[#DDE4F3] font-bold text-sm shadow-xs flex items-center space-x-2 transition-all hover:border-blue-300"
                 >
                   <span>Sign In</span>
@@ -204,16 +221,16 @@ export default function GadgetIQLensPage() {
             <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-16">
               {/* Left: copy + features */}
               <div>
-                <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-4 py-1.5">
-                  <Eye className="h-3.5 w-3.5 text-indigo-600" />
-                  <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-indigo-600">
+                <div className="inline-flex items-center gap-2 rounded-full bg-[#0052CC]/10 px-4 py-1.5">
+                  <Eye className="h-3.5 w-3.5 text-[#0052CC]" />
+                  <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#0052CC]">
                     Gadget Lens
                   </span>
                 </div>
 
                 <h2 className="mt-4 text-[15px] font-bold leading-tight tracking-tight text-[#17284D] sm:text-[21px] lg:text-[25px] font-display">
                   Grading you can{" "}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">
+                  <span className="font-bold italic text-[#0052CC]">
                     trust.
                   </span>
                 </h2>
@@ -260,20 +277,20 @@ export default function GadgetIQLensPage() {
                     <p className="text-[10px] font-bold uppercase tracking-wider text-[#5F6A86]">
                       Cosmetic Grade
                     </p>
-                    <p className="mt-1 text-3xl font-extrabold leading-none text-blue-600">B</p>
-                    <p className="mt-1 text-sm font-bold leading-tight text-[#17284D]">Good Condition</p>
-                    <p className="text-xs leading-tight text-[#5F6A86]">Light visible wear</p>
+                    <p className="mt-1 text-3xl font-extrabold leading-none text-red-600">E</p>
+                    <p className="mt-1 text-sm font-bold leading-tight text-[#17284D]">Poor Condition</p>
+                    <p className="text-xs leading-tight text-[#5F6A86]">Visible crack damage</p>
 
                     <div className="mt-3 border-t border-[#DDE4F3] pt-3">
                       <p className="text-[10px] font-bold uppercase tracking-wider text-[#5F6A86]">
                         Confidence Score
                       </p>
-                      <p className="mt-1 text-xl font-extrabold leading-none text-blue-600">87%</p>
+                      <p className="mt-1 text-xl font-extrabold leading-none text-red-600">91%</p>
                       <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[#E4EAF5]">
                         <motion.div
-                          className="h-full rounded-full bg-blue-500"
+                          className="h-full rounded-full bg-red-500"
                           initial={{ width: 0 }}
-                          whileInView={{ width: "87%" }}
+                          whileInView={{ width: "91%" }}
                           viewport={{ once: true }}
                           transition={{ duration: 1, ease: "easeOut", delay: 0.3 }}
                         />
@@ -287,20 +304,20 @@ export default function GadgetIQLensPage() {
                   <p className="text-[9px] font-bold uppercase tracking-wider text-[#5F6A86]">
                     Cosmetic Grade
                   </p>
-                  <p className="mt-1 text-2xl font-extrabold leading-none text-blue-600">B</p>
-                  <p className="mt-1 text-xs font-bold leading-tight text-[#17284D]">Good Condition</p>
-                  <p className="text-[10px] leading-tight text-[#5F6A86]">Light visible wear</p>
+                  <p className="mt-1 text-2xl font-extrabold leading-none text-red-600">E</p>
+                  <p className="mt-1 text-xs font-bold leading-tight text-[#17284D]">Poor Condition</p>
+                  <p className="text-[10px] leading-tight text-[#5F6A86]">Visible crack damage</p>
 
                   <div className="mt-2 border-t border-[#DDE4F3] pt-2">
                     <p className="text-[9px] font-bold uppercase tracking-wider text-[#5F6A86]">
                       Confidence Score
                     </p>
-                    <p className="mt-1 text-lg font-extrabold leading-none text-blue-600">87%</p>
+                    <p className="mt-1 text-lg font-extrabold leading-none text-red-600">91%</p>
                     <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-[#E4EAF5]">
                       <motion.div
-                        className="h-full rounded-full bg-blue-500"
+                        className="h-full rounded-full bg-red-500"
                         initial={{ width: 0 }}
-                        whileInView={{ width: "87%" }}
+                        whileInView={{ width: "91%" }}
                         viewport={{ once: true }}
                         transition={{ duration: 1, ease: "easeOut", delay: 0.3 }}
                       />
@@ -344,7 +361,7 @@ export default function GadgetIQLensPage() {
             <div className="max-w-sm shrink-0 text-left lg:pl-[2%]">
               <h2 className="text-[15px] font-bold leading-tight tracking-tight text-white sm:text-[21px] lg:text-[25px] font-display">
                 Better grading.{" "}
-                <span className="text-white">Better decisions.</span>
+                <span className="font-bold italic text-white">Better decisions.</span>
               </h2>
             </div>
 
@@ -373,7 +390,7 @@ export default function GadgetIQLensPage() {
             <div className="max-w-2xl">
               <h2 className="text-[15px] font-bold leading-tight tracking-tight text-[#17284D] sm:text-[21px] lg:text-[25px] font-display">
                 From photos to{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">
+                <span className="font-bold italic text-[#0052CC]">
                   a clear grade.
                 </span>
               </h2>
@@ -441,16 +458,16 @@ export default function GadgetIQLensPage() {
         <div className="w-full bg-[#F4F6FB]">
           <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
             <div className="max-w-2xl">
-              <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-4 py-1.5">
-                <FileText className="h-3.5 w-3.5 text-indigo-600" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-indigo-600">
+              <div className="inline-flex items-center gap-2 rounded-full bg-[#0052CC]/10 px-4 py-1.5">
+                <FileText className="h-3.5 w-3.5 text-[#0052CC]" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#0052CC]">
                   Sample Report
                 </span>
               </div>
 
               <h2 className="mt-4 text-[15px] font-bold leading-tight tracking-tight text-[#17284D] sm:text-[21px] lg:text-[25px] font-display">
                 See exactly{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">
+                <span className="font-bold italic text-[#0052CC]">
                   what you get.
                 </span>
               </h2>
@@ -462,13 +479,14 @@ export default function GadgetIQLensPage() {
 
             <div className="mt-10 grid grid-cols-1 items-center gap-10 rounded-[32px] border border-[#DDE4F3] bg-white p-6 shadow-xl sm:p-10 lg:grid-cols-2 lg:gap-14">
               {/* Laptop visual */}
-              <div className="relative aspect-[1021/623] w-full">
+              <div className="relative w-full">
                 <Image
-                  src="/images/gadget-lens-laptop.png"
+                  src="/images/hp-laptop.jpg"
                   alt="Sample laptop inspection report showing annotated scratches and dents"
-                  fill
+                  width={1448}
+                  height={1086}
                   sizes="(min-width: 1024px) 500px, 90vw"
-                  className="object-contain"
+                  className="h-auto w-full rounded-2xl object-contain"
                 />
                 <span className="absolute left-1/2 top-2 -translate-x-1/2 whitespace-nowrap rounded-full bg-slate-900/80 px-2 py-1 text-[8px] font-bold uppercase tracking-wider text-white shadow sm:px-3 sm:text-[10px]">
                   Illustrative sample
@@ -483,17 +501,17 @@ export default function GadgetIQLensPage() {
                       Cosmetic Grade
                     </p>
                     <div className="mt-1.5 flex items-center gap-2">
-                      <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500 text-base font-extrabold text-white">
-                        B
+                      <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-500 text-base font-extrabold text-white">
+                        E
                       </span>
-                      <span className="text-base font-bold text-[#17284D]">Good</span>
+                      <span className="text-base font-bold text-[#17284D]">Poor</span>
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-[#5F6A86]">
                       Confidence Score
                     </p>
-                    <p className="mt-1.5 text-2xl font-extrabold text-emerald-600">94%</p>
+                    <p className="mt-1.5 text-2xl font-extrabold text-red-600">91%</p>
                   </div>
                 </div>
 
@@ -503,9 +521,10 @@ export default function GadgetIQLensPage() {
                   </p>
                   <div className="mt-3 space-y-2.5">
                     {[
-                      { name: "Scratches", severity: "Minor", count: 2 },
-                      { name: "Dents", severity: "Minor", count: 1 },
-                      { name: "Wear & Tear", severity: "Minor", count: 1 },
+                      { name: "Crack", severity: "Major", count: 1 },
+                      { name: "Scratches", severity: "Minor", count: 1 },
+                      { name: "Dents", severity: "Moderate", count: 1 },
+                      { name: "Scuffs", severity: "Minor", count: 1 },
                     ].map((row) => (
                       <div
                         key={row.name}
@@ -602,7 +621,7 @@ export default function GadgetIQLensPage() {
         </div>
 
         {/* Book a Demo Form */}
-        <BookDemo ctaLabel="Book a Free Trial" />
+        <BookDemo />
       </main>
 
       {/* Footer */}
@@ -647,7 +666,7 @@ export default function GadgetIQLensPage() {
                     cosmetic condition.
                   </p>
 
-                  <div className="mt-6 grid grid-cols-4 gap-2 sm:grid-cols-8">
+                  <div className="mt-6 grid grid-cols-3 gap-2 sm:grid-cols-5">
                     {GRADE_SCALE.map((g) => (
                       <div key={g.grade} className="text-center">
                         <div
@@ -668,7 +687,7 @@ export default function GadgetIQLensPage() {
                     className="mt-4 h-2 rounded-full"
                     style={{
                       background:
-                        "linear-gradient(to right, #16A34A, #34D399, #3B82F6, #FBBF24, #F97316, #EA580C, #DC2626, #7F1D1D)",
+                        "linear-gradient(to right, #10B981, #34D399, #0052CC, #F59E0B, #EF4444)",
                     }}
                   />
                   <div className="mt-1.5 flex items-center justify-between text-[10px] font-bold text-[#17284D] sm:text-[11px]">

@@ -67,11 +67,11 @@ export default function FinalCTA() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-          className="text-4xl sm:text-5xl lg:text-6xl lg:text-7xl font-extrabold tracking-tight text-brand-text-primary leading-[1.15] sm:leading-[1.1] max-w-4xl"
+          className="text-[16px] font-bold leading-tight tracking-tight text-[#17284D] sm:text-[22px] lg:text-[26px] max-w-4xl font-display"
         >
           Know the device.
           <br />
-          Make the <span className="text-gradient-accent">decision.</span>
+          Make the <span className="font-bold italic text-[#0052CC]">decision.</span>
         </motion.h2>
 
         <motion.p
@@ -79,7 +79,7 @@ export default function FinalCTA() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-brand-text-secondary text-sm sm:text-base md:text-lg font-light leading-relaxed max-w-2xl px-1 sm:px-0"
+          className="text-sm leading-7 text-[#4A5875] sm:text-base max-w-2xl px-1 sm:px-0 font-normal font-sans"
         >
           Whether you're buying, refurbishing, repairing, returning or reselling a device, start with a clear understanding of its functional condition. See Gadget Evaluate in action.
         </motion.p>
@@ -96,7 +96,7 @@ export default function FinalCTA() {
             href="#contact"
             className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-full bg-gradient-to-r from-brand-btn-orange to-brand-btn-orange-highlight text-white font-bold text-sm sm:text-base shadow-lg sm:shadow-xl shadow-brand-btn-orange/25 hover:shadow-brand-btn-orange/55 flex items-center justify-center space-x-2 border border-brand-btn-orange/30 group transition-all duration-300 btn-shimmer"
           >
-            <span>Get a Free Trial</span>
+            <span>Book a Demo</span>
             <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
           </MagneticButton>
 

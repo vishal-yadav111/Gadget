@@ -12,8 +12,12 @@ import DiagnosticsHero from "./_components/DiagnosticsHero";
 import HowWeCheck from "./_components/HowWeCheck";
 import BusinessSolutions from "./(evaluate)/_components/business-solutions/BusinessSolutions";
 
+
 // Dynamic imports of subsequent sections directly from local _components
 const GadgetIQWorkflow = dynamic(() => import("./_components/GadgetIQWorkflow"), {
+  loading: () => <SectionSkeleton />,
+});
+const VideoShowcase = dynamic(() => import("./(evaluate)/_components/video-showcase/VideoShowcase"), {
   loading: () => <SectionSkeleton />,
 });
 const WorkflowRow = dynamic(() => import("./_components/WorkflowRow"), {
@@ -55,6 +59,7 @@ export default function GadgetIQPage() {
         {/* <Hero /> */}
         <DiagnosticsHero />
         <GadgetIQWorkflow />
+        <VideoShowcase />
         <CoreFeatures/>
 
         <HowWeCheck />

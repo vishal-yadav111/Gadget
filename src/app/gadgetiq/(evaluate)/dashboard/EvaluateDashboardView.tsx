@@ -305,7 +305,7 @@ export default function EvaluateDashboardView() {
               {totalPurchased.toLocaleString()}
             </span>
             <span className="text-xs font-semibold text-[#5F6A86]">
-              Total Licences Purchased
+              Total Licenses Purchased
             </span>
           </div>
         </div>
@@ -335,7 +335,7 @@ export default function EvaluateDashboardView() {
               {totalUsed.toLocaleString()}
             </span>
             <span className="text-xs font-semibold text-[#5F6A86]">
-              Total Licences Used
+              Total Licenses Used
             </span>
           </div>
         </div>

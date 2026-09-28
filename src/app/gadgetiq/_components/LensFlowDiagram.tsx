@@ -22,17 +22,17 @@ import {
 /* =========================================================
    LENS FLOW DIAGRAM
 
-   The full 4-step GadgetIQ Lens journey — Capture, AI
-   Detects Issues, Admin Dashboard, Final Report — shared
+   The full 4-step GadgetIQ Lens journey (Capture, AI
+   Detects Issues, Admin Dashboard, Final Report), shared
    between the Lens landing page hero and any other section
    that wants to showcase the complete flow.
 ========================================================= */
 
 const HERO_DEFECTS = [
-  { label: "Scratch", score: 0.94, color: "#F59E0B", location: "Top Left Panel" },
-  { label: "Dent", score: 0.87, color: "#10B981", location: "Center Right Panel" },
-  { label: "Crack", score: 0.91, color: "#EF4444", location: "Bottom Left / Hinge" },
-  { label: "Scuff", score: 0.89, color: "#3B82F6", location: "Bottom Right Panel" },
+  { label: "Crack", score: 0.94, color: "#EF4444", location: "Top Left Panel", severity: "Major" },
+  { label: "Dent", score: 0.87, color: "#10B981", location: "Center Right Panel", severity: "Moderate" },
+  { label: "Scratch", score: 0.91, color: "#F59E0B", location: "Bottom Left / Hinge", severity: "Minor" },
+  { label: "Scuff", score: 0.89, color: "#3B82F6", location: "Bottom Right Panel", severity: "Minor" },
 ];
 
 const CAPTURE_ORDER = ["Front", "Back", "Left", "Right", "Top", "Bottom"];
@@ -40,15 +40,15 @@ const CAPTURE_LEFT = ["Front", "Left", "Top"];
 const CAPTURE_RIGHT = ["Back", "Right", "Bottom"];
 
 const REPORT_SUMMARY_ROWS = [
-  { label: "Overall Condition", value: "Good", className: "text-emerald-600" },
+  { label: "Overall Condition", value: "Poor", className: "text-red-600" },
   { label: "Issues Detected", value: String(HERO_DEFECTS.length), className: "text-[#17284D]" },
   { label: "Inspection Status", value: "Completed", className: "text-indigo-600" },
   { label: "Quality Report", value: "Generated", className: "text-indigo-600" },
 ];
 
 const REPORT_DETAIL_ROWS = [
-  { label: "Physical Condition", status: "Good", icon: Shield, good: true },
-  { label: "Display", status: "Fair", icon: Eye, good: false },
+  { label: "Physical Condition", status: "Poor", icon: Shield, good: false },
+  { label: "Display", status: "Damaged", icon: Eye, good: false },
   { label: "Battery Health", status: "Good", icon: BatteryFull, good: true },
   { label: "Functionality", status: "Good", icon: Cpu, good: true },
 ];
@@ -238,8 +238,8 @@ function CaptureVisual() {
 }
 
 const DETECT_MARKERS = [
-  { marker: { x: 30, y: 33 }, tag: { x: 22, y: 26 }, tagStyle: { left: "2%", top: "18%" }, Icon: Slash },
-  { marker: { x: 68, y: 30 }, tag: { x: 78, y: 25 }, tagStyle: { right: "2%", top: "18%" }, Icon: Asterisk },
+  { marker: { x: 30, y: 33 }, tag: { x: 22, y: 26 }, tagStyle: { left: "2%", top: "max(27%, 46px)" }, Icon: Slash },
+  { marker: { x: 68, y: 30 }, tag: { x: 78, y: 25 }, tagStyle: { right: "2%", top: "max(27%, 46px)" }, Icon: Asterisk },
   { marker: { x: 28, y: 56 }, tag: { x: 21, y: 63 }, tagStyle: { left: "2%", top: "62%" }, Icon: Asterisk },
   { marker: { x: 70, y: 72 }, tag: { x: 78, y: 76 }, tagStyle: { right: "2%", top: "72%" }, Icon: Waves },
 ];
@@ -414,7 +414,7 @@ function DashboardVisual() {
               <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: defect.color }} />
               {defect.label}
             </span>
-            <span className="text-xs font-semibold text-[#8896AC]">{idx % 2 === 0 ? "Minor" : "Moderate"}</span>
+            <span className="text-xs font-semibold text-[#8896AC]">{defect.severity}</span>
             <span className="flex items-center gap-1 text-xs font-bold text-emerald-600">
               <CheckCircle2 className="h-3.5 w-3.5" />
               Detected
@@ -442,14 +442,14 @@ function DashboardVisual() {
 }
 
 function ReportVisual() {
-  const targetOffset = 2 * Math.PI * 32 * (1 - 0.82);
+  const targetOffset = 2 * Math.PI * 32 * (1 - 0.38);
 
   return (
     <div className="flex w-full flex-col gap-2.5">
       <div className="flex items-center gap-3 rounded-xl border border-[#E4EAF5] bg-[#FBFCFE] p-3">
         <div className="relative flex h-16 w-16 shrink-0 items-center justify-center">
           <motion.span
-            className="absolute h-16 w-16 rounded-full bg-emerald-400/10"
+            className="absolute h-16 w-16 rounded-full bg-red-400/10"
             animate={{ scale: [1, 1.18, 1], opacity: [0.6, 0.15, 0.6] }}
             transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
           />
@@ -462,7 +462,7 @@ function ReportVisual() {
               strokeWidth="8"
               fill="none"
               strokeLinecap="round"
-              className="stroke-emerald-500"
+              className="stroke-red-500"
               strokeDasharray={2 * Math.PI * 32}
               initial={{ strokeDashoffset: 2 * Math.PI * 32 }}
               animate={{ strokeDashoffset: targetOffset }}
@@ -470,7 +470,7 @@ function ReportVisual() {
             />
           </svg>
           <div className="absolute flex flex-col items-center">
-            <span className="text-lg font-extrabold leading-none text-emerald-600">B</span>
+            <span className="text-lg font-extrabold leading-none text-red-600">E</span>
             <span className="mt-0.5 text-[8px] font-bold uppercase tracking-wide text-[#8896AC]">Grade</span>
           </div>
         </div>

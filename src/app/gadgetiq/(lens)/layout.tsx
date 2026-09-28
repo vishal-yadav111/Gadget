@@ -4,19 +4,11 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard,
-  Users,
-  FileText,
-  GitBranch,
-  Building2,
-  Sliders,
-  MessageSquare,
   LogOut,
   Menu,
   X,
   ChevronLeft,
   ChevronRight,
-  UserCheck,
 } from "lucide-react";
 import {
   getAuthToken,
@@ -25,42 +17,11 @@ import {
   LensAuthUser,
 } from "./core";
 import { LogoutConfirmModal } from "@/components/ui/LogoutConfirmModal";
-
-const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
-  "/gadgetiq/dashboard": {
-    title: "Dashboard",
-    subtitle: "Overview of your hardware grading and inspection system",
-  },
-  "/gadgetiq/companies": {
-    title: "Companies",
-    subtitle: "Manage tenant companies and device quotas",
-  },
-  "/gadgetiq/users": {
-    title: "Users",
-    subtitle: "Manage all registered technicians and admins",
-  },
-  "/gadgetiq/onboarding": {
-    title: "User Onboarding",
-    subtitle: "Review applicant credentials and approve platform signups",
-  },
-  "/gadgetiq/workflows": {
-    title: "Workflows",
-    subtitle: "Manage OS-specific device grading questionnaires",
-  },
-
-  "/gadgetiq/diagnostic-configs": {
-    title: "Diagnostic Configurations",
-    subtitle: "Manage scoring weights, tolerances, and test deducts",
-  },
-  "/gadgetiq/contact-entries": {
-    title: "GadgetIQ Contact Entries",
-    subtitle: "View and manage incoming demo and client inquiries",
-  },
-  "/gadgetiq/reports": {
-    title: "Reports",
-    subtitle: "Browse and inspect all device diagnostic records",
-  },
-};
+import {
+  UNIFIED_NAV_SECTIONS,
+  getPageMetadata,
+  isNavItemActive,
+} from "../_components/unifiedNavigation";
 
 export default function LensAdminLayout({
   children,
@@ -164,76 +125,7 @@ export default function LensAdminLayout({
     );
   }
 
-  // Determine current page title
-  let currentMeta = PAGE_TITLES[pathname || ""] || {
-    title: "Gadget Lens",
-    subtitle: "Enterprise Hardware Diagnostic Suite",
-  };
-
-  if (pathname && pathname.startsWith("/gadgetiq/reports/")) {
-    currentMeta = {
-      title: "Report Detail",
-      subtitle: "Detailed 64-Point Diagnostic & Hardware Breakdown",
-    };
-  }
-
-  const isAdmin = user?.role === "admin";
-
-  const NAV_ITEMS = [
-    {
-      path: "/gadgetiq/dashboard",
-      label: "Dashboard",
-      icon: LayoutDashboard,
-    },
-    ...(isAdmin
-      ? [
-        {
-          path: "/gadgetiq/companies",
-          label: "Companies",
-          icon: Building2,
-        },
-      ]
-      : []),
-    {
-      path: "/gadgetiq/users",
-      label: "Users",
-      icon: Users,
-    },
-    ...(isAdmin
-      ? [
-        {
-          path: "/gadgetiq/onboarding",
-          label: "User Approvals",
-          icon: UserCheck,
-        },
-      ]
-      : []),
-    {
-      path: "/gadgetiq/workflows",
-      label: "Workflows",
-      icon: GitBranch,
-    },
-
-    ...(isAdmin
-      ? [
-        {
-          path: "/gadgetiq/diagnostic-configs",
-          label: "Diag Configs",
-          icon: Sliders,
-        },
-        {
-          path: "/gadgetiq/contact-entries",
-          label: "Contact Entries",
-          icon: MessageSquare,
-        },
-      ]
-      : []),
-    {
-      path: "/gadgetiq/reports",
-      label: "QC Reports",
-      icon: FileText,
-    },
-  ];
+  const currentMeta = getPageMetadata(pathname);
 
   return (
     <div className="min-h-screen bg-[#F4F6FB] text-[#17284D] font-sans flex">
@@ -304,47 +196,51 @@ export default function LensAdminLayout({
           </div>
 
           {/* Navigation Menu */}
-          <div className="flex-1 overflow-y-auto p-3">
-            {!isCollapsed && (
-              <div className="px-3 py-2 text-[10px] font-bold text-[#5F6A86] tracking-wider uppercase">
-                Main Menu
-              </div>
-            )}
-            <nav className="space-y-1">
-              {NAV_ITEMS.map((item) => {
-                const Icon = item.icon;
-                const isActive = pathname === item.path;
+          <div className="flex-1 overflow-y-auto p-3 space-y-4">
+            {UNIFIED_NAV_SECTIONS.map((section) => (
+              <div key={section.title} className="space-y-1">
+                {!isCollapsed && (
+                  <div className="px-3 pt-1 pb-1 text-[10px] font-bold text-[#5F6A86] tracking-wider uppercase">
+                    {section.title}
+                  </div>
+                )}
+                <nav className="space-y-0.5">
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = isNavItemActive(item.path, pathname);
 
-                return (
-                  <Link
-                    key={item.path}
-                    href={item.path}
-                    title={isCollapsed ? item.label : undefined}
-                    className={`flex items-center rounded-[8px] text-xs font-semibold transition-all duration-150 relative ${isCollapsed
-                      ? "justify-center p-2.5"
-                      : "space-x-3 px-3.5 py-2.5"
-                      } ${isActive
-                        ? "bg-[#E9EEF9] text-[#0052CC] shadow-xs font-bold"
-                        : "text-[#4A5875] hover:bg-slate-50 hover:text-[#17284D]"
-                      }`}
-                  >
-                    <Icon
-                      className={`w-5 h-5 shrink-0 ${isActive ? "text-[#0052CC]" : "text-[#5F6A86]"
-                        }`}
-                    />
-                    {!isCollapsed && (
-                      <span className="flex-1 truncate">{item.label}</span>
-                    )}
-                    {!isCollapsed && isActive && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-[#0052CC] shrink-0" />
-                    )}
-                    {isCollapsed && isActive && (
-                      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-l-full bg-[#0052CC]" />
-                    )}
-                  </Link>
-                );
-              })}
-            </nav>
+                    return (
+                      <Link
+                        key={item.path}
+                        href={item.path}
+                        title={isCollapsed ? item.label : undefined}
+                        className={`flex items-center rounded-[8px] text-xs font-semibold transition-all duration-150 relative ${isCollapsed
+                          ? "justify-center p-2.5"
+                          : "space-x-3 px-3.5 py-2"
+                          } ${isActive
+                            ? "bg-[#E9EEF9] text-[#0052CC] shadow-xs font-bold"
+                            : "text-[#4A5875] hover:bg-slate-50 hover:text-[#17284D]"
+                          }`}
+                      >
+                        <Icon
+                          className={`w-4 h-4 shrink-0 ${isActive ? "text-[#0052CC]" : "text-[#5F6A86]"
+                            }`}
+                        />
+                        {!isCollapsed && (
+                          <span className="flex-1 truncate">{item.label}</span>
+                        )}
+                        {!isCollapsed && isActive && (
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#0052CC] shrink-0" />
+                        )}
+                        {isCollapsed && isActive && (
+                          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-l-full bg-[#0052CC]" />
+                        )}
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </div>
+            ))}
           </div>
         </div>
 

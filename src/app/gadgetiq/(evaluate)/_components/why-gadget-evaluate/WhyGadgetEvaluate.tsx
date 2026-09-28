@@ -83,7 +83,7 @@ export default function WhyGadgetEvaluate() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-xs font-semibold tracking-[0.25em] text-brand-accent uppercase"
+            className="text-xs font-bold tracking-[0.25em] text-[#0052CC] uppercase font-display"
           >
             WHY GADGET EVALUATE
           </motion.span>
@@ -94,7 +94,7 @@ export default function WhyGadgetEvaluate() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-3xl sm:text-4xl xl:text-[40px] font-extrabold tracking-tight text-brand-text-primary leading-[1.14]"
+              className="text-[15px] font-bold leading-tight tracking-tight text-[#17284D] sm:text-[21px] lg:text-[25px] font-display"
             >
               A device can look fine and still have a problem.
             </motion.h3>
@@ -103,7 +103,7 @@ export default function WhyGadgetEvaluate() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.15 }}
-              className="text-lg sm:text-xl font-bold text-brand-accent"
+              className="text-[15px] font-bold italic leading-tight text-[#0052CC] sm:text-[21px] lg:text-[25px] font-display"
             >
               Turning on is only the first check.
             </motion.h4>

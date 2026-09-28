@@ -7,6 +7,7 @@ import Footer from "@/components/layout/Footer";
 import ParticleGrid from "@/components/ui/ParticleGrid";
 import SectionSkeleton from "@/components/ui/SectionSkeleton";
 import ScrollToTop from "@/components/ui/ScrollToTop";
+import StickyQuoteForm from "../_components/StickyQuoteForm";
 
 // Dynamic imports of sections segregated directly inside evaluate/_components
 const Hero = dynamic(() => import("./_components/hero/Hero"), {
@@ -16,9 +17,6 @@ const WhyGadgetEvaluate = dynamic(() => import("./_components/why-gadget-evaluat
   loading: () => <SectionSkeleton />,
 });
 const WhatWeDo = dynamic(() => import("./_components/what-we-do/WhatWeDo"), {
-  loading: () => <SectionSkeleton />,
-});
-const VideoShowcase = dynamic(() => import("./_components/video-showcase/VideoShowcase"), {
   loading: () => <SectionSkeleton />,
 });
 const DeviceSupport = dynamic(() => import("./_components/supported-devices/DeviceSupport"), {
@@ -48,9 +46,6 @@ const FAQs = dynamic(() => import("./_components/faqs/FAQs"), {
 const BookDemo = dynamic(() => import("./_components/book-demo/BookDemo"), {
   loading: () => <SectionSkeleton />,
 });
-const FinalCTA = dynamic(() => import("./_components/final-cta/FinalCTA"), {
-  loading: () => <SectionSkeleton />,
-});
 
 export default function EvaluatePage() {
   return (
@@ -68,7 +63,6 @@ export default function EvaluatePage() {
       <main className="relative z-10 flex flex-col w-full">
         <Hero />
 
-        <VideoShowcase />
         <WhyGadgetEvaluate />
 
         <HowItWorks />
@@ -81,7 +75,6 @@ export default function EvaluatePage() {
         {/* <DigitalTrust /> */}
         <FAQs />
         <BookDemo />
-        <FinalCTA />
       </main>
 
       {/* Footer */}
@@ -89,6 +82,9 @@ export default function EvaluatePage() {
 
       {/* Floating Scroll To Top Button */}
       <ScrollToTop />
+
+      {/* Sticky Book a Demo Tab */}
+      <StickyQuoteForm />
     </div>
   );
 }

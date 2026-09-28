@@ -47,10 +47,10 @@ export default function Hero() {
             </div>
 
             <h1 className="mt-4 text-[33.6px] font-bold leading-[0.98] tracking-[-0.045em] text-[#12264D] sm:text-[38.4px] lg:text-[43.2px] xl:text-[48px]">
-              Test your device
+              Check every part of a
               <br />
-              before you{" "}
-              <span className="whitespace-nowrap italic text-[#0868E9]">Trust It.</span>
+              laptop in{" "}
+              <span className="whitespace-nowrap italic text-[#0868E9]">minutes.</span>
             </h1>
           </motion.div>
 
@@ -68,7 +68,7 @@ export default function Hero() {
                 href="#contact"
                 className="px-5 py-3 sm:px-6 sm:py-3.5 md:px-6 md:py-3.5 lg:px-8 lg:py-4 rounded-full bg-gradient-to-r from-brand-btn-orange to-brand-btn-orange-highlight text-white font-bold text-xs xs:text-sm sm:text-base md:text-base lg:text-base shadow-lg shadow-brand-btn-orange/25 hover:shadow-brand-btn-orange/55 active:scale-[0.97] flex items-center justify-center space-x-1.5 sm:space-x-2 border border-brand-btn-orange/30 group transition-all duration-200 btn-shimmer cursor-pointer"
               >
-                <span>Get a Free Trial</span>
+                <span>Book a Demo</span>
                 <ArrowRight className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
               </MagneticButton>
 

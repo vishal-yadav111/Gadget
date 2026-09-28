@@ -9,12 +9,12 @@ import { fadeLeft, fadeRight } from "./animations";
 
 const faqs = [
   {
-    q: "How do the three pillars connect?",
-    a: "Quality Check validates the device, Cosmetic Grading captures visible condition, and Pricing Intelligence converts that combined record into channel-ready value.",
+    q: "How do Gadget Evaluate and Gadget Lens connect?",
+    a: "Gadget Evaluate runs functional tests and calculates a condition grade, while Gadget Lens captures cosmetic condition through photo-based inspection. Together they give you one combined functional and cosmetic record for every device.",
   },
   {
-    q: "Can we roll out one pillar at a time?",
-    a: "Yes. You can start with QC only, add grading when needed, and enable pricing later without changing the overall workflow logic.",
+    q: "Can we start with just one product?",
+    a: "Yes. You can start with Gadget Evaluate for functional testing and grading, and add Gadget Lens for cosmetic inspection whenever your workflow needs it.",
   },
   {
     q: "How is Gadget IQ different from a standard diagnostic tool?",
@@ -35,6 +35,22 @@ const faqs = [
   {
     q: "Is Gadget IQ suitable for international recommerce teams?",
     a: "Yes. The page and workflow are positioned for ITAD, refurbishment, wholesale, retail resale and recommerce operations across global markets.",
+  },
+  {
+    q: "What is a license?",
+    a: "A license lets you run one device through Gadget IQ's diagnostics and grading. Your plan includes a set number of licenses, and each completed assessment uses one.",
+  },
+  {
+    q: "Do licenses expire?",
+    a: "Yes. Licenses are valid for a set period from the date they're issued. You can check your renewal date and remaining balance from your account dashboard.",
+  },
+  {
+    q: "Can one license be used for Evaluate and Lens?",
+    a: "No. Gadget Evaluate and Gadget Lens draw from separate license pools, since they run different assessments: functional testing versus cosmetic grading.",
+  },
+  {
+    q: "How do I top up my wallet?",
+    a: "Reach out to your account manager or our support team to add funds or purchase more licenses. We'll confirm once your balance is updated.",
   },
 ];
 

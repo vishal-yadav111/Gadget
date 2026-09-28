@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import SectionHeading from "@/components/ui/SectionHeading";
-import { Play, Cpu, Eye, Award, ArrowRight } from "lucide-react";
+import { Play, Cpu, Award, ArrowRight } from "lucide-react";
 import MagneticButton from "@/components/ui/MagneticButton";
 
 export default function HowItWorks() {
@@ -18,13 +18,8 @@ export default function HowItWorks() {
       icon: Cpu,
     },
     {
-      title: "Review",
-      desc: "See the results as the assessment progresses.",
-      icon: Eye,
-    },
-    {
-      title: "Certify",
-      desc: "Complete the assessment and generate a digital record.",
+      title: "Report",
+      desc: "Get the results as a certified digital report.",
       icon: Award,
     },
   ];
@@ -42,7 +37,7 @@ export default function HowItWorks() {
         />
 
         {/* Desktop Horizontal Timeline (Hidden on Mobile) */}
-        <div className="hidden lg:grid grid-cols-4 gap-8 relative mt-10 w-full">
+        <div className="hidden lg:grid grid-cols-3 gap-8 relative mt-10 w-full">
           {/* Continuous Full-Width Connecting Line passing directly behind the center of the icons */}
           <div className="absolute top-10 -left-[50vw] -right-[50vw] h-[2px] bg-slate-300 z-0 -translate-y-1/2 pointer-events-none overflow-hidden">
             <motion.div
@@ -133,7 +128,7 @@ export default function HowItWorks() {
             href="#contact"
             className="px-8 py-4 rounded-full bg-gradient-to-r from-brand-btn-orange to-brand-btn-orange-highlight text-white font-bold text-base shadow-xl shadow-brand-btn-orange/25 hover:shadow-brand-btn-orange/55 flex items-center justify-center space-x-2 border border-brand-btn-orange/30 group transition-all duration-300"
           >
-            <span>Get a Free Trial</span>
+            <span>Book a Demo</span>
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </MagneticButton>
         </motion.div>

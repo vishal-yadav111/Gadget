@@ -32,13 +32,13 @@ interface BookDemoProps {
   ctaLabel?: string;
 }
 
-export default function BookDemo({ ctaLabel = "Request Free Trial" }: BookDemoProps) {
+export default function BookDemo({ ctaLabel = "Book a Demo" }: BookDemoProps) {
   const [demoForm, setDemoForm] = useState<DemoFormState>({
     name: "",
     company: "",
     email: "",
     phone: "",
-    device: "Both",
+    device: "Windows",
     volume: "",
     message: "",
   });
@@ -83,7 +83,9 @@ export default function BookDemo({ ctaLabel = "Request Free Trial" }: BookDemoPr
       fieldErrors.phone = "Invalid phone number";
     }
 
-    if (demoForm.company && demoForm.company.length > 80) {
+    if (!demoForm.company.trim()) {
+      fieldErrors.company = "Company is required";
+    } else if (demoForm.company.length > 80) {
       fieldErrors.company = "Company name cannot exceed 80 characters";
     }
 
@@ -134,7 +136,7 @@ export default function BookDemo({ ctaLabel = "Request Free Trial" }: BookDemoPr
         company: "",
         email: "",
         phone: "",
-        device: "Both",
+        device: "Windows",
         volume: "",
         message: "",
       });
@@ -165,7 +167,7 @@ export default function BookDemo({ ctaLabel = "Request Free Trial" }: BookDemoPr
           <div className="relative grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
             <motion.div variants={fadeLeft}>
               <p className="text-xs uppercase tracking-[0.25em] text-[#0052CC] font-bold font-display">
-                book a free trial
+                book a demo
               </p>
               <h2 className="mt-3 max-w-2xl text-[16px] font-bold leading-tight tracking-tight text-[#17284D] sm:text-[22px] lg:text-[26px] font-display">
                 See how Gadget IQ can fit your{" "}
@@ -214,7 +216,7 @@ export default function BookDemo({ ctaLabel = "Request Free Trial" }: BookDemoPr
                   </label>
 
                   <label className="block">
-                    <span className={labelClass}>company</span>
+                    <span className={labelClass}>company *</span>
                     <input
                       name="company"
                       value={demoForm.company}
@@ -260,10 +262,9 @@ export default function BookDemo({ ctaLabel = "Request Free Trial" }: BookDemoPr
                       onChange={updateDemoForm}
                       className={`${fieldClass} cursor-pointer font-medium`}
                     >
-                      <option value="Both">Laptop and Mobile</option>
-                      <option value="Laptop">Laptop only</option>
-                      <option value="Mobile">Mobile only</option>
+                      <option value="Windows">Windows laptop</option>
                       <option value="MacBook">MacBook</option>
+                      <option value="Mobile" disabled>Mobile (coming soon)</option>
                     </select>
                   </label>
 
