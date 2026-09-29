@@ -31,8 +31,6 @@ export const laptopTests = [
   { name: "HDMI Port Test", type: "Assisted" },
   { name: "Battery Charging Test", type: "Assisted" },
   { name: "Battery Discharging Test", type: "Assisted" },
-  { name: "UUID Test", type: "Automatic" },
-  { name: "S4 State Test", type: "Assisted" },
   { name: "Realtime Clock Test", type: "Automatic" },
   { name: "Win Activation Test", type: "Automatic" },
   { name: "Battery Stress Test", type: "Automatic" }

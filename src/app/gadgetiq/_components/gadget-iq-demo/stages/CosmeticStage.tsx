@@ -1,10 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { AlertTriangle, CheckCircle2, Circle, History, Search, Sparkles } from "lucide-react";
-import Button from "@/components/ui/Button";
-import Badge from "@/components/ui/Badge";
-import { Switch } from "../ui";
+import { Switch, Button, Badge, Spinner } from "../ui";
+import { Ico } from "../icons";
 import * as D from "../data";
 import type { Defect } from "../data";
 import { markPaths } from "../renders";
@@ -17,6 +15,8 @@ const SEV_COLOR: Record<Defect["severity"], { box: string; label: string }> = {
   Medium: { box: "var(--brand-accent)", label: "var(--accent-ink)" },
   Severe: { box: "var(--status-danger)", label: "var(--status-danger)" },
 };
+
+const EYEBROW = "text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-secondary)]";
 
 export function CosmeticStage({ state, demo, tc, sw }: { state: DemoState; demo: GadgetIqDemo; tc: number; sw: number }) {
   const sc = demo.sc();
@@ -72,12 +72,12 @@ export function CosmeticStage({ state, demo, tc, sw }: { state: DemoState; demo:
   const C = 2 * Math.PI * 42;
 
   return (
-    <div className="grid grid-cols-1 items-start gap-4 p-4" style={{ gridTemplateColumns: sw >= 820 ? "minmax(0,1.2fr) minmax(0,1fr)" : "minmax(0,1fr)" }}>
+    <div className="grid items-start gap-4 p-4" style={{ gridTemplateColumns: sw >= 820 ? "minmax(0,1.2fr) minmax(0,1fr)" : "minmax(0,1fr)" }}>
       <div className="flex min-w-0 flex-col gap-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-col gap-0.5">
             <span className="font-display text-lg font-bold">{state.checklist ? "Checklist" : "6 photos"}</span>
-            <span className="text-[13px] text-[#4A5875]">{cosStatus}</span>
+            <span className="text-[13px] text-[var(--text-secondary)]">{cosStatus}</span>
           </div>
           <Switch label="Grade with a checklist instead (no AI)" checked={state.checklist} onChange={demo.toggleChecklist} />
         </div>
@@ -91,7 +91,7 @@ export function CosmeticStage({ state, demo, tc, sw }: { state: DemoState; demo:
               const found = sc.defects.filter((d) => d.angle === a);
               const waitingPhotos = state.waiting === "photos" && !taken;
               const severe = found.some((d) => d.severity === "Severe");
-              const flash = !rm && taken && flashT >= 0 && flashT < 250 ? 0.9 * (1 - flashT / 250) : 0;
+              const flash = !rm && taken && flashT >= 0 && flashT < 250 ? (0.9 * (1 - flashT / 250)).toFixed(2) : 0;
               const note = !taken ? "" : !scanned ? (scanning ? "Scanning…" : "Taken") : found.length ? `${found.length} ${found.length === 1 ? "mark" : "marks"} found` : "No marks found";
               const noteColor = !scanned ? "var(--text-tertiary)" : !found.length ? "var(--status-success)" : severe ? "var(--status-danger)" : "var(--status-warning)";
               return (
@@ -102,10 +102,10 @@ export function CosmeticStage({ state, demo, tc, sw }: { state: DemoState; demo:
                     aria-label={`${a} photo`}
                     onClick={() => demo.takePhoto(i)}
                     onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); demo.takePhoto(i); } }}
-                    className="relative overflow-hidden rounded-lg border bg-[#E9EEF9]"
-                    style={{ aspectRatio: "4/3", borderColor: waitingPhotos ? "var(--brand-primary)" : "var(--border-subtle)", cursor: waitingPhotos ? "pointer" : "default" }}
+                    className="relative box-content aspect-[4/3] overflow-hidden rounded-[var(--radius-md)] border bg-[var(--surface-sunken)]"
+                    style={{ borderColor: waitingPhotos ? "var(--brand-primary)" : "var(--border-subtle)", cursor: waitingPhotos ? "pointer" : "default" }}
                   >
-                    {taken ? (
+                    {taken && (
                       <>
                         <div role="img" aria-label={`${sc.name}, ${a.toLowerCase()} view`} className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url("${demo.imgFor(sc.id, a)}")` }} />
                         <svg viewBox="0 0 400 300" className="absolute inset-0 h-full w-full" aria-hidden="true">
@@ -118,25 +118,25 @@ export function CosmeticStage({ state, demo, tc, sw }: { state: DemoState; demo:
                           const hot = state.hoverKey === keyOf(d);
                           const col = SEV_COLOR[d.severity];
                           return (
-                            <div key={keyOf(d)} className="absolute transition-opacity duration-200" style={{ left: `${d.box!.x}%`, top: `${d.box!.y}%`, width: `${d.box!.w}%`, height: `${d.box!.h}%`, opacity: shown ? 1 : 0 }}>
+                            <div key={keyOf(d)} className="absolute transition-[opacity] duration-200 ease-[cubic-bezier(.2,.7,.3,1)]" style={{ left: `${d.box!.x}%`, top: `${d.box!.y}%`, width: `${d.box!.w}%`, height: `${d.box!.h}%`, opacity: shown ? 1 : 0 }}>
                               <button
+                                type="button"
                                 onClick={(e) => { e.stopPropagation(); demo.openZoomFor(keyOf(d)); }}
                                 onMouseEnter={() => demo.setHoverKey(keyOf(d))}
                                 onMouseLeave={() => demo.setHoverKey(null)}
                                 aria-label={D.findingText(d)}
-                                className="absolute -inset-[3px] cursor-zoom-in rounded p-0"
+                                className="absolute -inset-[3px] cursor-zoom-in rounded-[var(--radius-xs)] p-0"
                                 style={{ border: `${hot ? 3 : 2}px solid ${col.box}`, background: hot ? "rgba(255,255,255,.12)" : "transparent", boxShadow: hot ? "0 0 0 3px rgba(0,82,204,.35)" : "none" }}
                               />
-                              <span className="pointer-events-none absolute bottom-full left-[-3px] mb-[3px] whitespace-nowrap rounded px-1 py-px text-[10px] font-semibold text-white" style={{ background: col.label }}>{d.type}</span>
+                              <span className="pointer-events-none absolute -left-[3px] bottom-full mb-[3px] whitespace-nowrap rounded-[3px] px-1 py-px text-[10px] font-semibold text-white" style={{ background: col.label }}>{d.type}</span>
                             </div>
                           );
                         })}
                       </>
-                    ) : (
+                    )}
+                    {!taken && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center gap-1" style={{ color: waitingPhotos ? "var(--brand-primary)" : "var(--text-tertiary)" }}>
-                        <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                          <path d="M4 8h3.5l1.8-2.5h5.4L16.5 8H20v11H4zM12 10a3.5 3.5 0 1 1 0 7a3.5 3.5 0 1 1 0-7z" />
-                        </svg>
+                        <Ico name="camera" size={22} />
                         <span className="text-xs font-medium">{waitingPhotos ? "Tap to take" : "Waiting"}</span>
                       </div>
                     )}
@@ -159,9 +159,9 @@ export function CosmeticStage({ state, demo, tc, sw }: { state: DemoState; demo:
         )}
 
         {state.checklist && (
-          <div className="flex flex-col overflow-hidden rounded-lg border border-[#DDE4F3]">
+          <div className="flex flex-col overflow-hidden rounded-[var(--radius-md)] border border-[var(--border-subtle)]">
             {D.CHECKLIST.map((q) => (
-              <div key={q.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-[#DDE4F3] px-3 py-2.5 last:border-b-0">
+              <div key={q.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-subtle)] px-3 py-2.5">
                 <span className="text-sm">{q.q}</span>
                 <div role="radiogroup" aria-label={q.q} className="flex flex-wrap gap-1.5">
                   {q.options.map((o) => {
@@ -169,11 +169,12 @@ export function CosmeticStage({ state, demo, tc, sw }: { state: DemoState; demo:
                     return (
                       <button
                         key={o}
+                        type="button"
                         role="radio"
                         aria-checked={on}
                         onClick={() => demo.answer(q.id, o)}
-                        className="min-h-9 rounded-md border px-3 text-[13px] font-medium"
-                        style={{ borderColor: on ? "var(--brand-primary)" : "var(--border-default)", background: on ? "var(--brand-primary)" : "#fff", color: on ? "#fff" : "var(--text-primary)" }}
+                        className="min-h-9 cursor-pointer rounded-[var(--radius-sm)] border px-3 text-[13px] font-medium"
+                        style={{ borderColor: on ? "var(--brand-primary)" : "var(--border-default)", background: on ? "var(--brand-primary)" : "var(--surface-card)", color: on ? "var(--text-on-brand)" : "var(--text-primary)" }}
                       >
                         {o}
                       </button>
@@ -186,110 +187,136 @@ export function CosmeticStage({ state, demo, tc, sw }: { state: DemoState; demo:
         )}
       </div>
 
-      <div aria-label="Gadget Lens analysis" className="flex min-w-0 flex-col gap-4 rounded-lg border border-[#DDE4F3] bg-[#F4F6FB] p-4">
+      <div aria-label="Gadget Lens analysis" className="flex min-w-0 flex-col gap-4 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--surface-page)] p-4">
         {!state.checklist && (
           <>
             <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-1.5"><Sparkles size={16} className="text-brand-primary" /><span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#4A5875]">AI is looking at each photo</span></div>
+              <div className="flex items-center gap-1.5">
+                <Ico name="sparkle" color="var(--brand-primary)" />
+                <span className={EYEBROW}>AI is looking at each photo</span>
+              </div>
               {lensSteps.map((st) => (
                 <div key={st.label} className="flex min-h-6 items-center gap-2 text-sm" style={{ color: st.done || st.running ? "var(--text-primary)" : "var(--text-tertiary)" }}>
-                  {st.done ? <CheckCircle2 size={18} className="text-brand-success" /> : st.running ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#DDE4F3] border-t-brand-primary" /> : <Circle size={18} className="text-[#C3CEE6]" />}
+                  {st.done && <Ico name="checkCircle" size={18} color="var(--status-success)" />}
+                  {st.running && <Spinner size={16} />}
+                  {st.pending && <Ico name="circle" size={18} color="var(--border-default)" />}
                   <span>{st.label}</span>
                 </div>
               ))}
             </div>
             <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between"><span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#4A5875]">What the AI found</span><span className="font-mono text-xs text-[#5F6A86]">{visibleFindings.length}</span></div>
+              <div className="flex items-center justify-between">
+                <span className={EYEBROW}>What the AI found</span>
+                <span className="font-mono text-xs text-[var(--text-tertiary)]">{visibleFindings.length}</span>
+              </div>
               {visibleFindings.map((d) => {
                 const fp = rm ? 1 : D.ease((tc - revealAt(d)) / 300);
                 const hot = state.hoverKey === keyOf(d);
+                const enter = () => demo.setHoverKey(keyOf(d));
+                const leave = () => demo.setHoverKey(null);
                 return (
                   <button
                     key={keyOf(d)}
+                    type="button"
                     onClick={() => demo.openZoomFor(keyOf(d))}
-                    onMouseEnter={() => demo.setHoverKey(keyOf(d))}
-                    onMouseLeave={() => demo.setHoverKey(null)}
-                    className="flex min-h-11 w-full items-center gap-2.5 rounded-md border bg-white px-2.5 py-2 text-left cursor-zoom-in"
-                    style={{ borderColor: hot ? "var(--brand-primary)" : "var(--border-subtle)", opacity: fp, transform: `translateY(${((1 - fp) * 6).toFixed(1)}px)` }}
+                    onMouseEnter={enter}
+                    onMouseLeave={leave}
+                    onFocus={enter}
+                    onBlur={leave}
+                    className="flex min-h-11 w-full cursor-zoom-in items-center gap-2.5 rounded-[var(--radius-sm)] border bg-[var(--surface-card)] px-2.5 py-2 text-left"
+                    style={{ borderColor: hot ? "var(--brand-primary)" : "var(--border-subtle)", opacity: fp.toFixed(2), transform: `translateY(${((1 - fp) * 6).toFixed(1)}px)` }}
                   >
-                    <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ background: SEV_COLOR[d.severity].box }} />
+                    <span className="h-2.5 w-2.5 flex-none rounded-[2px]" style={{ background: SEV_COLOR[d.severity].box }} />
                     <span className="flex min-w-0 flex-1 flex-col gap-px">
                       <span className="text-sm font-semibold">{d.type} · {d.where}</span>
-                      <span className="text-xs text-[#4A5875]">{d.severity}</span>
+                      <span className="text-xs text-[var(--text-secondary)]">{d.severity}</span>
                     </span>
-                    <span className="shrink-0 font-mono text-[13px] font-semibold">{d.confidence}% sure</span>
-                    <Search size={16} className="shrink-0 text-[#5F6A86]" />
+                    <span className="flex-none font-mono text-[13px] font-semibold">{d.confidence}% sure</span>
+                    <Ico name="zoom" color="var(--text-tertiary)" className="flex-none" />
                   </button>
                 );
               })}
-              {!visibleFindings.length && <span className="text-[13px] text-[#5F6A86]">{tc >= tlc.scanEnd ? "No marks found." : "Findings appear here as each photo is checked."}</span>}
+              {!visibleFindings.length && <span className="text-[13px] text-[var(--text-tertiary)]">{tc >= tlc.scanEnd ? "No marks found." : "Findings appear here as each photo is checked."}</span>}
             </div>
           </>
         )}
 
         <div className="flex flex-col gap-3" style={{ paddingTop: state.checklist ? 0 : 16, borderTop: state.checklist ? "none" : "1px solid var(--border-subtle)" }}>
-          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#4A5875]">{state.checklist ? "Checklist grade" : "Grade and confidence"}</span>
+          <span className={EYEBROW}>{state.checklist ? "Checklist grade" : "Grade and confidence"}</span>
           <div className="flex min-h-24 flex-wrap items-center justify-between gap-4">
-            {gradeShown ? (
+            {gradeShown && (
               <>
                 <div className="flex min-w-0 items-center gap-3.5">
-                  <span className="origin-left font-display text-6xl font-extrabold leading-none tracking-tight" style={{ color: gradeRes.color, transform: `scale(${(0.7 + 0.3 * gp).toFixed(3)})`, opacity: gp.toFixed(2) }}>{gradeRes.letter}</span>
+                  <span className="origin-left font-display text-[64px] font-extrabold leading-none tracking-[-0.022em]" style={{ color: gradeRes.color, transform: `scale(${(0.7 + 0.3 * gp).toFixed(3)})`, opacity: gp.toFixed(2) }}>{gradeRes.letter}</span>
                   <div className="flex min-w-0 flex-col gap-0.5" style={{ opacity: gp.toFixed(2) }}>
                     <span className="font-display text-xl font-bold">{gradeRes.letter} · {gradeRes.name}</span>
-                    <span className="text-[13px] text-[#4A5875]">{gradeRes.meaning}</span>
+                    <span className="text-[13px] text-[var(--text-secondary)]">{gradeRes.meaning}</span>
                   </div>
                 </div>
                 {!state.checklist && (
                   <div className="flex items-center gap-2.5">
-                    <div className="relative h-[76px] w-[76px] shrink-0">
+                    <div className="relative h-[76px] w-[76px] flex-none">
                       <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90" aria-hidden="true">
                         <circle cx="50" cy="50" r="42" fill="none" stroke="var(--surface-sunken)" strokeWidth="10" />
                         <circle cx="50" cy="50" r="42" fill="none" stroke={TONE_COLOR[lc.tone]} strokeWidth="10" strokeLinecap="round" strokeDasharray={`${((C * sc.confidence * rp) / 100).toFixed(1)} ${C.toFixed(1)}`} />
                       </svg>
                       <span className="absolute inset-0 grid place-items-center font-display text-lg font-bold">{Math.round(sc.confidence * rp)}%</span>
                     </div>
-                    <span className="max-w-[110px] text-xs leading-snug text-[#4A5875]">How sure the AI is about this grade</span>
+                    <span className="max-w-[110px] text-xs leading-[1.4] text-[var(--text-secondary)]">How sure the AI is about this grade</span>
                   </div>
                 )}
                 {state.checklist && <Badge tone="neutral">Checklist grade</Badge>}
               </>
-            ) : (
-              <div className="flex items-center gap-2.5 text-sm text-[#4A5875]">
-                <History size={20} />
+            )}
+            {!gradeShown && (
+              <div className="flex items-center gap-2.5 text-sm text-[var(--text-secondary)]">
+                <Ico name="sigma" size={20} />
                 <span>{state.checklist ? "Grade appears after the answers." : "Grade appears after the scan."}</span>
               </div>
             )}
           </div>
           {gradeShown && !state.checklist && rp >= 1 && (
             <div className="flex items-start gap-2 text-[13px] font-medium" style={{ color: TONE_COLOR[lc.tone] }}>
-              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="mt-px shrink-0" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8-7 10c-4-2-7-5.5-7-10V6zM9 12l2 2 4-4" /></svg>
+              <Ico name="shield" className="mt-px flex-none" />
               <span>{lc.text}</span>
             </div>
           )}
           <div className="flex flex-col gap-1.5">
             <span className="text-[13px] font-semibold">Why this grade</span>
-            {gradeShown
-              ? why.items.map((x, i) => (
-                  <div key={i} className="flex items-start gap-2 text-sm text-[#4A5875]">
-                    {defects.length ? <AlertTriangle size={16} className="mt-0.5 shrink-0 text-brand-warning" /> : <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-brand-success" />}
-                    <span>{x}</span>
-                  </div>
-                ))
-              : <div className="flex items-start gap-2 text-sm text-[#4A5875]"><History size={16} className="mt-0.5 shrink-0 text-[#5F6A86]" /><span>Shown once the grade is ready.</span></div>}
+            {gradeShown ? (
+              why.items.map((x, i) => (
+                <div key={i} className="flex items-start gap-2 text-sm text-[var(--text-secondary)]">
+                  <Ico name={defects.length ? "warn" : "check"} color={defects.length ? "var(--status-warning)" : "var(--status-success)"} className="mt-0.5 flex-none" />
+                  <span>{x}</span>
+                </div>
+              ))
+            ) : (
+              <div className="flex items-start gap-2 text-sm text-[var(--text-secondary)]">
+                <Ico name="sigma" color="var(--text-tertiary)" className="mt-0.5 flex-none" />
+                <span>Shown once the grade is ready.</span>
+              </div>
+            )}
           </div>
           <div className="flex flex-col gap-1.5">
-            <div className="grid grid-cols-7 gap-[3px]">
+            <div className="grid gap-[3px]" style={{ gridTemplateColumns: "repeat(7,minmax(0,1fr))" }}>
               {D.GRADE_SCALE.map((g) => {
                 const on = gradeShown && g.letter === gradeRes.letter;
                 return (
-                  <div key={g.letter} title={`${g.letter} · ${g.name}: ${g.meaning}`} className="grid h-7 place-items-center rounded text-xs font-bold transition-colors" style={{ background: on ? g.color : "var(--surface-sunken)", color: on ? "#fff" : "var(--text-tertiary)" }}>{g.letter}</div>
+                  <div
+                    key={g.letter}
+                    title={`${g.letter} · ${g.name}: ${g.meaning}`}
+                    className="grid h-7 place-items-center rounded-[var(--radius-xs)] text-xs font-bold transition-[background] duration-200 ease-[cubic-bezier(.2,.7,.3,1)]"
+                    style={{ background: on ? g.color : "var(--surface-sunken)", color: on ? "var(--text-on-brand)" : "var(--text-tertiary)" }}
+                  >
+                    {g.letter}
+                  </div>
                 );
               })}
             </div>
-            <div className="flex justify-between text-[11px] text-[#5F6A86]"><span>Like new</span><span>For parts</span></div>
+            <div className="flex justify-between text-[11px] text-[var(--text-tertiary)]"><span>Like new</span><span>For parts</span></div>
           </div>
-          {gradeShown && <Button variant="primary" full onClick={demo.next} iconAfter={<span aria-hidden>→</span>}>Next: certificate</Button>}
-          {!state.checklist && <span className="text-xs text-[#5F6A86]">Gadget Lens AI grading is in Beta.</span>}
+          {gradeShown && <Button variant="primary" full onClick={demo.next} iconAfter={<Ico name="arrowRight" />}>Next: certificate</Button>}
+          {!state.checklist && <span className="text-xs text-[var(--text-tertiary)]">Gadget Lens AI grading is in Beta.</span>}
         </div>
       </div>
     </div>

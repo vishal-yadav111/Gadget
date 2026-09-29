@@ -6,7 +6,7 @@ import "./certificate.css";
 
 export const metadata: Metadata = {
   title: "Official Quality Assurance Certificate | XtraCover XC-QC",
-  description: "Cryptographically verified 64-point diagnostic test record and refurbishment assurance certificate.",
+  description: "Cryptographically verified 35-point diagnostic test record and refurbishment assurance certificate.",
 };
 
 interface PageProps {

@@ -1,8 +1,7 @@
 "use client";
 
-import { Pause, Play, RotateCcw, SkipBack, SkipForward } from "lucide-react";
-import Button from "@/components/ui/Button";
-import { Segmented, Kbd } from "../ui";
+import { Button, Segmented, Kbd } from "../ui";
+import { Ico } from "../icons";
 
 export function PlaybackControls({
   playing,
@@ -26,19 +25,19 @@ export function PlaybackControls({
   showKbd: boolean;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-      <Button variant="primary" onClick={onTogglePlay} icon={playing ? <Pause size={16} /> : <Play size={16} />}>
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+      <Button variant="primary" onClick={onTogglePlay} icon={<Ico name={playing ? "pause" : "play"} fill />}>
         {playLabel}
       </Button>
       <Segmented options={["1x", "2x"] as const} value={speedVal} onChange={onSetSpeed} ariaLabel="Speed" size="sm" />
-      <Button variant="ghost" onClick={onPrev} aria-label="Previous step" icon={<SkipBack size={18} />} />
-      <Button variant="ghost" onClick={onNext} aria-label="Next step" icon={<SkipForward size={18} />} />
-      <Button variant="ghost" onClick={onRestart} icon={<RotateCcw size={18} />}>
+      <Button variant="ghost" onClick={onPrev} aria-label="Previous step" icon={<Ico name="skipPrev" size={18} fill />} />
+      <Button variant="ghost" onClick={onNext} aria-label="Next step" icon={<Ico name="skipNext" size={18} fill />} />
+      <Button variant="ghost" onClick={onRestart} icon={<Ico name="restart" size={18} />}>
         Restart
       </Button>
       <span className="flex-1" />
       {showKbd && (
-        <span className="flex items-center gap-1.5 text-xs text-[#5F6A86]">
+        <span className="flex items-center gap-1.5 text-xs text-[var(--text-tertiary)]">
           <Kbd>Space</Kbd> play or pause
           <Kbd>←</Kbd>
           <Kbd>→</Kbd> steps

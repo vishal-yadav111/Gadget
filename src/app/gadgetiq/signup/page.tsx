@@ -34,7 +34,7 @@ import "../_components/home.css";
 const platformBullets = [
   {
     icon: Cpu,
-    title: "64-Point Subsystem Sweep",
+    title: "35-Point Subsystem Sweep",
     desc: "Automated hardware diagnostics for mobile, laptop, and desktop motherboards.",
   },
   {

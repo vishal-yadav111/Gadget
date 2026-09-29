@@ -8,6 +8,7 @@ import SectionSkeleton from "@/components/ui/SectionSkeleton";
 import Hero from "./_components/Hero";
 import "./_components/home.css";
 import CoreFeatures from "./_components/CoreFeatures";
+import TestParameters from "./_components/TestParameters";
 import DiagnosticsHero from "./_components/DiagnosticsHero";
 import HowWeCheck from "./_components/HowWeCheck";
 import BusinessSolutions from "./(evaluate)/_components/business-solutions/BusinessSolutions";
@@ -58,9 +59,10 @@ export default function GadgetIQPage() {
       <main className="relative z-10 flex flex-col w-full">
         {/* <Hero /> */}
         <DiagnosticsHero />
+        <CoreFeatures />
+        {/* <TestParameters /> */}
         <GadgetIQWorkflow />
         <VideoShowcase />
-        <CoreFeatures/>
 
         <HowWeCheck />
         <BusinessSolutions />

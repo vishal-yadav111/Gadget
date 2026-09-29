@@ -278,15 +278,9 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* ================= LOGO ================= */}
           <Link
-            href={
-              isEvaluate
-                ? "/gadgetiq/evaluate"
-                : "/gadgetiq"
-            }
+            href="/gadgetiq"
             onClick={(e) => {
-              const targetPath = isEvaluate
-                ? "/gadgetiq/evaluate"
-                : "/gadgetiq";
+              const targetPath = "/gadgetiq";
 
               if (pathname === targetPath) {
                 e.preventDefault();
@@ -547,7 +541,7 @@ export default function Navbar() {
               {/* SIDEBAR HEADER */}
               <div className="flex items-center justify-between pb-4 border-b border-brand-border/60">
                 <Link
-                  href={isEvaluate ? "/gadgetiq/evaluate" : "/gadgetiq"}
+                  href="/gadgetiq"
                   onClick={() => setMobileMenuOpen(false)}
                   className="cursor-pointer flex flex-col items-start"
                 >

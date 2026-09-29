@@ -1,6 +1,6 @@
 "use client";
 
-import { Wallet } from "lucide-react";
+import { Ico } from "../icons";
 
 export function AppHeaderBar({
   appTitle,
@@ -16,11 +16,11 @@ export function AppHeaderBar({
   onOpenLicence: () => void;
 }) {
   return (
-    <div className="relative flex h-[52px] shrink-0 items-center justify-between gap-3 bg-[#17284D] px-4 pl-4 text-white">
-      <div className="flex min-w-0 flex-1 items-center gap-2">
-        <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-display text-[15px] font-bold tracking-tight">{appTitle}</span>
+    <div className="relative flex h-[52px] flex-none items-center justify-between gap-3 bg-[var(--surface-inverse)] pl-4 pr-3 text-white">
+      <div className="flex min-w-0 flex-auto items-center gap-2">
+        <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-display text-[15px] font-bold tracking-[-0.012em]">{appTitle}</span>
         {showBeta && (
-          <span className="shrink-0 rounded border border-white/40 px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white">Beta</span>
+          <span className="flex-none rounded-[var(--radius-xs)] border border-white/40 px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-white">Beta</span>
         )}
       </div>
       <button
@@ -29,9 +29,9 @@ export function AppHeaderBar({
         aria-haspopup="dialog"
         aria-label={walletAria}
         title={walletAria}
-        className="flex h-9 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-white/25 bg-white/10 px-2.5 text-[13px] text-white transition-colors hover:bg-white/20"
+        className="flex h-9 min-w-11 flex-none cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-[var(--radius-sm)] border border-white/[.24] bg-white/[.08] px-2.5 text-[13px] text-white hover:bg-white/[.16]"
       >
-        <Wallet size={16} aria-hidden="true" />
+        <Ico name="wallet" />
         <span className="font-mono font-semibold">{walletText}</span>
       </button>
     </div>

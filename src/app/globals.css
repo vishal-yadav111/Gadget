@@ -5,7 +5,7 @@
   --foreground: #17284D;
   --font-sans: var(--font-inter), "Inter", sans-serif;
   --font-display: var(--font-sora), "Sora", sans-serif;
-  --font-mono: var(--font-geist-mono), JetBrains Mono, monospace;
+  --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, monospace;
 
   /* XtraCover Tech Brand Kit v3.0 Semantic Tokens */
   --brand-primary: #0052CC;
@@ -100,6 +100,7 @@
 
   --font-sans: var(--font-sans);
   --font-display: var(--font-display);
+  --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, monospace;
 
   --animate-scan-line: scan-line 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   --animate-float: float 6s ease-in-out infinite;

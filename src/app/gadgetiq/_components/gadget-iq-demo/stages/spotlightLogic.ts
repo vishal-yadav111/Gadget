@@ -1,6 +1,7 @@
 import * as D from "../data";
 import type { ScheduledTest, Scenario, StageTimeline } from "../data";
 import type { DemoState } from "../types";
+import { PATHS } from "../icons";
 
 export type TestStatus = "wait" | "run" | "pass" | "fail";
 
@@ -11,17 +12,27 @@ const STATUS_COLOR: Record<TestStatus, string> = {
   fail: "var(--status-danger)",
 };
 
+export function testStatus(x: ScheduledTest, tf: number, fr: ReturnType<typeof D.functionalResults>): TestStatus {
+  return tf < x.start ? "wait" : tf < x.end ? "run" : fr.res[x.id].pass ? "pass" : "fail";
+}
+
+/** The test the spotlight is showing: the running one, else the last (finished) or first (not started). */
+export function currentTest(sched: ScheduledTest[], tlc: StageTimeline, tf: number, fr: ReturnType<typeof D.functionalResults>) {
+  const curT = sched.find((x) => testStatus(x, tf, fr) === "run") || (tf >= tlc.testsEnd ? sched[sched.length - 1] : sched[0]);
+  return { curT, cstat: testStatus(curT, tf, fr), p: D.clamp((tf - curT.start) / curT.durationMs) };
+}
+
 export interface SpotlightView {
   isDisplay?: boolean; isAudio?: boolean; isBattery?: boolean; isKeyboard?: boolean; isTouchpad?: boolean;
   isPorts?: boolean; isWireless?: boolean; isCamera?: boolean; isPerformance?: boolean; isStorage?: boolean; isSystem?: boolean;
 
-  showGrid?: boolean; showSweep?: boolean; dim?: string; cells?: string[]; displayNote?: string;
+  showGrid?: boolean; showSweep?: boolean; bands?: string[]; sweepX?: string; dim?: string; cells?: string[]; displayNote?: string;
   bars?: { h: string; bg: string }[]; lColor?: string; rColor?: string; audioNote?: string;
   batVal?: string; batFill?: string; batColor?: string; limitLeft?: string; limitLabel?: string; cycles?: string; charging?: string;
   kbRows?: { keys: { label: string; flex: number; press: () => void; disabled: boolean; pressed: boolean; cursor: string; bg: string; fg: string }[] }[];
   kbPrompt?: boolean; kbCount?: number; kbNote?: string;
   padPts?: string; padDone?: boolean; padPrompt?: string; padBorder?: string;
-  ports?: { name: string; state: string; color: string }[];
+  ports?: { name: string; icon: string; state: string; color: string }[];
   signal?: { h: string; bg: string }[]; signalLabel?: string; signalColor?: string; speed?: number; bt?: string; wifiNote?: string;
   camNoPic?: boolean; camPic?: boolean; camLabel?: string; recO?: string; mic?: string;
   meters?: { label: string; value: string; w: string; bg: string }[];
@@ -37,6 +48,7 @@ const KB: string[][] = [
   ["Ctrl", "Alt", "Space", "Alt", "Fn"],
 ];
 const KB_FLAT = KB.flat();
+const PORT_ICON: Record<string, string> = { USB: PATHS.usb, HDMI: PATHS.tv, VGA: PATHS.tv, Ethernet: PATHS.eth, "SD card": PATHS.sd, "Disc drive": PATHS.disc };
 
 export function computeSpotlight(params: {
   x: ScheduledTest;
@@ -69,6 +81,8 @@ export function computeSpotlight(params: {
     const grid = x.id === "dsp-display";
     sp.showGrid = grid;
     sp.showSweep = !grid;
+    sp.bands = ["var(--surface-card)", "var(--brand-accent)", "var(--status-success)", "var(--brand-primary)", "var(--text-secondary)"];
+    sp.sweepX = "0%";
     sp.dim = (done ? 0 : 0.75 * (1 - p)).toFixed(2);
     const n = Math.floor(p * 84);
     sp.cells = Array.from({ length: 84 }, (_, i) => (done || i < n ? "rgba(0,82,204,.55)" : i === n ? "var(--brand-accent)" : "rgba(255,255,255,.05)"));
@@ -136,7 +150,7 @@ export function computeSpotlight(params: {
       .filter((y) => y.spotlight === "ports")
       .map((y) => {
         const stt = stOf(y);
-        return { name: y.port!, state: { wait: "Waiting", run: "Checking…", pass: "Works", fail: "Not working" }[stt], color: STATUS_COLOR[stt] };
+        return { name: y.port!, icon: PORT_ICON[y.port!], state: { wait: "Waiting", run: "Checking…", pass: "Works", fail: "Not working" }[stt], color: STATUS_COLOR[stt] };
       });
   }
   if (k === "wireless") {

@@ -277,7 +277,7 @@ export default function LaptopMockup() {
                         </div>
                       </div>
                       <div className="text-center sm:text-left shrink-0">
-                        <span className="text-[6.5px] sm:text-[8px] lg:text-[9.5px] font-bold text-slate-800 block leading-tight">37 Of 37 tests passed</span>
+                        <span className="text-[6.5px] sm:text-[8px] lg:text-[9.5px] font-bold text-slate-800 block leading-tight">35 Of 35 tests passed</span>
                         <span className="text-[5px] sm:text-[6px] lg:text-[7.5px] text-slate-400 block leading-none mt-0.5">Assessed 28 Jul 2026, 14:56 IST</span>
                       </div>
                       <div className="text-right hidden sm:block shrink-0">
@@ -298,7 +298,7 @@ export default function LaptopMockup() {
                       </div>
                       <div className="bg-white border border-slate-100 rounded p-0.5 sm:p-1 text-center shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
                         <span className="text-[4.5px] sm:text-[6px] lg:text-[7px] font-bold uppercase text-slate-400 block tracking-wider leading-none">Tests Run</span>
-                        <span className="text-[7px] sm:text-[8.5px] lg:text-xs font-black text-slate-800 block mt-0.5 leading-none">37 / 37</span>
+                        <span className="text-[7px] sm:text-[8.5px] lg:text-xs font-black text-slate-800 block mt-0.5 leading-none">35 / 35</span>
                       </div>
                       <div className="bg-white border border-slate-100 rounded p-0.5 sm:p-1 text-center shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
                         <span className="text-[4.5px] sm:text-[6px] lg:text-[7px] font-bold uppercase text-slate-400 block tracking-wider leading-none">Assurance</span>

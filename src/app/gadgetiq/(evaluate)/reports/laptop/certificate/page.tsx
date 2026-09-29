@@ -205,7 +205,7 @@ function LaptopCertificateContent() {
       <div className="min-h-[70vh] flex flex-col items-center justify-center p-6 space-y-3">
         <RefreshCw className="w-9 h-9 animate-spin text-[#0052CC]" />
         <p className="text-xs font-bold text-[#17284D]">
-          Resolving Official 64-Point Laptop QC Certificate...
+          Resolving Official 35-Point Laptop QC Certificate...
         </p>
       </div>
     );

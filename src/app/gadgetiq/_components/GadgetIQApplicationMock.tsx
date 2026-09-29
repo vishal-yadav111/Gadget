@@ -59,7 +59,7 @@ type DiagnosticTest = {
 };
 
 /* =========================================================
-   FULL 37 TEST SUITE
+   FULL 35 TEST SUITE
 ========================================================= */
 
 const DIAGNOSTIC_TESTS: DiagnosticTest[] = [
@@ -224,16 +224,6 @@ const DIAGNOSTIC_TESTS: DiagnosticTest[] = [
     icon: BatteryCharging,
   },
   {
-    device: "System UUID",
-    test: "UUID Test",
-    icon: Info,
-  },
-  {
-    device: "S4 Hibernate State",
-    test: "S4 State Test",
-    icon: Info,
-  },
-  {
     device: "Realtime Clock",
     test: "Realtime Clock Test",
     icon: Info,
@@ -252,7 +242,7 @@ const DIAGNOSTIC_TESTS: DiagnosticTest[] = [
 
 const TOTAL_TESTS = DIAGNOSTIC_TESTS.length;
 
-const TEST_INTERVAL = 250;
+const TEST_INTERVAL = 110;
 
 const VISIBLE_ROWS = 6;
 
@@ -274,7 +264,7 @@ export default function GadgetIQApplication() {
 
     if (phase === "running") {
       if (isFinished) {
-        timer = setTimeout(() => setPhase("detect"), 3400);
+        timer = setTimeout(() => setPhase("detect"), 1800);
       } else {
         timer = setTimeout(() => {
           setCompletedTests((value) =>
@@ -283,13 +273,13 @@ export default function GadgetIQApplication() {
         }, TEST_INTERVAL);
       }
     } else if (phase === "detect") {
-      timer = setTimeout(() => setPhase("certificate"), 3800);
+      timer = setTimeout(() => setPhase("certificate"), 2400);
     } else {
       timer = setTimeout(() => {
         setCompletedTests(0);
         setCycle((value) => value + 1);
         setPhase("running");
-      }, 4200);
+      }, 3000);
     }
 
     return () => clearTimeout(timer);
@@ -582,7 +572,7 @@ export default function GadgetIQApplication() {
                 </span>
 
                 <span className="mb-[2px] ml-[3px] text-[9px] font-bold text-[#7D8AA0]">
-                  / 37
+                  / {TOTAL_TESTS}
                 </span>
               </div>
 
@@ -1012,7 +1002,7 @@ function DetectIssuesScreen() {
       setCount((value) =>
         value >= DETECT_DEFECTS.length ? value : value + 1
       );
-    }, 550);
+    }, 300);
 
     return () => clearInterval(interval);
   }, []);

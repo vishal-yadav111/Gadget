@@ -109,11 +109,11 @@ export default function CoreFeatures() {
               ================================================= */}
 
               <div className="mt-7 grid w-full grid-cols-1 gap-3 sm:grid-cols-3">
-                {/* 37+ Tests */}
+                {/* 35 Tests */}
                 <div className="flex min-h-[84px] items-center gap-3 rounded-[16px] border border-[#DCE8F8] bg-[#F7FAFE] px-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#0876F9]/30 hover:bg-[#EEF6FF]">
                   <div className="shrink-0">
                     <span className="text-[27px] font-bold leading-none text-[#0876F9]">
-                      37+
+                      35
                     </span>
                   </div>
 

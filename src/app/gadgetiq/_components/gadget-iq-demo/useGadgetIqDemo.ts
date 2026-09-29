@@ -25,7 +25,18 @@ export interface DemoRefs {
   dialogRef: React.RefObject<HTMLDivElement | null>;
 }
 
-export function useGadgetIqDemo() {
+export interface DemoOptions {
+  /** Open the demo at this stage instead of the device picker. */
+  startStage?: (typeof STAGES)[number];
+  defaultMode?: Mode;
+  reducedMotion?: boolean;
+}
+
+const DEEP_LINKS: Record<string, (typeof STAGES)[number]> = {
+  evaluate: "functional", functional: "functional", lens: "cosmetic", cosmetic: "cosmetic", certificate: "certificate", admin: "admin", verify: "certificate",
+};
+
+export function useGadgetIqDemo(options: DemoOptions = {}) {
   const stateRef = useRef<DemoState>(createInitialState());
   const [, forceRender] = useReducer((x: number) => x + 1, 0);
 
@@ -36,6 +47,15 @@ export function useGadgetIqDemo() {
   }, []);
 
   const tlc = useMemo(() => D.stageTimeline(), []);
+
+  /** Analytics hook: pushes to GTM's dataLayer and fires a DOM event for any other listener. */
+  const track = useCallback((event: string, props: Record<string, unknown> = {}) => {
+    const s = stateRef.current;
+    const detail = { event, device: s.deviceId, mode: s.mode, ...props };
+    const w = window as Window & { dataLayer?: unknown[] };
+    (w.dataLayer = w.dataLayer || []).push(detail);
+    window.dispatchEvent(new CustomEvent("giq-demo-analytics", { detail }));
+  }, []);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -115,8 +135,9 @@ export function useGadgetIqDemo() {
       if (stage === "admin") Object.assign(reset, { adminTouched: false, site: "All sites", role: "Admin", fnFilter: "All", flight: null, tipIdx: 0, tipTouched: false });
       mut.seenCodes = new Set();
       update({ ...reset, ...extra });
+      track("demo_stage_reached", { stage });
     },
-    [update, mut]
+    [update, mut, track]
   );
 
   const startDemo = useCallback(
@@ -124,6 +145,7 @@ export function useGadgetIqDemo() {
       const s = stateRef.current;
       const deviceId = id || s.deviceId || D.DEFAULT_DEVICE;
       enter("intake", { deviceId, started: true, playing: true, runMs: 0, lensUsed: false, checklist: false });
+      track("demo_start", { device: deviceId });
       const root = rootRef.current;
       if (!mut.scrolled && root) {
         mut.scrolled = true;
@@ -131,7 +153,7 @@ export function useGadgetIqDemo() {
         if (Math.abs(top) > 40) window.scrollTo({ top: top + window.scrollY - 8, behavior: s.reduced ? "auto" : "smooth" });
       }
     },
-    [enter, mut]
+    [enter, mut, track]
   );
 
   const advance = useCallback(() => {
@@ -149,11 +171,12 @@ export function useGadgetIqDemo() {
       const now = performance.now();
       mut.animUntil = now + 1500;
       update({ stage: "end", waiting: null, overlay: null, enterAt: now });
+      track("demo_completed");
       return;
     }
     if (s.stage === "cosmetic") go.lensUsed = !s.checklist;
     enter(STAGES[i + 1], go);
-  }, [enter, startDemo, showToast, update, mut]);
+  }, [enter, startDemo, showToast, update, mut, track]);
 
   const doGate = useCallback(
     (id: string | null, auto?: boolean) => {
@@ -240,8 +263,9 @@ export function useGadgetIqDemo() {
       if (v === s.mode) return;
       if (v === "watch" && s.waiting) doGate(s.waiting, true);
       update({ mode: v });
+      track("demo_mode_changed", { mode: v });
     },
-    [update, doGate]
+    [update, doGate, track]
   );
 
   const padMove = useCallback(
@@ -342,6 +366,17 @@ export function useGadgetIqDemo() {
   const openZoomFor = useCallback((index: number) => update({ overlay: "zoom", zoom: index }), [update]);
   const openDrawerFor = useCallback((id: string) => update({ overlay: "drawer", drawerId: id }), [update]);
   const setHoverKey = useCallback((k: number | null) => update({ hoverKey: k }), [update]);
+  /** "N need attention" list: scroll to the failed test's row and flash a red ring around it. */
+  const jumpToFailed = useCallback(
+    (id: string) => {
+      mut.flashUntil = performance.now() + 1400;
+      mut.animUntil = Math.max(mut.animUntil, mut.flashUntil);
+      update({ flashId: id });
+      const el = listRef.current, row = el && el.querySelector(`[data-row="${id}"]`);
+      if (row instanceof HTMLElement && el) el.scrollTo({ top: Math.max(0, row.offsetTop - el.clientHeight / 3), behavior: stateRef.current.reduced ? "auto" : "smooth" });
+    },
+    [update, mut]
+  );
   const toggleSummary = useCallback(() => update({ summaryOpen: !stateRef.current.summaryOpen }), [update]);
 
   const handleKey = useCallback(
@@ -359,14 +394,15 @@ export function useGadgetIqDemo() {
       }
       const act = document.activeElement, root = rootRef.current;
       const focusOk = !act || act === document.body || (root && root.contains(act));
-      if (!s.inView || !focusOk) return;
-      if (s.waiting === "keys") {
+      if (s.waiting === "keys" && s.inView !== false && s.stage === "functional") {
         e.preventDefault();
+        if (e.repeat) return;
         const label = KEYMAP[e.key] || (e.key.length === 1 ? e.key.toUpperCase() : null);
         const code = e.code || e.key;
         registerKey(label, code);
         return;
       }
+      if (s.inView === false || !focusOk) return;
       const tag = (document.activeElement && document.activeElement.tagName) || "";
       if (/INPUT|TEXTAREA|SELECT/.test(tag)) return;
       if (e.key === " " && !/BUTTON/.test(tag)) { e.preventDefault(); togglePlay(); }
@@ -407,10 +443,13 @@ export function useGadgetIqDemo() {
 
     const io = new IntersectionObserver(
       ([e]) => {
-        const inView = e.isIntersecting && e.intersectionRatio > 0.15;
+        const vh = (e.rootBounds && e.rootBounds.height) || window.innerHeight;
+        const inView = e.isIntersecting && e.intersectionRect.height >= Math.min(160, vh * 0.3);
         if (inView !== stateRef.current.inView) update({ inView });
+        document.documentElement.toggleAttribute("data-giq-demo-in-view", inView);
+        window.dispatchEvent(new CustomEvent("giq-demo-visibility", { detail: { inView } }));
       },
-      { threshold: [0, 0.15, 0.5] }
+      { threshold: Array.from({ length: 51 }, (_, i) => i / 50) }
     );
     if (rootRef.current) io.observe(rootRef.current);
 
@@ -450,6 +489,7 @@ export function useGadgetIqDemo() {
       cancelAnimationFrame(mut.raf);
       ro.disconnect();
       io.disconnect();
+      document.documentElement.removeAttribute("data-giq-demo-in-view");
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("resize", onResize);
     };
@@ -501,6 +541,47 @@ export function useGadgetIqDemo() {
     mut.tipTarget = D.ADMIN_TIPS[tipI].target;
   });
 
+  // Things the reference does in componentDidUpdate: the certificate card that flies into the admin
+  // table, the "licence used" toast when Lens finishes its photos, and scrolling the tour target into view.
+  const prevRef = useRef<{ stage: Stage; t: number }>({ stage: "intake", t: 0 });
+  useEffect(() => {
+    const s = stateRef.current;
+    const ps = prevRef.current;
+    prevRef.current = { stage: s.stage, t: s.t };
+    if (s.stage === "admin" && ps.stage !== "admin" && s.width >= 760 && !s.reduced) {
+      requestAnimationFrame(() => {
+        const body = bodyRef.current, row = body && body.querySelector('[data-demo-row="new"]');
+        if (!body || !row) return;
+        const b = body.getBoundingClientRect(), r = row.getBoundingClientRect();
+        update({ flight: { sx: b.width / 2 - 160, sy: 120, ex: r.left - b.left, ey: r.top - b.top, es: Math.max(0.2, Math.min(1.6, r.width / 320)) } });
+      });
+    }
+    if (s.stage === "cosmetic" && ps.stage === "cosmetic" && !s.checklist && s.deviceId && ps.t < tlc.capEnd && s.t >= tlc.capEnd) showToast("1 Gadget Lens licence used", "wallet");
+    if (s.stage === "admin" && mut.tipTarget && mut.tipTarget !== mut.lastTip) {
+      mut.lastTip = mut.tipTarget;
+      const el = rootRef.current && rootRef.current.querySelector(`[data-tour="${mut.tipTarget}"]`);
+      if (el && s.inView) {
+        const r = el.getBoundingClientRect(), bottomPad = s.width < 760 ? 150 : 24;
+        if (r.top < 70 || r.top > window.innerHeight - bottomPad - 80) window.scrollTo({ top: Math.max(0, window.scrollY + r.top - 110), behavior: s.reduced ? "auto" : "smooth" });
+      }
+    }
+    if (s.stage !== "admin") mut.lastTip = null;
+  });
+
+  // Deep link: ?demo=lens, #demo-admin, or the startStage option opens the demo mid-way.
+  useEffect(() => {
+    const q = new URLSearchParams(location.search).get("demo");
+    const h = location.hash.startsWith("#demo-") ? location.hash.slice(6).split("-")[0] : null;
+    const key = q || h || options.startStage;
+    const st = key ? DEEP_LINKS[key] : undefined;
+    if (options.defaultMode === "try") update({ mode: "try" });
+    if (options.reducedMotion) update({ reduced: true });
+    if (!st) return;
+    const extra: Partial<DemoState> = key === "verify" ? { verifyStart: 0, t: D.TIMINGS.certificate.merge } : {};
+    enter(st, { deviceId: stateRef.current.deviceId || D.DEFAULT_DEVICE, playing: false, started: false, ...extra });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const scrollToRow = useCallback(
     (id: string) => {
       const el = listRef.current, row = el && el.querySelector(`[data-row="${id}"]`);
@@ -549,6 +630,8 @@ export function useGadgetIqDemo() {
     openDrawerFor,
     setHoverKey,
     toggleSummary,
+    jumpToFailed,
+    track,
     scrollToRow,
     update,
   };

@@ -54,7 +54,7 @@ export default function EvaluateCertificateDetailPage({
       <div className="min-h-[60vh] flex flex-col items-center justify-center p-6">
         <div className="w-10 h-10 border-3 border-[#0052CC] border-t-transparent rounded-full animate-spin mb-3" />
         <p className="text-xs font-semibold text-slate-600">
-          Loading 64-Point Digital Inspection Certificate...
+          Loading 35-Point Digital Inspection Certificate...
         </p>
       </div>
     );
@@ -220,7 +220,7 @@ export default function EvaluateCertificateDetailPage({
         {/* Diagnostic Check Matrix */}
         <div className="space-y-3 my-6">
           <h2 className="font-bold text-sm text-[#17284D]">
-            64-Point Diagnostic Audit Results
+            35-Point Diagnostic Audit Results
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {cert.checkResults.map((check) => (

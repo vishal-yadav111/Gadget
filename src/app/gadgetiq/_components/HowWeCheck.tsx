@@ -18,7 +18,7 @@ const steps = [
     image: "/images/certify.jpg",
     step: "02",
     title: "Run Diagnostics",
-    text: "37 automated functional tests validate hardware, battery, display and ports.",
+    text: "35 automated functional tests validate hardware, battery, display and ports.",
   },
   {
     image: "/images/inspect-grade.jpg",

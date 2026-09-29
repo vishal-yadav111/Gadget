@@ -2,9 +2,8 @@
 
 import Image from "next/image";
 import { useMemo } from "react";
-import { ArrowRight, Check, Play } from "lucide-react";
-import Button from "@/components/ui/Button";
-import Badge from "@/components/ui/Badge";
+import { Badge, Button } from "../ui";
+import { Ico } from "../icons";
 import * as D from "../data";
 import { renderSrc } from "../renders";
 import type { DemoState } from "../types";
@@ -18,8 +17,8 @@ export function IntakeStage({ state, demo, tryMode, ti }: { state: DemoState; de
       <div className="flex flex-col gap-5 p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-col gap-1">
-            <h3 className="m-0 font-display text-xl font-bold tracking-tight">Pick a laptop to check</h3>
-            <span className="text-sm text-[#4A5875]">Each one tells a different story.</span>
+            <h3 className="m-0 font-display text-xl font-bold leading-[1.2] tracking-[-0.012em]">Pick a laptop to check</h3>
+            <span className="text-sm text-[var(--text-secondary)]">Each one tells a different story.</span>
           </div>
           <Badge tone="neutral">Mobile phones: Coming soon</Badge>
         </div>
@@ -30,18 +29,18 @@ export function IntakeStage({ state, demo, tryMode, ti }: { state: DemoState; de
               <button
                 key={id}
                 onClick={() => demo.startDemo(id)}
-                className="flex flex-col gap-3 rounded-lg border border-[#DDE4F3] bg-white p-3.5 text-left shadow-sm transition-transform hover:-translate-y-0.5 hover:shadow-md"
+                className="flex min-w-0 cursor-pointer flex-col gap-3 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--surface-card)] p-3.5 text-left shadow-[var(--shadow-sm)] transition-[transform,box-shadow] duration-[120ms] ease-[cubic-bezier(.2,.7,.3,1)] hover:[transform:translateY(-2px)] hover:shadow-[var(--shadow-md)]"
               >
-                <div className="relative w-full overflow-hidden rounded-md bg-[#E9EEF9]" style={{ aspectRatio: "4/3" }}>
+                <div className="relative w-full overflow-hidden rounded-[var(--radius-sm)] bg-[var(--surface-sunken)]" style={{ aspectRatio: "4/3" }}>
                   <Image src={renderSrc("Front", id)} alt={d.name} fill className="object-cover" unoptimized />
                 </div>
                 <div className="flex flex-col gap-1">
                   <span className="font-display text-base font-bold">{d.name}</span>
-                  <span className="text-[13px] text-[#4A5875]">{d.os} · {d.specs.Memory} · {d.specs.Storage}</span>
-                  <span className="text-[13px] text-[#5F6A86]">{d.story}</span>
+                  <span className="text-[13px] text-[var(--text-secondary)]">{d.os} · {d.specs.Memory} · {d.specs.Storage}</span>
+                  <span className="text-[13px] text-[var(--text-tertiary)]">{d.story}</span>
                 </div>
-                <span className="flex items-center gap-1 text-sm font-semibold text-brand-primary">
-                  Check this laptop <ArrowRight size={16} />
+                <span className="flex items-center gap-1 text-sm font-semibold text-[var(--brand-primary)]">
+                  Check this laptop <Ico name="arrowRight" />
                 </span>
               </button>
             );
@@ -49,10 +48,10 @@ export function IntakeStage({ state, demo, tryMode, ti }: { state: DemoState; de
         </div>
         {!tryMode && (
           <div className="flex flex-wrap items-center gap-3">
-            <Button variant="primary" size="lg" onClick={() => demo.startDemo(D.DEFAULT_DEVICE)} icon={<Play size={18} fill="currentColor" />}>
+            <Button variant="primary" size="lg" onClick={() => demo.startDemo(D.DEFAULT_DEVICE)} icon={<Ico name="play" size={18} fill />}>
               Start the demo
             </Button>
-            <span className="text-sm text-[#4A5875]">Starts with the Dell Latitude 5420.</span>
+            <span className="text-sm text-[var(--text-secondary)]">Starts with the Dell Latitude 5420.</span>
           </div>
         )}
       </div>
@@ -85,14 +84,14 @@ function DeviceDetailRun({ state, demo, ti }: { state: DemoState; demo: GadgetIq
       <div className="flex flex-wrap items-center justify-center gap-7 py-3">
         <div className="flex max-w-[380px] flex-1 basis-[260px] flex-col items-center gap-3" style={{ transform: `translateX(${((1 - slideP) * -60).toFixed(1)}px)`, opacity: slideP }}>
           <div className="relative w-full">
-            <div className="relative w-full overflow-hidden rounded-lg bg-[#E9EEF9]" style={{ aspectRatio: "4/3" }}>
+            <div className="relative w-full overflow-hidden rounded-[var(--radius-md)] bg-[var(--surface-sunken)]" style={{ aspectRatio: "4/3" }}>
               <Image src={demo.imgFor(sc.id, "Front")} alt={`${sc.name}, front view`} fill className="object-cover" unoptimized />
             </div>
             <div className="absolute flex flex-col items-center justify-center gap-1.5 text-white" style={{ left: "25%", top: "13.3%", width: "50%", height: "44%" }}>
               <span className="font-display text-sm font-extrabold">Gadget IQ</span>
-              <span className="text-[11px] text-white/80">{fieldsDone ? "Ready to check" : "Reading details…"}</span>
-              <div className="h-1 w-3/5 overflow-hidden rounded-full bg-white/20">
-                <div className="h-full bg-brand-accent" style={{ width: D.pct(nDone / fields.length) }} />
+              <span className="text-[11px] text-white/[.78]">{fieldsDone ? "Ready to check" : "Reading details…"}</span>
+              <div className="h-1 w-3/5 overflow-hidden rounded-[2px] bg-white/[.18]">
+                <div className="h-full bg-[var(--brand-accent)]" style={{ width: D.pct(nDone / fields.length) }} />
               </div>
             </div>
           </div>
@@ -104,15 +103,15 @@ function DeviceDetailRun({ state, demo, ti }: { state: DemoState; demo: GadgetIq
             <span className="font-display text-lg font-bold">Device details</span>
             <Badge tone={fieldsDone ? "success" : "brand"}>{fieldsDone ? "All found" : `${nDone} of ${fields.length} found`}</Badge>
           </div>
-          <div className="overflow-hidden rounded-lg border border-[#DDE4F3]">
+          <div className="overflow-hidden rounded-[var(--radius-md)] border border-[var(--border-subtle)]">
             {fields.map((f) => (
-              <div key={f.label} className="grid min-h-[22px] grid-cols-[120px_minmax(0,1fr)_20px] items-center gap-2 border-b border-[#DDE4F3] px-3 py-2 last:border-b-0">
-                <span className="text-[13px] text-[#4A5875]">{f.label}</span>
+              <div key={f.label} className="grid min-h-[22px] grid-cols-[120px_minmax(0,1fr)_20px] items-center gap-2 border-b border-[var(--border-subtle)] px-3 py-2">
+                <span className="text-[13px] text-[var(--text-secondary)]">{f.label}</span>
                 <span className={`overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium ${f.mono ? "font-mono" : ""}`}>
                   {f.value}
-                  {f.typing && <span className="text-brand-primary">|</span>}
+                  {f.typing && <span className="text-[var(--brand-primary)]">|</span>}
                 </span>
-                {f.done && <Check size={18} className="text-brand-success" />}
+                {f.done && <Ico name="checkCircle" size={18} color="var(--status-success)" />}
               </div>
             ))}
           </div>
@@ -121,11 +120,11 @@ function DeviceDetailRun({ state, demo, ti }: { state: DemoState; demo: GadgetIq
               variant="primary"
               disabled={!fieldsDone}
               onClick={() => (state.waiting === "start" ? demo.doGate("start") : demo.advance())}
-              icon={<Play size={16} fill="currentColor" />}
+              icon={<Ico name="play" fill />}
             >
               Start check
             </Button>
-            <span className="text-[13px] text-[#4A5875]">{fieldsDone ? "Uses 1 Gadget Evaluate licence" : "Waiting for details"}</span>
+            <span className="text-[13px] text-[var(--text-secondary)]">{fieldsDone ? "Uses 1 Gadget Evaluate licence" : "Waiting for details"}</span>
           </div>
         </div>
       </div>

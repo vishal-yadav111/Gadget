@@ -1,10 +1,14 @@
 "use client";
 
-import { CheckCircle2, RotateCcw, ShieldCheck } from "lucide-react";
-import Button from "@/components/ui/Button";
+import { Button } from "../ui";
+import { Ico, PATHS } from "../icons";
 import * as D from "../data";
 import type { DemoState } from "../types";
 import type { GadgetIqDemo } from "../useGadgetIqDemo";
+
+const EYEBROW = "text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-secondary)]";
+const CARD = "flex min-w-0 flex-col gap-3 rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 shadow-[var(--shadow-sm)]";
+const ITEM = "flex items-start gap-2 text-sm leading-[1.45]";
 
 export function EndStage({ state, demo }: { state: DemoState; demo: GadgetIqDemo }) {
   const sc = demo.sc();
@@ -23,63 +27,65 @@ export function EndStage({ state, demo }: { state: DemoState; demo: GadgetIqDemo
   const lc = D.lensConfidence(sc.confidence);
 
   return (
-    <div className="flex justify-center bg-[#F4F6FB] px-4 py-8 sm:py-10">
+    <div className="flex justify-center bg-[var(--surface-page)] px-4 py-[clamp(20px,4vw,40px)]">
       <div className="flex w-full max-w-[880px] flex-col gap-5">
         <div className="flex flex-col items-center gap-2.5 text-center">
-          <CheckCircle2 size={40} className="text-brand-success" />
-          <h3 className="m-0 font-display text-3xl font-bold leading-tight tracking-tight">One laptop, fully checked.</h3>
-          <p className="m-0 max-w-[580px] text-lg leading-snug text-[#4A5875]">{lead} {tail}</p>
+          <Ico name="checkCircle" size={40} sw={1.8} color="var(--status-success)" />
+          <h3 className="m-0 font-display text-[clamp(26px,3vw,34px)] font-bold leading-[1.15] tracking-[-0.012em] [text-wrap:balance]">One laptop, fully checked.</h3>
+          <p className="m-0 max-w-[580px] text-[clamp(15px,1.6vw,18px)] leading-[1.5] text-[var(--text-secondary)]">{lead} {tail}</p>
         </div>
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-3">
-          <div className="flex min-w-0 flex-col gap-3 rounded-xl border border-[#DDE4F3] bg-white p-5 shadow-sm">
-            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#4A5875]">Gadget Evaluate</span>
+        <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))" }}>
+          <div className={CARD}>
+            <span className={EYEBROW}>Gadget Evaluate</span>
             <div className="flex flex-wrap items-baseline gap-2">
-              <span className="font-display text-4xl font-bold leading-none tracking-tight">{fr.passed}/{fr.total}</span>
-              <span className="text-sm text-[#4A5875]">tests passed</span>
+              <span className="font-display text-[44px] font-bold leading-none tracking-[-0.022em]">{fr.passed}/{fr.total}</span>
+              <span className="text-sm text-[var(--text-secondary)]">tests passed</span>
             </div>
-            <div className="flex h-2 gap-0.5 overflow-hidden rounded bg-[#E9EEF9]">
-              <div className="bg-brand-success" style={{ width: D.pct(fr.passed / fr.total) }} />
-              <div className="flex-1 bg-brand-critical" />
+            <div className="flex h-2 gap-0.5 overflow-hidden rounded-[var(--radius-xs)] bg-[var(--surface-sunken)]">
+              <div className="bg-[var(--status-success)]" style={{ width: D.pct(fr.passed / fr.total) }} />
+              <div className="flex-1 bg-[var(--status-danger)]" />
             </div>
             {fr.failed.map((x) => (
-              <div key={x.id} className="flex items-start gap-2 text-sm leading-snug">
-                <span className="mt-0.5 shrink-0 text-brand-critical">⚠</span>
+              <div key={x.id} className={ITEM}>
+                <Ico d={PATHS.warn} size={18} color="var(--status-danger)" className="mt-px flex-none" />
                 <span><strong className="font-semibold">{x.testName}:</strong> {x.reason}</span>
               </div>
             ))}
-            <div className="flex items-start gap-2 text-sm leading-snug">
-              <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-brand-success" />
+            <div className={ITEM}>
+              <Ico d={PATHS.checkCircle} size={18} color="var(--status-success)" className="mt-px flex-none" />
               <span>The other {fr.passed} tests passed.</span>
             </div>
           </div>
-          <div className="flex min-w-0 flex-col gap-3 rounded-xl border border-[#DDE4F3] bg-white p-5 shadow-sm">
-            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#4A5875]">Gadget Lens</span>
+          <div className={CARD}>
+            <span className={EYEBROW}>Gadget Lens</span>
             <div className="flex flex-wrap items-baseline gap-2">
-              <span className="font-display text-4xl font-extrabold leading-none tracking-tight" style={{ color: gradeRes.color }}>{gradeRes.letter}</span>
-              <span className="text-sm text-[#4A5875]">{gradeRes.name} · {state.checklist ? "Checklist grade" : `${sc.confidence}% sure`}</span>
+              <span className="font-display text-[44px] font-extrabold leading-none tracking-[-0.022em]" style={{ color: gradeRes.color }}>{gradeRes.letter}</span>
+              <span className="text-sm text-[var(--text-secondary)]">{gradeRes.name} · {state.checklist ? "Checklist grade" : `${sc.confidence}% sure`}</span>
             </div>
-            <div className="grid grid-cols-7 gap-0.5">
-              {D.GRADE_SCALE.map((g) => <div key={g.letter} className="h-2 rounded-sm" style={{ background: g.color }} />)}
+            <div className="grid gap-0.5" style={{ gridTemplateColumns: "repeat(7,minmax(0,1fr))" }}>
+              {D.GRADE_SCALE.map((g) => (
+                <div key={g.letter} className="h-2 rounded-[2px]" style={{ background: g.letter === gradeRes.letter ? g.color : "var(--surface-sunken)" }} />
+              ))}
             </div>
             {why.items.map((x, i) => (
-              <div key={i} className="flex items-start gap-2 text-sm leading-snug">
-                {defects.length ? <span className="mt-0.5 shrink-0 text-brand-warning">⚠</span> : <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-brand-success" />}
+              <div key={i} className={ITEM}>
+                <Ico d={defects.length ? PATHS.warn : PATHS.checkCircle} size={18} color={defects.length ? "var(--status-warning)" : "var(--status-success)"} className="mt-px flex-none" />
                 <span>{x.charAt(0).toUpperCase() + x.slice(1)}</span>
               </div>
             ))}
             {!state.checklist && (
-              <div className="flex items-start gap-2 text-sm leading-snug">
-                <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-brand-success" />
+              <div className={ITEM}>
+                <Ico d={PATHS.checkCircle} size={18} color="var(--status-success)" className="mt-px flex-none" />
                 <span>{lc.text}</span>
               </div>
             )}
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-3.5 rounded-lg border border-[#DDE4F3] bg-white px-4 py-3.5">
-          <ShieldCheck size={22} className="text-brand-primary" />
+        <div className="flex flex-wrap items-center gap-x-3.5 gap-y-2.5 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--surface-card)] px-4 py-3.5">
+          <Ico name="shield" size={22} color="var(--brand-primary)" />
           <div className="flex min-w-0 flex-1 basis-[220px] flex-col gap-0.5">
             <span className="text-sm font-semibold">Certificate <span className="font-mono font-medium">{certId}</span></span>
-            <span className="text-[13px] text-[#4A5875]">Buyers can scan the QR code to check this report.</span>
+            <span className="text-[13px] text-[var(--text-secondary)]">Buyers can scan the QR code to check this report.</span>
           </div>
           <div className="flex flex-wrap gap-1.5">
             {[
@@ -88,16 +94,25 @@ export function EndStage({ state, demo }: { state: DemoState; demo: GadgetIqDemo
               { n: fr.failed.length, label: "issues found", color: "var(--status-danger)" },
               { n: 1, label: "certificate" },
             ].map((e) => (
-              <span key={e.label} className="whitespace-nowrap rounded-md bg-[#E9EEF9] px-2.5 py-1 text-[13px]" style={{ color: e.color || "var(--text-primary)" }}>
+              <span key={e.label} className="whitespace-nowrap rounded-[var(--radius-sm)] bg-[var(--surface-sunken)] px-2.5 py-1 text-[13px]" style={{ color: e.color || "var(--text-primary)" }}>
                 <strong className="font-mono">{e.n}</strong> {e.label}
               </span>
             ))}
           </div>
         </div>
         <div className="flex flex-wrap justify-center gap-2">
-          <Button variant="primary" size="lg" onClick={() => demo.showToast(`${D.CTA_LABEL}: link goes here`, "info")}>{D.CTA_LABEL}</Button>
-          <Button variant="secondary" size="lg" onClick={demo.tryAnother} icon={<ShieldCheck size={18} />}>Try another laptop</Button>
-          <Button variant="ghost" size="lg" onClick={demo.replay} icon={<RotateCcw size={18} />}>Replay</Button>
+          <Button
+            variant="primary"
+            size="lg"
+            onClick={() => {
+              demo.track("demo_cta_clicked");
+              demo.showToast(`${D.CTA_LABEL}: link goes here`, "info");
+            }}
+          >
+            {D.CTA_LABEL}
+          </Button>
+          <Button variant="secondary" size="lg" onClick={demo.tryAnother} icon={<Ico name="laptop" size={18} />}>Try another laptop</Button>
+          <Button variant="ghost" size="lg" onClick={demo.replay} icon={<Ico name="restart" size={18} />}>Replay</Button>
         </div>
       </div>
     </div>

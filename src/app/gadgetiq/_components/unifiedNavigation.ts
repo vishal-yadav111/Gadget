@@ -320,7 +320,7 @@ export function getPageMetadata(pathname: string | null): { title: string; subti
   if (cleanPath.startsWith("/gadgetiq/reports/laptop/")) {
     return {
       title: "Laptop Diagnostic Detail",
-      subtitle: "Detailed 64-Point Laptop Hardware Diagnostics & Component Log",
+      subtitle: "Detailed 35-Point Laptop Hardware Diagnostics & Component Log",
     };
   }
   if (cleanPath.startsWith("/gadgetiq/reports/mobile/")) {

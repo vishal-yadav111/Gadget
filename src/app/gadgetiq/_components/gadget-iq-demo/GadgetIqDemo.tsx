@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type CSSProperties } from "react";
 import * as D from "./data";
-import { useGadgetIqDemo } from "./useGadgetIqDemo";
+import { useGadgetIqDemo, type DemoOptions } from "./useGadgetIqDemo";
 import { STAGES, type Stage } from "./types";
 import { Segmented } from "./ui";
 import { StepRail, NarrowStepRail } from "./chrome/StepRail";
@@ -14,6 +14,7 @@ import { MobileDock } from "./chrome/MobileDock";
 import { EnterChip, NextPill, Toast, PlayOverlay, FlightCard } from "./chrome/Transients";
 import { LicenceWalletPopover, TopupModal, ZoomModal, DeviceDrawer, MoreOptionsSheet } from "./chrome/Overlays";
 import { markPaths } from "./renders";
+import { currentTest, narrateTest } from "./stages/spotlightLogic";
 import { IntakeStage } from "./stages/IntakeStage";
 import { FunctionalStage } from "./stages/FunctionalStage";
 import { CosmeticStage } from "./stages/CosmeticStage";
@@ -33,8 +34,33 @@ const STAGE_LABEL_MAP: Record<(typeof STAGES)[number], string> = {
   intake: "Device", functional: "Evaluate: Functional test", cosmetic: "Lens: AI grading", certificate: "Certificate", admin: "Admin view",
 };
 
-export default function GadgetIqDemo({ compact = false }: { compact?: boolean }) {
-  const demo = useGadgetIqDemo();
+/* Design-system tokens the demo is built from, scoped to the section so the rest of the site is unaffected. */
+const DS_TOKENS = {
+  background: "var(--surface-page)",
+  fontSize: 16,
+  lineHeight: 1.55,
+  textWrap: "pretty",
+  "--shadow-sm": "0 1px 2px rgba(23,40,77,.07)",
+  "--shadow-md": "0 6px 18px rgba(0,82,204,.10)",
+  "--shadow-lg": "0 18px 44px rgba(0,82,204,.16)",
+  "--shadow-focus": "0 0 0 4px rgba(0,82,204,.24)",
+  "--text-on-accent": "#2A0A00",
+  "--accent-ink": "#B93A08",
+  /* the reference lets every text size inherit the body's 1.55 leading */
+  "--text-xs--line-height": 1.55,
+  "--text-sm--line-height": 1.55,
+  "--text-base--line-height": 1.55,
+  "--text-lg--line-height": 1.55,
+  "--text-xl--line-height": 1.55,
+  "--text-2xl--line-height": 1.55,
+  "--text-3xl--line-height": 1.55,
+  "--text-4xl--line-height": 1.55,
+  "--text-5xl--line-height": 1.55,
+  "--text-6xl--line-height": 1.55,
+} as CSSProperties;
+
+export default function GadgetIqDemo({ compact = false, ...options }: { compact?: boolean } & DemoOptions) {
+  const demo = useGadgetIqDemo(options);
   const { state, refs, tlc } = demo;
   const sc = demo.sc();
   const fr = useMemo(() => D.functionalResults(sc), [sc]);
@@ -74,27 +100,38 @@ export default function GadgetIqDemo({ compact = false }: { compact?: boolean })
   const evalNow = `${doneTests.length - fnFailedNow.length} passed · ${fnFailedNow.length} failed`;
 
   const summaryRows: SummaryRow[] = [
-    { k: "Device", v: state.deviceId ? sc.name : "Not picked yet", sub: state.deviceId && si > 0 ? sc.specs["Serial No."] : "", subFont: "var(--font-mono)" },
+    { k: "Device", v: state.deviceId ? sc.name : "Not picked yet", sub: state.deviceId && (si > 0 || ti >= T.intake.slideIn + 2 * T.intake.field + T.intake.field * 0.75) ? sc.specs["Serial No."] : "", subFont: "var(--font-mono)" },
     { k: "Licences left", v: `Evaluate ${evalLeft} · Lens ${lensLeft}`, sub: evalUsed || lensUsed ? `Used for this check: ${[evalUsed && "Evaluate", lensUsed && "Lens"].filter(Boolean).join(" and ")}` : "Each check uses 1 of each" },
     { k: "Gadget Evaluate", v: si >= 1 ? evalNow : "Pending", color: fnFailedNow.length && si >= 1 ? "var(--status-danger)" : "var(--text-primary)", sub: si >= 1 ? `${fnDone} of ${nT} tests` : "", bar: si >= 1 ? D.pct(fnDone / nT) : "" },
     { k: "Gadget Lens grade", v: gradeShown ? `${gradeRes.letter} · ${gradeRes.name}` : "Pending", color: gradeShown ? gradeRes.color : "var(--text-primary)", sub: gradeShown ? (state.checklist ? "Checklist grade" : `${sc.confidence}% sure`) : "" },
     { k: "Certificate", v: tcert >= T.certificate.merge ? certId : "Pending", font: "var(--font-mono)", sub: vState === "done" ? "Verified" : "" },
   ];
 
+  // Narration bar text. Mirrors the reference demo's wording for every stage and gate.
   let narration = "";
   const w = state.waiting;
+  const T2 = D.TIMINGS;
+  const revealAt = (d: D.Defect) => {
+    const ai = D.ANGLES.indexOf(d.angle);
+    const k = sc.defects.filter((x) => x.angle === d.angle).indexOf(d);
+    return tlc.capEnd + (ai + 1) * T2.cosmetic.scan - 150 + k * 220;
+  };
+  const why = D.explainGrade(defects);
   if (st === "intake") {
     if (!state.deviceId) narration = tryM ? "Pick a laptop to check. Each one tells a different story." : "Press Start the demo to watch a full check, or pick a laptop yourself.";
     else if (ti < T.intake.slideIn) narration = "Connecting the laptop to Gadget IQ.";
     else if (ti < tlc.fieldsEnd) narration = "Reading the laptop's details. No typing needed.";
     else narration = w === "start" ? "All details found. Press Start check to begin. It uses 1 Gadget Evaluate licence." : "All details found. Starting the check uses 1 Gadget Evaluate licence.";
   } else if (st === "functional") {
-    narration = tf >= tlc.testsEnd ? `Gadget Evaluate is done: ${fr.passed} passed, ${fr.failed.length} failed.` : "";
+    const cur = currentTest(tlc.sched, tlc, tf, fr);
+    narration = tf >= tlc.testsEnd ? `Gadget Evaluate is done: ${fr.passed} passed, ${fr.failed.length} failed.` : narrateTest(cur.curT, fr, w, cur.cstat);
   } else if (st === "cosmetic") {
-    if (state.checklist) narration = w === "checklist" ? "Your turn: answer 6 quick questions about the laptop." : gradeShown ? `Grade ${gradeRes.letter} from the checklist.` : "Answering 6 quick questions instead of using AI. Same grade rules.";
+    const recent = state.checklist ? undefined : sc.defects.filter((d) => tc >= revealAt(d) && tc - revealAt(d) < 1800).pop();
+    if (state.checklist) narration = w === "checklist" ? "Your turn: answer 6 quick questions about the laptop." : gradeShown ? `Grade ${gradeRes.letter} from the checklist, because of ${why.sentence}.` : "Answering 6 quick questions instead of using AI. Same grade rules.";
     else if (w === "photos") narration = "Your turn: tap each slot to take the photo.";
     else if (tc < tlc.capEnd) narration = "Taking 6 photos: front, back, both sides, top and bottom.";
     else if (gradeShown) narration = `Grade ${gradeRes.letter}. The AI is ${sc.confidence}% sure about this grade.`;
+    else if (recent) narration = `Found a ${recent.severity.toLowerCase()} ${recent.type.toLowerCase()} on the ${recent.area}. The AI is ${recent.confidence}% sure.`;
     else narration = "Gadget Lens is looking at 6 photos for scratches, dents and cracks.";
   } else if (st === "certificate") {
     if (tcert < T.certificate.merge) narration = "Joining the Gadget Evaluate result and the Gadget Lens grade into one certificate.";
@@ -103,7 +140,13 @@ export default function GadgetIqDemo({ compact = false }: { compact?: boolean })
     else if (w === "verify") narration = "Your turn: press Verify to check the certificate.";
     else narration = "The certificate is ready. Buyers can scan the QR code to check it.";
   } else if (st === "admin") {
-    narration = ta < T.admin.flight ? "The report goes straight into your admin view." : tryM ? "Your turn: follow the quick tour, then try the filters yourself." : "Quick tour of the admin view.";
+    const tips = D.ADMIN_TIPS;
+    const tipI = D.clamp(state.tipTouched ? state.tipIdx : tryM ? state.tipIdx : Math.max(0, T.admin.tips.filter((x) => ta >= x).length - 1), 0, tips.length - 1);
+    narration = ta < T.admin.flight
+      ? "The report goes straight into your admin view."
+      : tryM
+        ? `Your turn: follow the quick tour, then try the filters yourself. Tip ${tipI + 1} of ${tips.length}.`
+        : `Quick tour of the admin view. Tip ${tipI + 1} of ${tips.length}: ${tips[tipI].title.toLowerCase()}.`;
   } else narration = "One laptop, fully checked.";
 
   const GATE_LABEL: Record<string, string> = { start: "Start check", verify: "Verify", explore: "Finish tour", next: st === "functional" ? "Next: Gadget Lens" : st === "cosmetic" ? "Next: certificate" : "Next: admin view" };
@@ -133,16 +176,16 @@ export default function GadgetIqDemo({ compact = false }: { compact?: boolean })
       ref={refs.rootRef}
       id="giq-demo"
       aria-label="Gadget IQ interactive demo"
-      className="box-border max-w-full overflow-x-clip px-4 pb-10 pt-12 font-sans text-[#17284D]"
-      style={{ background: "var(--surface-page)" }}
+      className="box-border max-w-full overflow-x-clip px-4 pb-10 pt-12 font-sans text-[var(--text-primary)] antialiased [&_button:focus-visible]:shadow-[var(--shadow-focus)] [&_button:focus-visible]:outline-none"
+      style={DS_TOKENS}
     >
       <div className="mx-auto flex min-w-0 max-w-[1240px] flex-col gap-4">
         <div className="flex flex-wrap items-end justify-between gap-4">
           {!compact && (
             <div className="flex max-w-[720px] min-w-0 flex-col gap-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#B93A08]">Interactive demo</span>
-              <h2 className="m-0 text-balance font-display text-[clamp(26px,3.2vw,34px)] font-bold leading-tight tracking-tight">See Gadget IQ check a laptop, from first test to final certificate</h2>
-              <p className="m-0 text-pretty text-[clamp(15px,1.3vw,16px)] leading-snug text-[#4A5875]">Gadget Evaluate tests how it works. Gadget Lens grades how it looks. Watch it run, or try each step yourself.</p>
+              <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent-ink)]">Interactive demo</span>
+              <h2 className="m-0 font-display text-[clamp(26px,3.2vw,34px)] font-bold leading-[1.18] tracking-[-0.012em] [text-wrap:balance]">See Gadget IQ check a laptop, from first test to final certificate</h2>
+              <p className="m-0 text-[clamp(15px,1.3vw,16px)] leading-[1.55] text-[var(--text-secondary)]">Gadget Evaluate tests how it works. Gadget Lens grades how it looks. Watch it run, or try each step yourself.</p>
             </div>
           )}
           {wide && (
@@ -176,7 +219,7 @@ export default function GadgetIqDemo({ compact = false }: { compact?: boolean })
         />
 
         <div className="flex min-w-0 flex-wrap items-start gap-4">
-          <div className="flex min-w-0 max-w-full flex-[999_1_620px] flex-col overflow-hidden rounded-xl border border-[#DDE4F3] bg-white shadow-md">
+          <div className="flex min-w-0 max-w-full flex-[999_1_622px] flex-col overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--surface-card)] shadow-[var(--shadow-md)]">
             <AppHeaderBar
               appTitle={APP_TITLE[st](state.checklist)}
               showBeta={st === "cosmetic" && !state.checklist && D.AI_GRADING_BETA}
@@ -184,7 +227,7 @@ export default function GadgetIqDemo({ compact = false }: { compact?: boolean })
               walletAria={`Licence wallet: ${evalLeft} Gadget Evaluate and ${lensLeft} Gadget Lens licences left`}
               onOpenLicence={() => demo.update({ overlay: state.overlay === "licence" ? null : "licence" })}
             />
-            <div ref={refs.bodyRef} className="relative bg-white" style={{ minHeight: 520 }}>
+            <div ref={refs.bodyRef} className="relative bg-[var(--surface-card)]" style={{ minHeight: 520 }}>
               <div style={{ opacity: stageO.toFixed(2), transform: `translateY(${stageY.toFixed(1)}px)` }}>
                 {st === "intake" && <IntakeStage state={state} demo={demo} tryMode={tryM} ti={ti} />}
                 {st === "functional" && <FunctionalStage state={state} demo={demo} tf={tf} />}
@@ -243,7 +286,7 @@ export default function GadgetIqDemo({ compact = false }: { compact?: boolean })
             showKbd={!state.touch}
           />
         )}
-        <p className="m-0 text-xs text-[#4A5875]">This is a demo with sample laptops and sample test results.</p>
+        <p className="m-0 text-xs text-[var(--text-secondary)]">This is a demo with sample laptops and sample test results.</p>
         {dockOn && <div aria-hidden="true" style={{ height: 112 }} />}
       </div>
 
