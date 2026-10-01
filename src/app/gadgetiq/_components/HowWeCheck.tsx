@@ -9,13 +9,13 @@ import { fadeUp, stagger } from "./animations";
 
 const steps = [
   {
-    image: "/images/connect-identify.jpg",
+    image: "/images/connect-identify-two.jpg",
     step: "01",
     title: "Connect & Identify",
     text: "Device is connected and its model, serial number and specs are auto-detected.",
   },
   {
-    image: "/images/certify.jpg",
+  image: "/images/Test.jpg",
     step: "02",
     title: "Run Diagnostics",
     text: "35 automated functional tests validate hardware, battery, display and ports.",
@@ -27,7 +27,7 @@ const steps = [
     text: "AI-powered surface scan detects scratches and wear to assign a cosmetic grade.",
   },
   {
-    image: "/images/run-diagnostics.jpg",
+    image: "/images/certify-new.jpg",
     step: "04",
     title: "Certify",
     text: "A verified pass/fail certificate is issued with the final condition grade.",
@@ -36,7 +36,7 @@ const steps = [
 
 export default function HowWeCheck() {
   return (
-    <PageShell id="how-we-check" className="bg-white">
+    <PageShell id="how-we-check" className="bg-white py-6!">
       <motion.div
         initial="hidden"
         whileInView="show"
@@ -52,7 +52,7 @@ export default function HowWeCheck() {
 
         <motion.div
           variants={stagger}
-          className="mt-11 grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
+          className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
         >
           {steps.map((item) => (
             <motion.div
@@ -67,6 +67,7 @@ export default function HowWeCheck() {
                   src={item.image}
                   alt={item.title}
                   fill
+                  sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
                   className="object-contain transition-transform duration-500 ease-out group-hover:scale-110"
                 />
               </div>

@@ -12,6 +12,8 @@ import {
   Slash,
   Asterisk,
   Waves,
+  Diamond,
+  Droplets,
   BatteryFull,
   Shield,
   ScanSearch,
@@ -29,10 +31,12 @@ import {
 ========================================================= */
 
 const HERO_DEFECTS = [
-  { label: "Crack", score: 0.94, color: "#EF4444", location: "Top Left Panel", severity: "Major" },
-  { label: "Dent", score: 0.87, color: "#10B981", location: "Center Right Panel", severity: "Moderate" },
-  { label: "Scratch", score: 0.91, color: "#F59E0B", location: "Bottom Left / Hinge", severity: "Minor" },
-  { label: "Scuff", score: 0.89, color: "#3B82F6", location: "Bottom Right Panel", severity: "Minor" },
+  { label: "Crack", score: 0.94, color: "#EF4444", location: "Screen Bottom Left", severity: "Major" },
+  { label: "Chip", score: 0.88, color: "#8B5CF6", location: "Screen Top Right Corner", severity: "Minor" },
+  { label: "Discoloration", score: 0.86, color: "#EC4899", location: "Palm Rest", severity: "Minor" },
+  { label: "Dent", score: 0.87, color: "#10B981", location: "Body Bottom Left", severity: "Moderate" },
+  { label: "Scuff", score: 0.89, color: "#3B82F6", location: "Palm Rest Right", severity: "Minor" },
+  { label: "Scratch", score: 0.91, color: "#F59E0B", location: "Body Bottom Right", severity: "Minor" },
 ];
 
 const CAPTURE_ORDER = ["Front", "Back", "Left", "Right", "Top", "Bottom"];
@@ -238,10 +242,12 @@ function CaptureVisual() {
 }
 
 const DETECT_MARKERS = [
-  { marker: { x: 30, y: 33 }, tag: { x: 22, y: 26 }, tagStyle: { left: "2%", top: "max(27%, 46px)" }, Icon: Slash },
-  { marker: { x: 68, y: 30 }, tag: { x: 78, y: 25 }, tagStyle: { right: "2%", top: "max(27%, 46px)" }, Icon: Asterisk },
-  { marker: { x: 28, y: 56 }, tag: { x: 21, y: 63 }, tagStyle: { left: "2%", top: "62%" }, Icon: Asterisk },
-  { marker: { x: 70, y: 72 }, tag: { x: 78, y: 76 }, tagStyle: { right: "2%", top: "72%" }, Icon: Waves },
+  { marker: { x: 27, y: 58 }, tag: { x: 22, y: 27 }, tagStyle: { left: "2%", top: "max(27%, 46px)" }, Icon: Slash },
+  { marker: { x: 81, y: 25 }, tag: { x: 78, y: 27 }, tagStyle: { right: "2%", top: "max(27%, 46px)" }, Icon: Diamond },
+  { marker: { x: 40, y: 69 }, tag: { x: 22, y: 50 }, tagStyle: { left: "2%", top: "50%" }, Icon: Droplets },
+  { marker: { x: 29, y: 76 }, tag: { x: 22, y: 73 }, tagStyle: { left: "2%", top: "73%" }, Icon: Asterisk },
+  { marker: { x: 59, y: 69 }, tag: { x: 78, y: 50 }, tagStyle: { right: "2%", top: "50%" }, Icon: Waves },
+  { marker: { x: 74, y: 76 }, tag: { x: 78, y: 73 }, tagStyle: { right: "2%", top: "73%" }, Icon: Asterisk },
 ];
 
 function DetectVisual() {
@@ -423,7 +429,7 @@ function DashboardVisual() {
         ))}
       </div>
 
-      <div className="mt-2 grid grid-cols-4 gap-1.5">
+      <div className="mt-2 grid grid-cols-6 gap-1.5">
         {HERO_DEFECTS.map((defect, idx) => (
           <motion.div
             key={defect.label}

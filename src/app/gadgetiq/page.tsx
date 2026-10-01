@@ -15,9 +15,6 @@ import BusinessSolutions from "./(evaluate)/_components/business-solutions/Busin
 
 
 // Dynamic imports of subsequent sections directly from local _components
-const GadgetIQWorkflow = dynamic(() => import("./_components/GadgetIQWorkflow"), {
-  loading: () => <SectionSkeleton />,
-});
 const VideoShowcase = dynamic(() => import("./(evaluate)/_components/video-showcase/VideoShowcase"), {
   loading: () => <SectionSkeleton />,
 });
@@ -59,10 +56,9 @@ export default function GadgetIQPage() {
       <main className="relative z-10 flex flex-col w-full">
         {/* <Hero /> */}
         <DiagnosticsHero />
+        <VideoShowcase />
         <CoreFeatures />
         {/* <TestParameters /> */}
-        <GadgetIQWorkflow />
-        <VideoShowcase />
 
         <HowWeCheck />
         <BusinessSolutions />

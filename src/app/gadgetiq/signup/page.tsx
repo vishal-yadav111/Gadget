@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { getPhoneError, sanitizePhoneInput } from "@/lib/phone";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Building2,
@@ -117,10 +118,10 @@ export default function GadgetIqSignUpPage() {
       return;
     }
 
-    // 5. Phone validation (at least 10 digits)
-    const digitsOnly = formData.phone.replace(/\D/g, "");
-    if (digitsOnly.length < 10 || digitsOnly.length > 15) {
-      setError("Please enter a valid Phone Number with at least 10 digits.");
+    // 5. Phone validation (international numbering plans, E.164)
+    const phoneError = getPhoneError(formData.phone);
+    if (phoneError) {
+      setError(phoneError);
       return;
     }
 
@@ -501,8 +502,11 @@ export default function GadgetIqSignUpPage() {
                         type="tel"
                         required
                         value={formData.phone}
-                        onChange={(e) => handleChange("phone", e.target.value)}
-                        placeholder="+91 9876543210"
+                        onChange={(e) => handleChange("phone", sanitizePhoneInput(e.target.value))}
+                        inputMode="tel"
+                        autoComplete="tel"
+                        maxLength={20}
+                        placeholder="+91 98765 43210"
                         disabled={loading}
                         className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#F4F6FB] border border-[#DDE4F3] focus:bg-white focus:border-[#0052CC] focus:ring-3 focus:ring-[#0052CC]/15 text-sm text-[#17284D] placeholder-[#5F6A86]/60 outline-none transition-all duration-150 font-medium"
                       />

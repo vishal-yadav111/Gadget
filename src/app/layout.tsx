@@ -18,6 +18,7 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
   subsets: ["latin"],
   weight: ["400", "500", "700"],
+  preload: false,
   adjustFontFallback: false,
   fallback: ["ui-monospace", "monospace"],
 });
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: LayoutProps) {
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={`${sora.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>

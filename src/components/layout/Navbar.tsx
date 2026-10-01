@@ -25,10 +25,6 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
 
-  const isEvaluate = pathname
-    ? pathname.startsWith("/gadgetiq/evaluate")
-    : false;
-
   const [scrolled, setScrolled] = useState(false);
   const [headerVisible, setHeaderVisible] = useState(true);
   const lastScrollY = useRef(0);
@@ -170,26 +166,43 @@ export default function Navbar() {
       ],
     },
     {
-      name: "How It Works",
-      href: "/gadgetiq/#how-we-check",
+      name: "Interactive Demo",
+      href: "/gadgetiq/interactive-demo",
     },
     {
       name: "What We Check",
-      href: "/gadgetiq/#what-we-check",
+      href: "#what-we-check",
     },
     {
       name: "Enterprises",
-      href: "/gadgetiq/#built",
+      href: "#built",
     },
     {
       name: "FAQs",
-      href: "/gadgetiq/#faqs",
+      href: "#faqs",
     },
     {
       name: "Contact Us",
-      href: "/gadgetiq/#contact",
+      href: "#contact",
     },
   ];
+
+  // Scrolls a section to the top of the viewport. The offset below the fixed
+  // header comes from `scroll-padding-top` on <html> (globals.css). Sections
+  // lazy-loaded further down the page can change height while the smooth scroll
+  // runs, so the position is re-checked once it has settled.
+  const scrollToSection = (elem: HTMLElement) => {
+    elem.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    window.setTimeout(() => {
+      const offset = parseFloat(
+        getComputedStyle(document.documentElement).scrollPaddingTop
+      ) || 0;
+      if (Math.abs(elem.getBoundingClientRect().top - offset) > 4) {
+        elem.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 900);
+  };
 
   const handleNavClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
@@ -200,62 +213,28 @@ export default function Navbar() {
     }
 
     if (href.startsWith("#")) {
-      const targetId = href.substring(1);
-      const elem = document.getElementById(targetId);
+      const elem = document.getElementById(href.substring(1));
 
       if (elem) {
         e.preventDefault();
-
-        const headerOffset = 80;
-        const elementPosition = elem.getBoundingClientRect().top;
-
-        const offsetPosition =
-          elementPosition + window.pageYOffset - headerOffset;
-
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: "smooth",
-        });
-
+        scrollToSection(elem);
         window.history.pushState(null, "", href);
       } else {
-        const basePath = isEvaluate
-          ? "/gadgetiq/evaluate"
-          : "/gadgetiq";
-
-        window.location.href = `${basePath}${href}`;
+        // The section is not on the current page, so fall back to the home page.
+        window.location.href = `/gadgetiq${href}`;
       }
     } else if (href.includes("#")) {
       const [path, hash] = href.split("#");
 
-      const currentPath = pathname
-        ? pathname.replace(/\/$/, "")
-        : "";
-
+      const currentPath = pathname ? pathname.replace(/\/$/, "") : "";
       const targetPath = path.replace(/\/$/, "");
 
       if (currentPath === targetPath) {
-        const targetId = hash;
-        const elem = document.getElementById(targetId);
+        const elem = document.getElementById(hash);
 
         if (elem) {
           e.preventDefault();
-
-          const headerOffset = 80;
-          const elementPosition =
-            elem.getBoundingClientRect().top;
-
-          const offsetPosition =
-            elementPosition +
-            window.pageYOffset -
-            headerOffset;
-
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: "smooth",
-          });
-
-
+          scrollToSection(elem);
           window.history.pushState(null, "", `#${hash}`);
         }
       }
@@ -270,12 +249,15 @@ export default function Navbar() {
         className={cn(
           "fixed top-0 left-0 right-0 z-40 bg-white transition-all duration-300 ease-in-out px-4 sm:px-6 md:px-12 lg:px-16 xl:px-20",
           headerVisible ? "translate-y-0" : "-translate-y-full",
-          scrolled
-            ? "border-b border-brand-border/80 shadow-xs py-2.5 sm:py-3"
-            : "py-4 sm:py-5"
+          scrolled && "border-b border-brand-border/80 shadow-xs"
         )}
       >
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+        <div
+          className={cn(
+            "max-w-7xl mx-auto flex items-center justify-between transition-all duration-300",
+            scrolled ? "py-1 sm:py-1.5" : "py-2 sm:py-2.5"
+          )}
+        >
           {/* ================= LOGO ================= */}
           <Link
             href="/gadgetiq"
@@ -312,11 +294,11 @@ export default function Navbar() {
           </Link>
 
           {/* ================= DESKTOP NAVIGATION ================= */}
-          <nav className="hidden lg:flex items-center space-x-5 xl:space-x-7">
+          <nav className="hidden lg:flex self-stretch items-stretch space-x-5 xl:space-x-7">
             {navLinks.map((link) => (
               <div
                 key={link.name}
-                className="relative group"
+                className="relative group flex items-center"
               >
                 {/* SOLUTIONS MENU */}
                 {"submenu" in link ? (
@@ -333,7 +315,7 @@ export default function Navbar() {
                     </button>
 
                     {/* SUBMENU */}
-                    <div className="absolute left-0 top-full pt-3 opacity-0 invisible translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200">
+                    <div className="absolute left-0 top-full pt-0 opacity-0 invisible translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200">
                       <div className="w-56 rounded-xl bg-brand-bg-deep border border-brand-border shadow-xl p-2">
                         {link.submenu?.map((subItem) => (
                           <Link
@@ -457,19 +439,14 @@ export default function Navbar() {
             ) : (
               /* When NOT Logged In: Route directly to /gadgetiq/login */
               <>
-                <Link
-                  href="/gadgetiq/dashboard"
-                  className="px-4 py-2.5 rounded-full bg-blue-50/80 hover:bg-blue-100 text-[#0052CC] border border-blue-200/80 text-xs xl:text-sm font-bold transition-all flex items-center space-x-1.5 shadow-xs cursor-pointer"
-                >
-                  <span>Dashboard</span>
-                </Link>
-
-                <Link
-                  href="/gadgetiq/login"
+               
+                <a
+                  href="#contact"
+                  onClick={(e) => handleNavClick(e, "#contact")}
                   className="px-4 xl:px-5 py-2.5 rounded-full bg-gradient-to-r from-brand-btn-orange to-brand-btn-orange-highlight text-xs xl:text-sm font-semibold text-white shadow-md shadow-brand-btn-orange/20 hover:shadow-brand-btn-orange/40 flex items-center space-x-2 border border-brand-btn-orange/30 group transition-all duration-300 btn-shimmer cursor-pointer"
                 >
-                  <span>Sign In</span>
-                </Link>
+                  <span>Book A Demo</span>
+                </a>
               </>
             )}
           </div>

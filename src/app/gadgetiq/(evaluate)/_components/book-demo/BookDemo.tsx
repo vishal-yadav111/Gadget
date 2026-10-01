@@ -4,8 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { CalendarCheck, Mail, Loader2 } from "lucide-react";
 
-// Phone number regex: optional leading plus, followed by 10 to 20 digits, spaces, hyphens, or parentheses
-const phoneRegex = /^\+?[0-9\s\-()]{10,20}$/;
+import { getPhoneError, sanitizePhoneInput } from "@/lib/phone";
 
 interface DemoFormState {
   name: string;
@@ -71,7 +70,10 @@ export default function BookDemo() {
 
   const updateDemoForm = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = event.target;
-    setDemoForm((current) => ({ ...current, [name]: value }));
+    setDemoForm((current) => ({
+      ...current,
+      [name]: name === "phone" ? sanitizePhoneInput(value) : value,
+    }));
 
     // Clear field-specific error as user types/interacts
     if (errors[name as keyof ValidationErrors]) {
@@ -98,11 +100,8 @@ export default function BookDemo() {
       fieldErrors.email = "Invalid email address";
     }
 
-    if (!demoForm.phone.trim()) {
-      fieldErrors.phone = "Phone number is required";
-    } else if (!phoneRegex.test(demoForm.phone)) {
-      fieldErrors.phone = "Invalid phone number";
-    }
+    const phoneError = getPhoneError(demoForm.phone);
+    if (phoneError) fieldErrors.phone = phoneError;
 
     if (!demoForm.company.trim()) {
       fieldErrors.company = "Company is required";
@@ -274,10 +273,14 @@ export default function BookDemo() {
                     <span className={labelClass}>phone *</span>
                     <input
                       name="phone"
+                      type="tel"
+                      inputMode="tel"
+                      autoComplete="tel"
+                      maxLength={20}
                       value={demoForm.phone}
                       onChange={updateDemoForm}
                       className={`${fieldClass} ${errors.phone ? errorFieldClass : ""}`}
-                      placeholder="Phone number"
+                      placeholder="+91 98765 43210"
                     />
                     {errors.phone && (
                       <p className="mt-1.5 text-xs text-red-500 font-semibold">{errors.phone}</p>

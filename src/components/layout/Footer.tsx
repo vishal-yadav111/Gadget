@@ -119,6 +119,11 @@ export default function Footer() {
                 Gadget Lens
               </Link>
             </li>
+            <li>
+              <Link href="/gadgetiq/interactive-demo" className="text-brand-text-secondary hover:text-brand-text-primary transition-colors">
+                Interactive Demo
+              </Link>
+            </li>
           </ul>
         </div>
 

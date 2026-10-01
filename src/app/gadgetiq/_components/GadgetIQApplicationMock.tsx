@@ -15,7 +15,9 @@ import {
   CircuitBoard,
   Cpu,
   CreditCard,
+  Diamond,
   Disc3,
+  Droplets,
   Fan,
   Gauge,
   HardDrive,
@@ -982,16 +984,22 @@ function CertificateSpec({
 
 const DETECT_DEFECTS = [
   { label: "Crack", color: "#EF4444" },
+  { label: "Chip", color: "#8B5CF6" },
+  { label: "Discoloration", color: "#EC4899" },
   { label: "Dent", color: "#10B981" },
-  { label: "Scratch", color: "#F59E0B" },
   { label: "Scuff", color: "#3B82F6" },
+  { label: "Scratch", color: "#F59E0B" },
 ];
 
+// Same order as DETECT_DEFECTS. Crack and chip sit on the screen; the
+// discoloration, dent, scuff and scratch sit on the body (palm rest / base).
 const DETECT_MARKERS = [
   { x: 30, y: 33, tag: { x: 28, y: 17 }, Icon: Slash },
-  { x: 68, y: 30, tag: { x: 70, y: 15 }, Icon: Asterisk },
-  { x: 28, y: 56, tag: { x: 27, y: 67 }, Icon: Asterisk },
-  { x: 70, y: 72, tag: { x: 71, y: 82 }, Icon: Waves },
+  { x: 77, y: 24, tag: { x: 72, y: 15 }, Icon: Diamond },
+  { x: 36, y: 71, tag: { x: 33, y: 96 }, Icon: Droplets },
+  { x: 25, y: 77, tag: { x: 18, y: 88 }, Icon: Asterisk },
+  { x: 66, y: 72, tag: { x: 66, y: 96 }, Icon: Waves },
+  { x: 76, y: 79, tag: { x: 80, y: 88 }, Icon: Asterisk },
 ];
 
 function DetectIssuesScreen() {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import http from "node:http";
 import https from "node:https";
+import { getPhoneError } from "@/lib/phone";
 
 const BRAHMA_BACKEND_URL = (
   process.env.BRAHMA_BACKEND_URL ||
@@ -116,6 +117,14 @@ export async function POST(req: NextRequest) {
           { status: 400, headers: getCorsHeaders() }
         );
       }
+    }
+
+    const phoneError = getPhoneError(String(payload.phone));
+    if (phoneError) {
+      return NextResponse.json(
+        { success: false, code: 400, message: phoneError },
+        { status: 400, headers: getCorsHeaders() }
+      );
     }
 
     const bodyJsonString = JSON.stringify({

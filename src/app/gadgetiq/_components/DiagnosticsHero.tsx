@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import StickyQuoteForm from "./StickyQuoteForm";
 
 import {
@@ -80,8 +81,8 @@ export default function DiagnosticsHero() {
           {/* CTA */}
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
-            <button
-              type="button"
+            <a
+              href="#contact"
               className="group flex items-center justify-center gap-3 rounded-full bg-gradient-to-r from-[#FF5436] to-[#F13B20] px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white shadow-[0_10px_22px_rgba(247,69,38,0.25)] transition duration-300 hover:-translate-y-0.5"
             >
               Book a Demo
@@ -90,10 +91,10 @@ export default function DiagnosticsHero() {
                 size={16}
                 className="transition-transform duration-300 group-hover:translate-x-1"
               />
-            </button>
+            </a>
 
-            <button
-              type="button"
+            <Link
+              href="/gadgetiq/interactive-demo"
               className="group flex items-center justify-center gap-3 rounded-full border border-[#D4DFEF] bg-white/80 px-6 py-3.5 text-[11px] font-bold uppercase tracking-[0.1em] text-[#17294D] shadow-sm transition duration-300 hover:border-[#B8CAE3] hover:bg-white"
             >
               See How It Flows
@@ -102,7 +103,7 @@ export default function DiagnosticsHero() {
                 size={16}
                 className="transition-transform duration-300 group-hover:translate-x-1"
               />
-            </button>
+            </Link>
           </div>
 
           {/* BENEFITS */}

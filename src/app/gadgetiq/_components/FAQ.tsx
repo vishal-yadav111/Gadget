@@ -56,10 +56,11 @@ const faqs = [
 
 export default function FAQ() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const half = Math.ceil(faqs.length / 2);
 
   return (
     <section id="faqs" className="relative z-10 px-5 py-20 lg:px-8 bg-[#F4F6FB]/80">
-      <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+      <div className="mx-auto grid max-w-7xl gap-10">
         <motion.div
           initial="hidden"
           whileInView="show"
@@ -80,39 +81,46 @@ export default function FAQ() {
           viewport={{ once: true, amount: 0.2 }}
           variants={fadeRight}
         >
-          <DarkCard className="p-3 bg-white border-[#DDE4F3] shadow-md">
-            {faqs.map((item, index) => (
-              <div key={item.q} className="border-b border-[#DDE4F3]/60 last:border-b-0">
-                <button
-                  onClick={() => setOpenFaq(openFaq === index ? null : index)}
-                  className="flex w-full items-center justify-between gap-4 px-5 py-5 text-left transition-colors hover:text-[#0052CC] cursor-pointer"
-                >
-                  <span className={`text-sm font-bold font-display transition-colors ${openFaq === index ? "text-[#0052CC]" : "text-[#17284D]"}`}>
-                    {item.q}
-                  </span>
-                  <ChevronDown
-                    size={18}
-                    className={`shrink-0 transition-transform duration-300 ${
-                      openFaq === index ? "rotate-180 text-[#0052CC]" : "text-slate-400"
-                    }`}
-                  />
-                </button>
-                <AnimatePresence initial={false}>
-                  {openFaq === index && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.28 }}
-                      className="overflow-hidden"
-                    >
-                      <p className="px-5 pb-5 text-sm leading-relaxed text-[#4A5875] font-normal">{item.a}</p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+            {[faqs.slice(0, half), faqs.slice(half)].map((column, colIndex) => (
+              <DarkCard key={colIndex} className="p-3 bg-white border-[#DDE4F3] shadow-md">
+                {column.map((item, i) => {
+                  const index = colIndex === 0 ? i : half + i;
+                  return (
+                    <div key={item.q} className="border-b border-[#DDE4F3]/60 last:border-b-0">
+                      <button
+                        onClick={() => setOpenFaq(openFaq === index ? null : index)}
+                        className="flex w-full items-center justify-between gap-4 px-5 py-5 text-left transition-colors hover:text-[#0052CC] cursor-pointer"
+                      >
+                        <span className={`text-sm font-bold font-display transition-colors ${openFaq === index ? "text-[#0052CC]" : "text-[#17284D]"}`}>
+                          {item.q}
+                        </span>
+                        <ChevronDown
+                          size={18}
+                          className={`shrink-0 transition-transform duration-300 ${
+                            openFaq === index ? "rotate-180 text-[#0052CC]" : "text-slate-400"
+                          }`}
+                        />
+                      </button>
+                      <AnimatePresence initial={false}>
+                        {openFaq === index && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.28 }}
+                            className="overflow-hidden"
+                          >
+                            <p className="px-5 pb-5 text-sm leading-relaxed text-[#4A5875] font-normal">{item.a}</p>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
+              </DarkCard>
             ))}
-          </DarkCard>
+          </div>
         </motion.div>
       </div>
     </section>

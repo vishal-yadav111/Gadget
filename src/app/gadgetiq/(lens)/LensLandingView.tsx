@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { createPortal } from "react-dom";
-import Link from "next/link";
 import Image from "next/image";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -15,13 +13,9 @@ import {
   ArrowRight,
   Eye,
   FileCheck,
-  AlertTriangle,
-  X,
   Shield,
   Clock,
-  FileText,
   TrendingUp,
-  Download,
   ChevronDown,
   ScanSearch,
   Image as ImageIcon,
@@ -131,17 +125,9 @@ const FAQ_ITEMS = [
   },
 ];
 
-const GRADE_SCALE = [
-  { grade: "A", color: "#10B981", title: "Like New", desc: "No visible issues" },
-  { grade: "B", color: "#34D399", title: "Very Good", desc: "Minimal signs of use" },
-  { grade: "C", color: "#0052CC", title: "Good", desc: "Light, standard wear" },
-  { grade: "D", color: "#F59E0B", title: "Fair", desc: "Noticeable wear" },
-  { grade: "E", color: "#EF4444", title: "Quarantine", desc: "Damage or defect found" },
-];
+const FAQ_HALF = Math.ceil(FAQ_ITEMS.length / 2);
 
 export default function GadgetIQLensPage() {
-  const mounted = typeof window !== "undefined";
-  const [showFullGrading, setShowFullGrading] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
   return (
@@ -190,12 +176,12 @@ export default function GadgetIQLensPage() {
                   <ArrowRight className="w-4 h-4 text-white group-hover:translate-x-0.5 transition-transform" />
                 </a>
 
-                <Link
-                  href="/gadgetiq/login"
+                <a
+                  href="#how-it-works"
                   className="px-6 py-3.5 rounded-full bg-white hover:bg-slate-50 text-[#17284D] border border-[#DDE4F3] font-bold text-sm shadow-xs flex items-center space-x-2 transition-all hover:border-blue-300"
                 >
-                  <span>Sign In</span>
-                </Link>
+                  <span>See How It Works ↓</span>
+                </a>
               </div>
 
               {/* Proof Strip */}
@@ -332,14 +318,6 @@ export default function GadgetIQLensPage() {
                       Grading is based on visible external condition only.
                     </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowFullGrading(true)}
-                    className="flex shrink-0 items-center gap-1.5 text-sm font-bold text-blue-600 hover:text-blue-700 cursor-pointer"
-                  >
-                    <span>View full grading criteria</span>
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </button>
                 </div>
               </div>
             </div>
@@ -385,7 +363,7 @@ export default function GadgetIQLensPage() {
         </div>
 
         {/* How It Works Section */}
-        <div className="w-full bg-white">
+        <div id="how-it-works" className="w-full bg-white">
           <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
             <div className="max-w-2xl">
               <h2 className="text-[15px] font-bold leading-tight tracking-tight text-[#17284D] sm:text-[21px] lg:text-[25px] font-display">
@@ -454,115 +432,9 @@ export default function GadgetIQLensPage() {
           </section>
         </div>
 
-        {/* Sample Grading Report Section */}
-        <div className="w-full bg-[#F4F6FB]">
-          <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
-            <div className="max-w-2xl">
-              <div className="inline-flex items-center gap-2 rounded-full bg-[#0052CC]/10 px-4 py-1.5">
-                <FileText className="h-3.5 w-3.5 text-[#0052CC]" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#0052CC]">
-                  Sample Report
-                </span>
-              </div>
-
-              <h2 className="mt-4 text-[15px] font-bold leading-tight tracking-tight text-[#17284D] sm:text-[21px] lg:text-[25px] font-display">
-                See exactly{" "}
-                <span className="font-bold italic text-[#0052CC]">
-                  what you get.
-                </span>
-              </h2>
-
-              <p className="mt-3 text-sm sm:text-base text-[#5F6A86]">
-                Explore a sample laptop inspection report.
-              </p>
-            </div>
-
-            <div className="mt-10 grid grid-cols-1 items-center gap-10 rounded-[32px] border border-[#DDE4F3] bg-white p-6 shadow-xl sm:p-10 lg:grid-cols-2 lg:gap-14">
-              {/* Laptop visual */}
-              <div className="relative w-full">
-                <Image
-                  src="/images/hp-laptop.jpg"
-                  alt="Sample laptop inspection report showing annotated scratches and dents"
-                  width={1448}
-                  height={1086}
-                  sizes="(min-width: 1024px) 500px, 90vw"
-                  className="h-auto w-full rounded-2xl object-contain"
-                />
-                <span className="absolute left-1/2 top-2 -translate-x-1/2 whitespace-nowrap rounded-full bg-slate-900/80 px-2 py-1 text-[8px] font-bold uppercase tracking-wider text-white shadow sm:px-3 sm:text-[10px]">
-                  Illustrative sample
-                </span>
-              </div>
-
-              {/* Report detail panel */}
-              <div className="space-y-5">
-                <div className="flex items-center justify-between rounded-2xl border border-[#DDE4F3] bg-[#F7FAFE] p-5">
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#5F6A86]">
-                      Cosmetic Grade
-                    </p>
-                    <div className="mt-1.5 flex items-center gap-2">
-                      <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-500 text-base font-extrabold text-white">
-                        E
-                      </span>
-                      <span className="text-base font-bold text-[#17284D]">Poor</span>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#5F6A86]">
-                      Confidence Score
-                    </p>
-                    <p className="mt-1.5 text-2xl font-extrabold text-red-600">91%</p>
-                  </div>
-                </div>
-
-                <div className="rounded-2xl border border-[#DDE4F3] p-5">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#5F6A86]">
-                    Detected Defects &amp; Severity
-                  </p>
-                  <div className="mt-3 space-y-2.5">
-                    {[
-                      { name: "Crack", severity: "Major", count: 1 },
-                      { name: "Scratches", severity: "Minor", count: 1 },
-                      { name: "Dents", severity: "Moderate", count: 1 },
-                      { name: "Scuffs", severity: "Minor", count: 1 },
-                    ].map((row) => (
-                      <div
-                        key={row.name}
-                        className="flex items-center justify-between text-sm"
-                      >
-                        <div className="flex items-center gap-2">
-                          <AlertTriangle className="h-4 w-4 text-orange-500" />
-                          <span className="font-semibold text-[#17284D]">{row.name}</span>
-                        </div>
-                        <span className="text-xs font-medium text-[#5F6A86]">
-                          {row.severity} · {row.count}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <a
-                  href="/images/device-report.PDF"
-                  download="Gadget-Lens-Sample-Report.pdf"
-                  className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-brand-btn-orange to-brand-btn-orange-highlight px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-brand-btn-orange/25 transition-all hover:shadow-brand-btn-orange/45 btn-shimmer cursor-pointer"
-                >
-                  <Download className="h-4 w-4" />
-                  <span>Download Sample Report</span>
-                </a>
-
-                <p className="text-center text-[11px] text-[#8896AC] sm:text-left">
-                  Sample data for illustration. Your report will reflect your device&apos;s actual
-                  condition.
-                </p>
-              </div>
-            </div>
-          </section>
-        </div>
-
         {/* FAQ Section */}
-        <div className="w-full bg-[#F4F6FB]">
-          <section className="mx-auto grid w-full max-w-7xl items-center gap-10 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
+        <div id="faqs" className="w-full bg-[#F4F6FB]">
+          <section className="mx-auto grid w-full max-w-7xl items-center gap-10 px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
             <div>
               <h2 className="text-left text-[15px] font-bold leading-tight tracking-tight text-[#17284D] sm:text-[21px] lg:text-[25px] font-display">
                 Frequently Asked Questions
@@ -572,8 +444,12 @@ export default function GadgetIQLensPage() {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-[#DDE4F3] bg-white p-3 shadow-md">
-              {FAQ_ITEMS.map((item, idx) => {
+            <div>
+              <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+              {[FAQ_ITEMS.slice(0, FAQ_HALF), FAQ_ITEMS.slice(FAQ_HALF)].map((column, colIndex) => (
+              <div key={colIndex} className="rounded-2xl border border-[#DDE4F3] bg-white p-3 shadow-md">
+              {column.map((item, i) => {
+                const idx = colIndex === 0 ? i : FAQ_HALF + i;
                 const isOpen = openFaqIndex === idx;
                 return (
                   <div key={item.question} className="border-b border-[#DDE4F3]/60 last:border-b-0">
@@ -616,6 +492,9 @@ export default function GadgetIQLensPage() {
                   </div>
                 );
               })}
+              </div>
+              ))}
+              </div>
             </div>
           </section>
         </div>
@@ -627,79 +506,6 @@ export default function GadgetIQLensPage() {
       {/* Footer */}
       <Footer />
       <ScrollToTop />
-
-
-      {mounted &&
-        createPortal(
-          <AnimatePresence>
-            {showFullGrading && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/80 p-6 backdrop-blur-sm"
-                onClick={() => setShowFullGrading(false)}
-              >
-                <motion.div
-                  initial={{ scale: 0.92, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.92, opacity: 0 }}
-                  transition={{ duration: 0.25, ease: "easeOut" }}
-                  onClick={(event) => event.stopPropagation()}
-                  className="relative w-full max-w-2xl rounded-3xl border border-[#DDE4F3] bg-white p-6 shadow-2xl sm:p-8"
-                >
-                  <button
-                    type="button"
-                    onClick={() => setShowFullGrading(false)}
-                    className="absolute right-4 top-4 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-[#DDE4F3] bg-white text-[#17284D] shadow-xs transition hover:bg-slate-50"
-                    aria-label="Close"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-
-                  <h3 className="text-base font-bold text-[#17284D] sm:text-lg">
-                    Full Grading Criteria
-                  </h3>
-                  <p className="mt-1 text-xs text-[#5F6A86] sm:text-sm">
-                    Every laptop is assigned one of the grades below, based on its visible
-                    cosmetic condition.
-                  </p>
-
-                  <div className="mt-6 grid grid-cols-3 gap-2 sm:grid-cols-5">
-                    {GRADE_SCALE.map((g) => (
-                      <div key={g.grade} className="text-center">
-                        <div
-                          className="flex h-10 items-center justify-center rounded-lg text-sm font-extrabold text-white shadow-xs"
-                          style={{ backgroundColor: g.color }}
-                        >
-                          {g.grade}
-                        </div>
-                        <p className="mt-1.5 text-[10px] font-bold leading-tight text-[#17284D]">
-                          {g.title}
-                        </p>
-                        <p className="text-[9px] leading-tight text-[#5F6A86]">{g.desc}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div
-                    className="mt-4 h-2 rounded-full"
-                    style={{
-                      background:
-                        "linear-gradient(to right, #10B981, #34D399, #0052CC, #F59E0B, #EF4444)",
-                    }}
-                  />
-                  <div className="mt-1.5 flex items-center justify-between text-[10px] font-bold text-[#17284D] sm:text-[11px]">
-                    <span>Best Condition</span>
-                    <span>Most Issues Detected</span>
-                  </div>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>,
-          document.body
-        )}
     </div>
   );
 }

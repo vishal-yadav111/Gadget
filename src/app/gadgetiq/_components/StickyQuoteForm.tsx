@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Loader2, X } from "lucide-react";
 
-const phoneRegex = /^\+?[0-9\s\-()]{10,20}$/;
+import { getPhoneError, sanitizePhoneInput } from "@/lib/phone";
 
 interface DemoFormState {
   name: string;
@@ -53,7 +53,10 @@ export default function StickyQuoteForm() {
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = event.target;
-    setDemoForm((current) => ({ ...current, [name]: value }));
+    setDemoForm((current) => ({
+      ...current,
+      [name]: name === "phone" ? sanitizePhoneInput(value) : value,
+    }));
     if (errors[name as keyof ValidationErrors]) {
       setErrors((current) => {
         const next = { ...current };
@@ -78,11 +81,8 @@ export default function StickyQuoteForm() {
       fieldErrors.email = "Invalid email address";
     }
 
-    if (!demoForm.phone.trim()) {
-      fieldErrors.phone = "Phone number is required";
-    } else if (!phoneRegex.test(demoForm.phone)) {
-      fieldErrors.phone = "Invalid phone number";
-    }
+    const phoneError = getPhoneError(demoForm.phone);
+    if (phoneError) fieldErrors.phone = phoneError;
 
     if (!demoForm.company.trim()) {
       fieldErrors.company = "Company is required";
@@ -243,10 +243,14 @@ export default function StickyQuoteForm() {
                         <span className={labelClass}>phone *</span>
                         <input
                           name="phone"
+                          type="tel"
+                          inputMode="tel"
+                          autoComplete="tel"
+                          maxLength={20}
                           value={demoForm.phone}
                           onChange={updateDemoForm}
                           className={`${fieldClass} ${errors.phone ? errorFieldClass : ""}`}
-                          placeholder="Phone number"
+                          placeholder="+91 98765 43210"
                         />
                         {errors.phone && <p className="mt-1 text-[10px] text-red-500 font-semibold">{errors.phone}</p>}
                       </label>

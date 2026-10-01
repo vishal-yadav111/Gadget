@@ -110,23 +110,33 @@ export default function FAQs() {
       {/* Decorative top lighting glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[300px] bg-[radial-gradient(ellipse_at_top,rgba(255,90,31,0.02),transparent_60%)] pointer-events-none" />
 
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <SectionHeading
           eyebrow="FAQ"
+          align="left"
           title="Questions? We've got you covered."
           subtitle="Clear answers to help you get started with functional device evaluation."
         />
 
-        <div className="mt-0 glass-panel rounded-3xl p-6 md:p-10 border border-white/5 bg-brand-bg-deep/50 shadow-xl">
-          {faqs.map((faq, index) => (
-            <FAQItem
-              key={index}
-              question={faq.question}
-              answer={faq.answer}
-              isOpen={openIndex === index}
-              onToggle={() => setOpenIndex(openIndex === index ? null : index)}
-            />
-          ))}
+        <div>
+          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+            {[faqs.slice(0, Math.ceil(faqs.length / 2)), faqs.slice(Math.ceil(faqs.length / 2))].map((column, colIndex) => (
+              <div key={colIndex} className="glass-panel rounded-3xl p-6 md:p-8 border border-white/5 bg-brand-bg-deep/50 shadow-xl">
+                {column.map((faq, i) => {
+                  const index = colIndex === 0 ? i : Math.ceil(faqs.length / 2) + i;
+                  return (
+                    <FAQItem
+                      key={index}
+                      question={faq.question}
+                      answer={faq.answer}
+                      isOpen={openIndex === index}
+                      onToggle={() => setOpenIndex(openIndex === index ? null : index)}
+                    />
+                  );
+                })}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
